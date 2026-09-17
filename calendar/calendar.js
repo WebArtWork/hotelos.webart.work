@@ -216,12 +216,9 @@ document.addEventListener('click',e=>{
  const el=e.target.closest('button,a,[data-booking],[data-room]');
  if(!el)return;
  if(el.matches('[data-close]'))closeDialog();
- else if(el.matches('.mobile-menu')){const opened=$('#sidebar').classList.toggle('open');$('.nav-overlay').hidden=!opened;el.setAttribute('aria-expanded',String(opened))}
- else if(el.matches('.nav-overlay')){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true}
+ else if(el.matches('.mobile-menu')){const opened=$('#sidebar').classList.toggle('open');$('.nav-overlay').hidden=!opened;document.documentElement.classList.toggle('no-scroll',opened);el.setAttribute('aria-expanded',String(opened))}
+ else if(el.matches('.nav-overlay')){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');document.documentElement.classList.remove('no-scroll')}
  else if(el.dataset.action==='new-booking')quickBooking(rooms[0].number,TODAY);
- else if(el.dataset.action==='search')show('Пошук','<p>Використайте поле пошуку в панелі інструментів календаря.</p>');
- else if(el.dataset.action==='notifications')show('Сповіщення','<p>Демонстраційні сповіщення недоступні на цій сторінці.</p>');
- else if(el.dataset.action==='profile')show('Профіль','<p>Демонстраційний профіль власника.</p>');
  else if(el.dataset.view==='ai')show('Hotel AI','<p>AI-помічник доступний з головної сторінки огляду.</p>');
  else if(el.dataset.view)show(el.textContent.trim(),'<p>Цей розділ ще у розробці в демонстраційній версії.</p>');
  else if(el.dataset.quickRoom)quickBooking(el.dataset.quickRoom,el.dataset.quickDate);
@@ -284,6 +281,6 @@ document.addEventListener('submit',e=>{
  }else if(f.id==='message-form'){closeDialog();toast('Чернетку повідомлення підготовлено · Демо')}
 });
 for(const d of [dialog])d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSidePanel();$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSidePanel();$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll')}});
 
 render();

@@ -11,7 +11,7 @@
  <div class="sidebar-bottom"><a class="nav-item" href="/team/"><span data-icon="guests"></span>Команда</a><a class="nav-item" href="/settings/"><span data-icon="settings"></span>Налаштування</a><div class="plan-note"><span class="plan-dot"></span><span>Тариф Small<small>Демонстраційний готель</small></span><a href="/#pricing" aria-label="Переглянути тарифи">↗</a></div></div>
 </aside><button class="nav-overlay" aria-label="Закрити навігацію" hidden></button>
 <div class="workspace">
- <header class="topbar"><button class="icon-button mobile-menu" aria-label="Відкрити навігацію" aria-expanded="false" aria-controls="sidebar" data-icon="menu"></button><div class="greeting"><b>Календар <span class="greeting-spark">✦</span></b><span>Grand Hotel · Кам’янець-Подільський</span></div><div class="top-actions"><button class="icon-button" aria-label="Пошук" data-action="search" data-icon="search"></button><button class="icon-button notification-button" aria-label="Сповіщення" data-action="notifications"><span data-icon="bell"></span><i></i></button><span class="top-divider"></span><a class="ai-button" href="/ai/"><span data-icon="spark"></span>Hotel AI</a><button class="profile" data-action="profile" aria-label="Профіль">ОК</button></div></header>
+ <header class="topbar"><a class="topbar-logo" href="/" aria-label="Hotel OS — головна сторінка">H</a><button class="icon-button mobile-menu" aria-label="Відкрити навігацію" aria-expanded="false" aria-controls="sidebar" data-icon="menu"></button><div class="greeting"><b>Календар <span class="greeting-spark">✦</span></b><span>Grand Hotel · Кам’янець-Подільський</span></div><div class="top-actions"><a class="icon-button" aria-label="Пошук" href="/search/" data-icon="search"></a><a class="icon-button notification-button" aria-label="Сповіщення" href="/notifications/"><span data-icon="bell"></span><i></i></a><span class="top-divider"></span><a class="ai-button" href="/ai/"><span data-icon="spark"></span>Hotel AI</a><a class="profile" href="/profile/" aria-label="Профіль">ОК</a></div></header>
  <main id="main" tabindex="-1">
   <div class="page-heading"><div><div class="breadcrumb">Робочий простір <span>/</span> Календар</div><h1>Календар</h1><p>Усі номери, бронювання та вільні дати в одному місці.</p></div><div class="page-actions"><button class="button secondary" id="today-btn">Сьогодні</button><button class="button primary" data-action="new-booking"><span data-icon="plus"></span>Нове бронювання</button></div></div>
 
@@ -66,11 +66,10 @@
    <div class="mobile-tabs"><button data-mdays="1" class="active">День</button><button data-mdays="3">3 дні</button></div>
    <div id="mobile-rooms"></div>
   </div>
-
+  <div class="workspace-footer"><span>Hotel OS · Календар бронювань</span><span>Демонстраційні дані · 17.09.2026</span></div>
  </main>
 </div>
-<button class="floating-ai" data-action="new-booking" aria-label="Нове бронювання"><span data-icon="plus"></span></button>
-<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/" class="selected"><span data-icon="calendar"></span>Календар</a><a href="/booking/"><span data-icon="booking"></span>Бронювання</a><a href="/housekeeping/"><span data-icon="clean"></span>Прибирання</a></div>
+<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/" class="selected"><span data-icon="calendar"></span>Календар</a><a href="/booking/"><span data-icon="booking"></span>Бронювання</a><button class="mobile-menu" aria-label="Відкрити меню" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span>Меню</button></div>
 
 <div class="side-scrim" id="side-scrim" hidden></div>
 <aside class="side-panel" id="side-panel" aria-label="Деталі бронювання">

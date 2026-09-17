@@ -11,7 +11,7 @@
  <div class="sidebar-bottom"><a class="nav-item" href="/team/"><span data-icon="guests"></span>Команда</a><a class="nav-item" href="/settings/"><span data-icon="settings"></span>Налаштування</a><div class="plan-note"><span class="plan-dot"></span><span>Тариф Small<small>Демонстраційний готель</small></span><a href="/#pricing" aria-label="Переглянути тарифи">↗</a></div></div>
 </aside><button class="nav-overlay" aria-label="Закрити навігацію" hidden></button>
 <div class="workspace">
- <header class="topbar"><button class="icon-button mobile-menu" aria-label="Відкрити навігацію" aria-expanded="false" aria-controls="sidebar" data-icon="menu"></button><div class="greeting"><b>Прибирання <span class="greeting-spark">✦</span></b><span>Grand Hotel · Кам’янець-Подільський</span></div><div class="top-actions"><button class="icon-button notification-button" aria-label="Сповіщення" data-action="notifications"><span data-icon="bell"></span><i></i></button><span class="top-divider"></span><a class="ai-button" href="/ai/"><span data-icon="spark"></span>Hotel AI</a><button class="profile" data-action="profile" aria-label="Профіль">ОК</button></div></header>
+ <header class="topbar"><a class="topbar-logo" href="/" aria-label="Hotel OS — головна сторінка">H</a><button class="icon-button mobile-menu" aria-label="Відкрити навігацію" aria-expanded="false" aria-controls="sidebar" data-icon="menu"></button><div class="greeting"><b>Прибирання <span class="greeting-spark">✦</span></b><span>Grand Hotel · Кам’янець-Подільський</span></div><div class="top-actions"><a class="icon-button" aria-label="Пошук" href="/search/" data-icon="search"></a><a class="icon-button notification-button" aria-label="Сповіщення" href="/notifications/"><span data-icon="bell"></span><i></i></a><span class="top-divider"></span><a class="ai-button" href="/ai/"><span data-icon="spark"></span>Hotel AI</a><a class="profile" href="/profile/" aria-label="Профіль">ОК</a></div></header>
  <main id="main" tabindex="-1">
 
   <div class="page-heading"><div><h1>Прибирання</h1><p>Контролюйте готовність номерів і роботу команди.</p></div><div class="page-actions"><a class="button secondary" href="/team/">Команда</a><button class="button primary" id="btn-add-task">+ Додати задачу</button></div></div>
@@ -71,10 +71,12 @@
   <div id="empty-state" hidden></div>
 
   <div class="team-row" id="team-row"></div>
-
+  <div class="workspace-footer"><span>Hotel OS · Прибирання</span><span>Демонстраційні дані · 17.09.2026</span></div>
  </main>
 </div>
 
+
+<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/"><span data-icon="calendar"></span>Календар</a><a href="/booking/"><span data-icon="booking"></span>Бронювання</a><button class="mobile-menu" aria-label="Відкрити меню" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span>Меню</button></div>
 <button class="floating-add" id="floating-add" aria-label="Додати задачу">+</button>
 
 <div class="side-scrim" id="side-scrim" hidden></div>

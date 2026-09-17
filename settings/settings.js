@@ -351,8 +351,8 @@ function goToSection(id){state.section=id;renderNav();renderContent();window.scr
 document.addEventListener('click',e=>{
  const el=e.target.closest('button,a');
  if(!el)return;
- if(el.matches('.mobile-menu')){const opened=$('#sidebar').classList.toggle('open');$('.nav-overlay').hidden=!opened;el.setAttribute('aria-expanded',String(opened));return}
- if(el.matches('.nav-overlay')){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;return}
+ if(el.matches('.mobile-menu')){const opened=$('#sidebar').classList.toggle('open');$('.nav-overlay').hidden=!opened;document.documentElement.classList.toggle('no-scroll',opened);el.setAttribute('aria-expanded',String(opened));return}
+ if(el.matches('.nav-overlay')){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');return}
  if(el.matches('[data-close]')){closeDialog();return}
  if(el.dataset.view==='team'){show('Команда','<p>Розділ команди ще у розробці в демонстраційній версії.</p>');return}
 
@@ -403,7 +403,7 @@ document.addEventListener('submit',e=>{
  if(f.id==='add-source-form'){sources.push({name:String(data.get('name')),active:true});closeDialog();markDirty();renderContent();toast('Джерело додано')}
 });
 document.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');document.documentElement.classList.remove('no-scroll')}});
 window.addEventListener('beforeunload',e=>{if(state.dirty){e.preventDefault();e.returnValue=''}});
 
 renderAll();

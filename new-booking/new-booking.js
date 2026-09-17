@@ -213,8 +213,8 @@ $('#btn-other-pref').addEventListener('click',otherPrefModal);
 
 document.addEventListener('input',e=>{if(e.target.id==='guest-query'){state.guest.query=e.target.value;renderGuestResults()}});
 document.addEventListener('click',e=>{
- if(e.target.closest('.mobile-menu')){const opened=$('#sidebar').classList.toggle('open');$('.nav-overlay').hidden=!opened;e.target.closest('.mobile-menu').setAttribute('aria-expanded',String(opened));return}
- if(e.target.closest('.nav-overlay')){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;return}
+ if(e.target.closest('.mobile-menu')){const opened=$('#sidebar').classList.toggle('open');$('.nav-overlay').hidden=!opened;document.documentElement.classList.toggle('no-scroll',opened);e.target.closest('.mobile-menu').setAttribute('aria-expanded',String(opened));return}
+ if(e.target.closest('.nav-overlay')){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');return}
  const roomCard=e.target.closest('.room-card[data-room]');
  if(roomCard){state.room=rooms.find(r=>r.number===roomCard.dataset.room);renderAll();return}
  const alt=e.target.closest('[data-alt]');
@@ -246,7 +246,7 @@ document.addEventListener('submit',e=>{
  else if(f.id==='pref-form'){state.prefs.push(String(data.get('pref')).trim());closeDialog();renderPrefs();toast('Побажання додано')}
 });
 document.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');document.documentElement.classList.remove('no-scroll')}});
 
 function submitBooking(){
  const errs=validation();
