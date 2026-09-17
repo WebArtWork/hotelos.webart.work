@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Hotel OS — продажі. Дивіться, звідки приходять гості та які канали приносять найбільше бронювань."><title>Продажі — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/sales/"><link rel="stylesheet" href="/sales/sales.css"></head>
+<body>
+<a class="skip" href="#main">Перейти до продажів</a>
+<aside class="sidebar" id="sidebar" aria-label="Навігація готелю">
+ <a class="logo" href="/" aria-label="Hotel OS — головна сторінка"><span class="logo-mark">H</span>Hotel <b>OS</b></a>
+ <div class="hotel"><span class="hotel-icon" data-icon="hotel"></span><div><b>Grand Hotel</b><small>Кам’янець-Подільський</small></div><span class="hotel-chevron">⌄</span></div>
+ <span class="nav-label">РОБОЧИЙ ПРОСТІР</span>
+ <nav><a class="nav-item" href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a class="nav-item" href="/calendar/"><span data-icon="calendar"></span>Календар</a><a class="nav-item" href="/booking/"><span data-icon="booking"></span>Бронювання</a><a class="nav-item" href="/guests/"><span data-icon="guests"></span>Гості</a><a class="nav-item" href="/rooms/"><span data-icon="hotel"></span>Номери</a><a class="nav-item" href="/payments/"><span data-icon="wallet"></span>Оплати</a><a class="nav-item" href="/housekeeping/"><span data-icon="clean"></span>Прибирання</a><a class="nav-item" href="/messages/"><span data-icon="message"></span>Повідомлення</a><a class="nav-item" href="/automations/"><span data-icon="automation"></span>Автоматизації</a><a class="nav-item active" href="/sales/" aria-current="page"><span data-icon="chart"></span>Продажі</a><a class="nav-item ai-nav" href="/ai/"><span data-icon="spark"></span>AI-помічник<span class="ai-label">AI</span></a></nav>
+ <div class="sidebar-bottom"><a class="nav-item" href="/team/"><span data-icon="guests"></span>Команда</a><a class="nav-item" href="/settings/"><span data-icon="settings"></span>Налаштування</a><div class="plan-note"><span class="plan-dot"></span><span>Тариф Small<small>Демонстраційний готель</small></span><a href="/#pricing" aria-label="Переглянути тарифи">↗</a></div></div>
+</aside><button class="nav-overlay" aria-label="Закрити навігацію" hidden></button>
+<div class="workspace">
+ <header class="topbar"><button class="icon-button mobile-menu" aria-label="Відкрити навігацію" aria-expanded="false" aria-controls="sidebar" data-icon="menu"></button><div class="greeting"><b>Продажі <span class="greeting-spark">✦</span></b><span>Grand Hotel · Кам’янець-Подільський</span></div><div class="top-actions"><button class="icon-button notification-button" aria-label="Сповіщення" data-action="notifications"><span data-icon="bell"></span><i></i></button><span class="top-divider"></span><a class="ai-button" href="/ai/"><span data-icon="spark"></span>Hotel AI</a><button class="profile" data-action="profile" aria-label="Профіль">ОК</button></div></header>
+ <main id="main" tabindex="-1">
+
+  <div class="page-heading">
+   <div><h1>Продажі</h1><p>Дивіться, звідки приходять гості та які канали приносять найбільше бронювань.</p></div>
+   <div class="page-actions">
+    <select class="plain" id="period-select">
+     <option value="today">Сьогодні</option><option value="week">Цей тиждень</option><option value="month" selected>Цей місяць</option><option value="lastmonth">Минулий місяць</option><option value="year">Цей рік</option><option value="custom">Власний період</option>
+    </select>
+    <div class="compare-toggle"><span>Порівняти з попереднім періодом</span><span class="switch" id="compare-switch" role="switch" tabindex="0" aria-checked="false"></span></div>
+    <button class="button secondary" id="btn-export">Експорт</button>
+   </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="unknown-banner" id="unknown-banner">
+   <span>⚠</span><span><b>18 бронювань</b> не мають вказаного джерела.</span>
+   <button class="text-action" id="btn-view-unknown">Переглянути →</button>
+  </div>
+
+  <div class="top-cards">
+   <div class="top-card"><small>НАЙБІЛЬШЕ БРОНЮВАНЬ</small><h3>Пряме бронювання</h3><span>29 бронювань</span></div>
+   <div class="top-card"><small>НАЙБІЛЬШИЙ ДОХІД</small><h3>Пряме бронювання</h3><span>142 000 ₴</span></div>
+  </div>
+
+  <div class="ai-card">
+   <b class="ai-title"><span data-icon="spark"></span>Hotel AI</b>
+   <h2>Що змінилося у продажах</h2>
+   <p>Цього місяця частка прямих бронювань зросла з 31% до 34%.</p>
+   <p>Instagram приніс 15 бронювань на 76 200 ₴.</p>
+   <p>18 гостей цього місяця вже проживали у вас раніше.</p>
+   <div class="ai-quick">
+    <button data-ai-q="topSource">Звідки найбільше бронювань?</button>
+    <button data-ai-q="instagram">Скільки ми отримали з Instagram?</button>
+    <button data-ai-q="directShare">Яка частка прямих бронювань?</button>
+    <button data-ai-q="returning">Скільки повторних гостей?</button>
+    <button data-ai-q="growth">Які джерела зросли цього місяця?</button>
+   </div>
+   <div id="ai-answer"></div>
+  </div>
+
+  <div class="card">
+   <h2>Звідки приходять гості</h2>
+   <p class="card-sub">Розподіл бронювань за джерелами · натисніть, щоб побачити деталі.</p>
+   <div class="grid2">
+    <div class="source-bars" id="source-bars"></div>
+    <div>
+     <h2 style="font-size:13px">Дохід за джерелами</h2>
+     <div class="source-bars" id="revenue-bars"></div>
+    </div>
+   </div>
+  </div>
+
+  <div class="card">
+   <h2>Джерела бронювань</h2>
+   <div class="table-card"><div class="table-wrap"><table><thead><tr><th>Джерело</th><th>Бронювання</th><th>Ночі</th><th>Дохід</th><th>Середній чек</th><th>Частка</th><th>Повторні гості</th></tr></thead><tbody id="source-tbody"></tbody></table></div></div>
+   <button class="button secondary" id="btn-manage-sources" style="margin-top:16px">Керувати джерелами</button>
+  </div>
+
+  <div class="card">
+   <h2>Прямі та сторонні бронювання</h2>
+   <div class="direct-cards" id="direct-cards"></div>
+   <p class="direct-note">Чим більше прямих бронювань — тим більше контролю залишається у готелю.</p>
+  </div>
+
+  <div class="card">
+   <h2>Частка прямих бронювань</h2>
+   <p class="card-sub" id="direct-trend-sub"></p>
+   <div class="trend-chart" id="direct-trend"></div>
+  </div>
+
+  <div class="card">
+   <h2>Бронювання протягом місяця</h2>
+   <p class="card-sub">1–30 вересня</p>
+   <div class="chart-toggle"><button data-metric="bookings" class="active">Бронювання</button><button data-metric="revenue">Дохід</button></div>
+   <div class="bar-chart2" id="month-chart"></div>
+  </div>
+
+  <div class="grid2">
+   <div class="card">
+    <h2>Середній чек</h2>
+    <b style="font-size:26px;display:block">4 984 ₴</b>
+    <p class="card-sub" style="margin:6px 0 0">Минулий місяць: 4 620 ₴ · <b style="color:#5e7865">+7,9%</b></p>
+    <p class="card-sub">Розрахунок на основі завершених та підтверджених бронювань.</p>
+   </div>
+   <div class="card">
+    <h2>Середня тривалість</h2>
+    <b style="font-size:26px;display:block">2.8 ночі</b>
+    <p class="card-sub" style="margin:6px 0 16px">86 бронювань</p>
+    <div class="stay-breakdown" id="stay-breakdown"></div>
+   </div>
+  </div>
+
+  <div class="grid2">
+   <div class="card">
+    <h2>Вартість бронювань</h2>
+    <div class="info-grid" style="font-size:12px"><dt>Вартість бронювань</dt><dd>461 200 ₴</dd><dt>Фактично отримано</dt><dd>428 600 ₴</dd><dt>Outstanding</dt><dd>18 600 ₴</dd><dt>Повернено</dt><dd>14 000 ₴</dd></div>
+    <p class="card-sub" style="margin-top:12px">Дохід = отримані платежі мінус повернення.</p>
+   </div>
+   <div class="card">
+    <h2>Нові та повторні гості</h2>
+    <div class="stat-pair"><div><b>68</b><span>Нові · 79%</span></div><div><b>18</b><span>Повторні · 21%</span></div></div>
+    <p class="card-sub" style="margin-top:12px">Повторний гість = гість, який мав хоча б одне завершене проживання раніше.</p>
+   </div>
+  </div>
+
+  <div class="card">
+   <h2>Як повертаються постійні гості</h2>
+   <p class="card-sub">Джерело останнього бронювання постійних гостей.</p>
+   <div id="return-sources"></div>
+  </div>
+
+  <div class="card">
+   <h2>Перше джерело vs останнє джерело</h2>
+   <p class="card-sub">Гість може вперше прийти через OTA, а наступного разу забронювати напряму.</p>
+   <div class="transition-card"><div><small>Перше джерело</small><b>Booking.com</b></div><span class="transition-arrow">→</span><div><small>Останнє джерело</small><b>Пряме бронювання</b></div></div>
+  </div>
+
+  <div class="card">
+   <h2>Кампанії</h2>
+   <p class="card-sub">Джерела бронювань з міткою кампанії.</p>
+   <div class="campaign-cards" id="campaign-cards"></div>
+  </div>
+
+ </main>
+</div>
+
+<div class="side-scrim" id="side-scrim" hidden></div>
+<aside class="side-panel" id="side-panel" aria-label="Деталі джерела">
+ <div class="side-panel-head"><span class="dialog-label">HOTEL OS <span>· ДЖЕРЕЛО</span></span><button class="icon-button" id="side-close" aria-label="Закрити" data-icon="close"></button></div>
+ <div class="side-panel-body" id="side-body"></div>
+</aside>
+
+<dialog id="details-dialog"><div class="dialog-head"><span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span><button class="icon-button" data-close aria-label="Закрити вікно" data-icon="close"></button></div><div id="dialog-content"></div></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="/sales/sales.js"></script>
+</body></html>

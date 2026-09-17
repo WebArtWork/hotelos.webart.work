@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Grand Hotel — пряме бронювання номерів у Кам’янці-Подільському. Миттєве підтвердження, без прихованих платежів."><title>Grand Hotel — пряме бронювання</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/book/"><link rel="stylesheet" href="/book/book.css"></head>
+<body>
+<header class="topbar">
+ <div class="tb-logo"><span class="mark">G</span>Grand Hotel</div>
+ <div class="tb-right">
+  <a class="phone" href="tel:+380671234567" data-icon="phone"></a>
+  <button class="text-link" id="btn-my-bookings">Мої бронювання</button>
+ </div>
+</header>
+
+<main id="main">
+
+ <!-- SCREEN: search + results -->
+ <section class="screen active" id="screen-search">
+
+  <div class="hero">
+   <img class="hotel-photo" src="/assets/images/hotel/exterior.webp" alt="Ілюстративний фасад бутик-готелю та брукований внутрішній дворик" width="1536" height="1024" loading="eager" decoding="async" fetchpriority="high"><p class="photo-disclosure">Демонстраційний готель · Фото згенеровані AI</p>
+   <div class="hero-info">
+    <h1>Grand Hotel</h1>
+    <p class="addr">Кам’янець-Подільський</p>
+    <p class="tagline">Бутик-готель у центрі міста.</p>
+    <div class="quick-info">
+     <span>Check-in після 14:00</span>
+     <span>Check-out до 11:00</span>
+     <span>Wi-Fi</span>
+     <span>Паркінг</span>
+     <span>Сніданок</span>
+    </div>
+   </div>
+  </div>
+
+  <div class="trust-strip">
+   <span>Пряме бронювання у готелі</span>
+   <span>Миттєве підтвердження</span>
+   <span>Без прихованих платежів</span>
+  </div>
+
+  <div class="search-card">
+   <div class="search-field" style="grid-area:a"><label for="s-start">Заїзд</label><input type="date" id="s-start"></div>
+   <div class="search-field" style="grid-area:b"><label for="s-end">Виїзд</label><input type="date" id="s-end"></div>
+   <div class="search-field guest-wrap" style="grid-area:g">
+    <label>Гості</label>
+    <button class="guest-display" id="guest-toggle" type="button"></button>
+    <div class="guest-popover" id="guest-popover" hidden>
+     <div class="guest-row2"><span>Дорослі</span><div class="stepper"><button type="button" data-g="adults" data-d="-1">−</button><b id="adults-val">2</b><button type="button" data-g="adults" data-d="1">+</button></div></div>
+     <div class="guest-row2"><span>Діти</span><div class="stepper"><button type="button" data-g="children" data-d="-1">−</button><b id="children-val">0</b><button type="button" data-g="children" data-d="1">+</button></div></div>
+     <button class="done-btn" type="button" id="guest-done">Готово</button>
+    </div>
+   </div>
+   <button class="cta-search" id="btn-search" style="grid-area:c">Знайти номер</button>
+  </div>
+
+  <div id="results-block"></div>
+
+  <div class="info-section" id="about-section">
+   <h2 class="section-heading">Про Grand Hotel</h2>
+   <p class="section-sub" style="margin-bottom:14px">Затишний бутик-готель у самому центрі Кам’янця-Подільського, за кілька хвилин ходьби від старого міста.</p>
+   <div class="quick-info">
+    <span>Адреса: Кам’янець-Подільський</span>
+    <span>Check-in: 14:00</span>
+    <span>Check-out: 11:00</span>
+    <span>+380 67 123 45 67</span>
+    <span>info@grandhotel.example</span>
+   </div>
+   <div class="gallery-strip">
+    <img class="hotel-photo" src="/assets/images/hotel/exterior.webp" alt="Ілюстративний фасад бутик-готелю" width="1536" height="1024" loading="lazy" decoding="async">
+    <img class="hotel-photo" src="/assets/images/hotel/lobby.webp" alt="Лобі з дубовою стійкою рецепції та срібними кріслами" width="1536" height="1024" loading="lazy" decoding="async">
+    <img class="hotel-photo" src="/assets/images/hotel/breakfast.webp" alt="Сніданок із випічкою, фруктами та кавою" width="1536" height="1024" loading="lazy" decoding="async">
+    <img class="hotel-photo" src="/assets/images/hotel/exterior.webp" alt="Атмосфера брукованого дворика демонстраційного готелю" width="1536" height="1024" loading="lazy" decoding="async">
+    <img class="hotel-photo" src="/assets/images/hotel/suite-bedroom.webp" alt="Ілюстративний номер Люкс із двоспальним ліжком" width="1536" height="1024" loading="lazy" decoding="async">
+   </div>
+  </div>
+
+  <div class="info-section" id="location-section">
+   <h2 class="section-heading">Розташування</h2>
+   <div class="location-block">Кам’янець-Подільський, центр міста · <a href="#" id="map-link">Прокласти маршрут ↗</a></div>
+  </div>
+
+  <div class="info-section" id="faq-section">
+   <h2 class="section-heading">Питання та відповіді</h2>
+   <div class="faq-item"><h4>Коли можна заселитися?</h4><p>Після 14:00.</p></div>
+   <div class="faq-item"><h4>Коли потрібно виїхати?</h4><p>До 11:00.</p></div>
+   <div class="faq-item"><h4>Чи потрібна передоплата?</h4><p>Залежить від обраного тарифу — можна оплатити при заселенні, внести передоплату або оплатити повністю онлайн.</p></div>
+   <div class="faq-item"><h4>Чи можна скасувати бронювання?</h4><p>Безкоштовне скасування можливе до 48 годин до заїзду.</p></div>
+  </div>
+
+ </section>
+
+ <!-- SCREEN: room details -->
+ <section class="screen" id="screen-room-details"></section>
+
+ <!-- SCREEN: guest info -->
+ <section class="screen" id="screen-guest"></section>
+
+ <!-- SCREEN: payment -->
+ <section class="screen" id="screen-payment"></section>
+
+ <!-- SCREEN: review -->
+ <section class="screen" id="screen-review"></section>
+
+ <!-- SCREEN: success -->
+ <section class="screen" id="screen-success"></section>
+
+ <!-- SCREEN: no availability -->
+ <section class="screen" id="screen-no-availability"></section>
+
+ <!-- SCREEN: error -->
+ <section class="screen" id="screen-error"></section>
+
+</main>
+
+<div class="sticky-bar" id="sticky-bar"></div>
+
+<script src="/assets/hotel-photos.js"></script>
+<script src="/book/book.js"></script>
+</body></html>

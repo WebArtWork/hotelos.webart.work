@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Hotel OS — календар. Усі номери, бронювання та вільні дати в одному місці."><title>Календар — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/calendar/"><link rel="stylesheet" href="/calendar/calendar.css"></head>
+<body>
+<a class="skip" href="#main">Перейти до календаря</a>
+<aside class="sidebar" id="sidebar" aria-label="Навігація готелю">
+ <a class="logo" href="/" aria-label="Hotel OS — головна сторінка"><span class="logo-mark">H</span>Hotel <b>OS</b></a>
+ <div class="hotel"><span class="hotel-icon" data-icon="hotel"></span><div><b>Grand Hotel</b><small>Кам’янець-Подільський</small></div><span class="hotel-chevron">⌄</span></div>
+ <span class="nav-label">РОБОЧИЙ ПРОСТІР</span>
+ <nav><a class="nav-item" href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a class="nav-item active" href="/calendar/" aria-current="page"><span data-icon="calendar"></span>Календар</a><a class="nav-item" href="/booking/"><span data-icon="booking"></span>Бронювання</a><a class="nav-item" href="/guests/"><span data-icon="guests"></span>Гості</a><a class="nav-item" href="/rooms/"><span data-icon="hotel"></span>Номери</a><a class="nav-item" href="/payments/"><span data-icon="wallet"></span>Оплати</a><a class="nav-item" href="/housekeeping/"><span data-icon="clean"></span>Прибирання</a><a class="nav-item" href="/messages/"><span data-icon="message"></span>Повідомлення</a><a class="nav-item" href="/automations/"><span data-icon="automation"></span>Автоматизації</a><a class="nav-item" href="/sales/"><span data-icon="chart"></span>Продажі</a><a class="nav-item ai-nav" href="/ai/"><span data-icon="spark"></span>AI-помічник<span class="ai-label">AI</span></a></nav>
+ <div class="sidebar-bottom"><a class="nav-item" href="/team/"><span data-icon="guests"></span>Команда</a><a class="nav-item" href="/settings/"><span data-icon="settings"></span>Налаштування</a><div class="plan-note"><span class="plan-dot"></span><span>Тариф Small<small>Демонстраційний готель</small></span><a href="/#pricing" aria-label="Переглянути тарифи">↗</a></div></div>
+</aside><button class="nav-overlay" aria-label="Закрити навігацію" hidden></button>
+<div class="workspace">
+ <header class="topbar"><button class="icon-button mobile-menu" aria-label="Відкрити навігацію" aria-expanded="false" aria-controls="sidebar" data-icon="menu"></button><div class="greeting"><b>Календар <span class="greeting-spark">✦</span></b><span>Grand Hotel · Кам’янець-Подільський</span></div><div class="top-actions"><button class="icon-button" aria-label="Пошук" data-action="search" data-icon="search"></button><button class="icon-button notification-button" aria-label="Сповіщення" data-action="notifications"><span data-icon="bell"></span><i></i></button><span class="top-divider"></span><a class="ai-button" href="/ai/"><span data-icon="spark"></span>Hotel AI</a><button class="profile" data-action="profile" aria-label="Профіль">ОК</button></div></header>
+ <main id="main" tabindex="-1">
+  <div class="page-heading"><div><div class="breadcrumb">Робочий простір <span>/</span> Календар</div><h1>Календар</h1><p>Усі номери, бронювання та вільні дати в одному місці.</p></div><div class="page-actions"><button class="button secondary" id="today-btn">Сьогодні</button><button class="button primary" data-action="new-booking"><span data-icon="plus"></span>Нове бронювання</button></div></div>
+
+  <div class="cal-toolbar cal-desktop">
+   <div class="cal-nav">
+    <button class="icon-button" id="prev-range" aria-label="Попередній період" data-icon="left"></button>
+    <b id="range-label"></b>
+    <button class="icon-button" id="next-range" aria-label="Наступний період" data-icon="right"></button>
+    <div class="cal-views" role="group" aria-label="Кількість днів">
+     <button data-days="7">7 днів</button>
+     <button data-days="14" class="active">14 днів</button>
+     <button data-days="30">30 днів</button>
+    </div>
+   </div>
+   <div class="cal-toolbar-right">
+    <div class="cal-search"><span data-icon="search"></span><input id="cal-search" placeholder="Знайти гостя або бронювання"></div>
+    <div class="filters-wrap">
+     <button class="button secondary" id="filters-toggle"><span data-icon="filter"></span>Фільтри</button>
+     <div class="filters-panel" id="filters-panel" hidden>
+      <section><h4>Статус бронювання</h4>
+       <label><input type="checkbox" value="confirmed" checked>Підтверджено</label>
+       <label><input type="checkbox" value="pending" checked>Очікує</label>
+       <label><input type="checkbox" value="checkedin" checked>Заїхав</label>
+       <label><input type="checkbox" value="cancelled" checked>Скасовано</label>
+      </section>
+      <section><h4>Тип номера</h4>
+       <label><input type="checkbox" value="Стандарт" checked>Стандарт</label>
+       <label><input type="checkbox" value="Покращений" checked>Покращений</label>
+       <label><input type="checkbox" value="Люкс" checked>Люкс</label>
+       <label><input type="checkbox" value="Апартаменти" checked>Апартаменти</label>
+      </section>
+      <div class="filters-actions"><button class="text-action" id="filters-clear">Очистити</button><button class="button primary" id="filters-apply">Застосувати</button></div>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <div class="legend cal-desktop">
+   <span><i class="lg-confirmed"></i>Підтверджено</span>
+   <span><i class="lg-checkedin"></i>Заїхав</span>
+   <span><i class="lg-pending"></i>Очікує</span>
+   <span><i class="lg-cancelled"></i>Скасовано</span>
+   <span><i class="lg-blocked"></i>Недоступно</span>
+  </div>
+
+  <div class="cal-wrap cal-desktop" id="cal-wrap">
+   <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <div class="cal-mobile">
+   <div class="mobile-datebar"><button id="m-prev" aria-label="Попередній день" data-icon="left"></button><span id="m-date"></span><button id="m-next" aria-label="Наступний день" data-icon="right"></button></div>
+   <div class="mobile-tabs"><button data-mdays="1" class="active">День</button><button data-mdays="3">3 дні</button></div>
+   <div id="mobile-rooms"></div>
+  </div>
+
+ </main>
+</div>
+<button class="floating-ai" data-action="new-booking" aria-label="Нове бронювання"><span data-icon="plus"></span></button>
+<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/" class="selected"><span data-icon="calendar"></span>Календар</a><a href="/booking/"><span data-icon="booking"></span>Бронювання</a><a href="/housekeeping/"><span data-icon="clean"></span>Прибирання</a></div>
+
+<div class="side-scrim" id="side-scrim" hidden></div>
+<aside class="side-panel" id="side-panel" aria-label="Деталі бронювання">
+ <div class="side-panel-head"><span class="dialog-label">HOTEL OS <span>· БРОНЮВАННЯ</span></span><button class="icon-button" id="side-close" aria-label="Закрити" data-icon="close"></button></div>
+ <div class="side-panel-body" id="side-body"></div>
+</aside>
+
+<dialog id="details-dialog"><div class="dialog-head"><span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span><button class="icon-button" data-close aria-label="Закрити вікно" data-icon="close"></button></div><div id="dialog-content"></div></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="/calendar/calendar.js"></script>
+</body></html>
