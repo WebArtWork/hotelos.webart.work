@@ -2,7 +2,7 @@
 <html lang="uk">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><meta name="description" content="Hotel OS — вхід до системи."><title>Вхід — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/login/"><link rel="stylesheet" href="/login/login.css"></head>
 <body>
-<div class="demo-bar">
+<div class="demo-bar" id="demo-controls">
  <span>Демо: цю сторінку не підключено до реальної автентифікації · Стан:</span>
  <select id="demo-state">
   <option value="login">Вхід</option>
@@ -32,7 +32,7 @@
 
 <div class="shell">
  <div class="form-side">
-  <div class="form-wrap">
+  <div class="form-wrap" id="auth-panel">
    <a class="brand" href="/"><span class="mark">H</span><span>Hotel <b>OS</b><small>Система управління готелем</small></span></a>
    <div id="auth-main"></div>
   </div>

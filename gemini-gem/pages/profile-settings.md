@@ -27,6 +27,14 @@
 - Немає історії власних дій чи журналу входів (є лише дата останнього входу).
 - Немає можливості видалити власний акаунт із цієї сторінки.
 
+### Прямі посилання
+- [Дані профілю (ім'я, роль)](https://hotelos.webart.work/profile/#profile-header)
+- [Особисті дані](https://hotelos.webart.work/profile/#personal-data)
+- [Зміна пароля](https://hotelos.webart.work/profile/#password)
+- [Особисті сповіщення](https://hotelos.webart.work/profile/#notifications)
+- [Безпека акаунта](https://hotelos.webart.work/profile/#security)
+- [Вихід з акаунта](https://hotelos.webart.work/profile/#logout)
+
 ## Налаштування (/settings/)
 
 ### Призначення
@@ -64,3 +72,18 @@
 - Деактивація готелю — показує лише інформаційне вікно про те, що дія вимагає звернення в підтримку Hotel OS; фактичної деактивації не відбувається.
 - Розмежування доступу за ролями — суто демонстраційне: перемикач ролі в топбарі лише імітує обмеження інтерфейсу (блокування/readonly), а не реальну автентифікацію чи авторизацію.
 - Розділ "Команда" з бічного меню налаштувань (посилання data-view="team") показує заглушку "ще у розробці" в деяких місцях UI, хоча повноцінна сторінка команди існує окремо на /team/.
+
+### Прямі посилання
+- [Загальне](https://hotelos.webart.work/settings/#general)
+- [Контакти та локація](https://hotelos.webart.work/settings/#contacts)
+- [Заселення та виїзд](https://hotelos.webart.work/settings/#checkin-checkout)
+- [Бронювання](https://hotelos.webart.work/settings/#booking-rules)
+- [Оплати](https://hotelos.webart.work/settings/#payments)
+- [Правила](https://hotelos.webart.work/settings/#policies)
+- [Booking Page](https://hotelos.webart.work/settings/#booking-page)
+- [Повідомлення](https://hotelos.webart.work/settings/#messaging)
+- [Автоматизації](https://hotelos.webart.work/settings/#automations)
+- [Сповіщення](https://hotelos.webart.work/settings/#notifications)
+- [Джерела бронювань](https://hotelos.webart.work/settings/#sources)
+- [AI](https://hotelos.webart.work/settings/#ai)
+- [Безпека](https://hotelos.webart.work/settings/#security)

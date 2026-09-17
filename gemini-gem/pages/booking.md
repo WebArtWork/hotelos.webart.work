@@ -27,6 +27,21 @@
 - Максимум 14 ночей за один пошук (довші періоди дають помилку).
 - Це демонстраційні дані — оплата, готель, фото й номери фіксовані, реальної оплати чи листування не відбувається.
 
+### Прямі посилання
+- [Інформація про готель](https://hotelos.webart.work/book/#hotel-info)
+- [Пошук дат і гостей](https://hotelos.webart.work/book/#search-card)
+- [Список доступних номерів](https://hotelos.webart.work/book/#results-block)
+- [Про готель, зручності, галерея](https://hotelos.webart.work/book/#about-section)
+- [Розташування](https://hotelos.webart.work/book/#location-section)
+- [Питання та відповіді (FAQ)](https://hotelos.webart.work/book/#faq-section)
+- [Детальна сторінка номера](https://hotelos.webart.work/book/#screen-room-details)
+- [Контактні дані гостя](https://hotelos.webart.work/book/#screen-guest)
+- [Спосіб оплати](https://hotelos.webart.work/book/#screen-payment)
+- [Підсумок і підтвердження](https://hotelos.webart.work/book/#screen-review)
+- [Сторінка успіху](https://hotelos.webart.work/book/#screen-success)
+- [Немає доступності / альтернативні дати](https://hotelos.webart.work/book/#screen-no-availability)
+- [Конфлікт доступності номера](https://hotelos.webart.work/book/#screen-error)
+
 ## Деталі бронювання (/booking/)
 
 ### Призначення
@@ -53,6 +68,19 @@
 - Дії — демонстраційні: видалення, повернення коштів, надсилання повідомлень не мають реального ефекту (не надсилаються справжні листи/SMS, дані не зберігаються між сеансами).
 - "AI-генерація" повідомлення — фіксований шаблон тексту, не довільна генерація.
 - Зміна номера напряму на цій сторінці не робиться — веде на календар.
+
+### Прямі посилання
+- [Статус, гість, проживання і фінанси](https://hotelos.webart.work/booking/#booking-overview)
+- [Гості](https://hotelos.webart.work/booking/#booking-guests)
+- [Номер](https://hotelos.webart.work/booking/#room-section)
+- [Оплати](https://hotelos.webart.work/booking/#payments-section)
+- [Додаткові послуги](https://hotelos.webart.work/booking/#extras-section)
+- [Внутрішні нотатки](https://hotelos.webart.work/booking/#notes-section)
+- [Побажання гостя](https://hotelos.webart.work/booking/#preferences-section)
+- [Повідомлення](https://hotelos.webart.work/booking/#messages-section)
+- [Історія бронювання](https://hotelos.webart.work/booking/#history-section)
+- [Панель Hotel AI](https://hotelos.webart.work/booking/#ai-panel)
+- [Джерело бронювання](https://hotelos.webart.work/booking/#source-section)
 
 ## Нове бронювання (/new-booking/)
 
@@ -87,6 +115,20 @@
 - Немає перевірки дублікатів гостей за телефоном/email при створенні нового гостя.
 - Немає можливості одразу забронювати кілька номерів в одному бронюванні.
 - Відправка підтвердження гостю (SMS/email) не відбувається насправді — це лише текстовий шаблон у демо.
+
+### Прямі посилання
+- [Дати заїзду/виїзду](https://hotelos.webart.work/new-booking/#section-dates)
+- [Кількість гостей](https://hotelos.webart.work/new-booking/#section-guests-count)
+- [Вибір номера](https://hotelos.webart.work/new-booking/#section-rooms)
+- [Гість (пошук/новий)](https://hotelos.webart.work/new-booking/#section-guest)
+- [Вартість бронювання](https://hotelos.webart.work/new-booking/#section-price)
+- [Оплата](https://hotelos.webart.work/new-booking/#section-payment)
+- [Джерело бронювання](https://hotelos.webart.work/new-booking/#section-source)
+- [Очікуваний час прибуття](https://hotelos.webart.work/new-booking/#section-arrival)
+- [Побажання гостя](https://hotelos.webart.work/new-booking/#section-prefs)
+- [Внутрішня нотатка](https://hotelos.webart.work/new-booking/#section-note)
+- [Підтвердження гостю](https://hotelos.webart.work/new-booking/#section-confirm)
+- [Бокова панель-підсумок](https://hotelos.webart.work/new-booking/#summary)
 
 ## Підтвердження бронювання (/confirmation/)
 
@@ -125,3 +167,17 @@
 - "Залишити відгук" — тост "Форма відгуку ще у розробці в демо".
 - "Поділитися" без Web Share API показує тост "Посилання скопійовано (демо)", реального копіювання в буфер немає.
 - Додавання до календаря — лише тост, файл .ics фактично не генерується/не завантажується.
+
+### Прямі посилання
+- [Статус-хедер бронювання](https://hotelos.webart.work/confirmation/#status-header)
+- [Деталі проживання](https://hotelos.webart.work/confirmation/#stay-details)
+- [Картка номера](https://hotelos.webart.work/confirmation/#room-card)
+- [Оплата та залишок](https://hotelos.webart.work/confirmation/#payment-card)
+- [Час прибуття](https://hotelos.webart.work/confirmation/#arrival-card)
+- [Побажання](https://hotelos.webart.work/confirmation/#requests-card)
+- [Що буде далі](https://hotelos.webart.work/confirmation/#upcoming-card)
+- [Як нас знайти](https://hotelos.webart.work/confirmation/#location-card)
+- [Контакти готелю](https://hotelos.webart.work/confirmation/#contact-card)
+- [Правила бронювання](https://hotelos.webart.work/confirmation/#rules-card)
+- [Статус-таймлайн](https://hotelos.webart.work/confirmation/#timeline-card)
+- [Інформація про проживання (стан "Заїхав")](https://hotelos.webart.work/confirmation/#during-stay-card)

@@ -20,7 +20,7 @@
     <button class="icon-button" id="prev-range" aria-label="Попередній період" data-icon="left"></button>
     <b id="range-label"></b>
     <button class="icon-button" id="next-range" aria-label="Наступний період" data-icon="right"></button>
-    <div class="cal-views" role="group" aria-label="Кількість днів">
+    <div class="cal-views" id="period-switch" role="group" aria-label="Кількість днів">
      <button data-days="7">7 днів</button>
      <button data-days="14" class="active">14 днів</button>
      <button data-days="30">30 днів</button>
@@ -49,7 +49,7 @@
    </div>
   </div>
 
-  <div class="legend cal-desktop">
+  <div class="legend cal-desktop" id="legend">
    <span><i class="lg-confirmed"></i>Підтверджено</span>
    <span><i class="lg-checkedin"></i>Заїхав</span>
    <span><i class="lg-pending"></i>Очікує</span>
@@ -61,7 +61,7 @@
    <div class="cal-grid" id="cal-grid"></div>
   </div>
 
-  <div class="cal-mobile">
+  <div class="cal-mobile" id="cal-mobile">
    <div class="mobile-datebar"><button id="m-prev" aria-label="Попередній день" data-icon="left"></button><span id="m-date"></span><button id="m-next" aria-label="Наступний день" data-icon="right"></button></div>
    <div class="mobile-tabs"><button data-mdays="1" class="active">День</button><button data-mdays="3">3 дні</button></div>
    <div id="mobile-rooms"></div>

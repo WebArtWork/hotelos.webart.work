@@ -34,6 +34,15 @@
 - Hotel AI, пошук (/search/), сповіщення (/notifications/) — окремі посилання, які на цій сторінці не мають власної логіки (просто посилання).
 - Скасування бронювання відбувається миттєво без підтвердження і без можливості відновити.
 
+### Прямі посилання
+- [Сітка бронювань по номерах](https://hotelos.webart.work/calendar/#cal-grid)
+- [Перемикання періоду перегляду (7/14/30 днів)](https://hotelos.webart.work/calendar/#period-switch)
+- [Пошук бронювання](https://hotelos.webart.work/calendar/#cal-search)
+- [Панель фільтрів (статус, тип номера)](https://hotelos.webart.work/calendar/#filters-panel)
+- [Легенда кольорів статусів](https://hotelos.webart.work/calendar/#legend)
+- [Мобільний перегляд календаря](https://hotelos.webart.work/calendar/#cal-mobile)
+- [Бічна панель деталей бронювання](https://hotelos.webart.work/calendar/#side-panel)
+
 ## Номери (/rooms/)
 
 ### Призначення
@@ -64,3 +73,13 @@
 - Немає реальної інтеграції з календарем/бронюваннями — кнопки "Відкрити бронювання"/"Відкрити в календарі" лише переходять на інші демо-сторінки.
 - Немає можливості видалити номер чи тип номера, лише додати/редагувати.
 - Порожній стан ("Номерів не знайдено") — це лише текстове повідомлення без реальної логіки відновлення.
+
+### Прямі посилання
+- [KPI номерного фонду](https://hotelos.webart.work/rooms/#kpis)
+- [Запитати AI про номери](https://hotelos.webart.work/rooms/#ai-panel)
+- [Перемикання Картки/Список](https://hotelos.webart.work/rooms/#view-switch)
+- [Мобільні сегменти (вільні/зайняті/прибирання/недоступні)](https://hotelos.webart.work/rooms/#chips-mobile)
+- [Пошук номера](https://hotelos.webart.work/rooms/#search-input)
+- [Панель розширених фільтрів](https://hotelos.webart.work/rooms/#filters-panel)
+- [Список/картки номерів](https://hotelos.webart.work/rooms/#rooms-container)
+- [Бічна панель деталей номера](https://hotelos.webart.work/rooms/#side-panel)

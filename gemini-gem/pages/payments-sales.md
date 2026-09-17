@@ -36,6 +36,16 @@
 - Додавання оплати створює новий демонстраційний запис лише в поточній сесії сторінки; номер кімнати й дати бронювання для нового платежу не заповнюються коректно, якщо бронювання не знайдено через пошук.
 - Немає видалення платежів, лише перегляд, редагування нотатки та оформлення повернення.
 
+### Прямі посилання
+- [Запитати AI про оплати](https://hotelos.webart.work/payments/#ask-ai)
+- [Бронювання з неоплаченим залишком](https://hotelos.webart.work/payments/#outstanding-section)
+- [Графік оплат за місяць](https://hotelos.webart.work/payments/#monthly-chart)
+- [Розбивка отриманого сьогодні за днями](https://hotelos.webart.work/payments/#daily-grid)
+- [Вкладки за статусом оплати](https://hotelos.webart.work/payments/#tabs)
+- [Пошук і фільтри платежів](https://hotelos.webart.work/payments/#search-filters)
+- [Таблиця всіх платежів](https://hotelos.webart.work/payments/#payments-table)
+- [Очікувані найближчим часом надходження](https://hotelos.webart.work/payments/#upcoming-payments)
+
 ## Продажі (/sales/)
 
 ### Призначення
@@ -69,3 +79,17 @@
 - AI-відповіді — заготовлені тексти, не результат аналізу.
 - Графік "Бронювання протягом місяця" використовує випадково згенеровані дані доходу (Math.random()) — не є стабільним/реальним.
 - Немає видалення джерел, лише активація/деактивація та додавання нових.
+
+### Прямі посилання
+- [Лідери за кількістю бронювань і доходом](https://hotelos.webart.work/sales/#top-sources)
+- [Hotel AI: інсайти та швидкі запитання](https://hotelos.webart.work/sales/#hotel-ai)
+- [Розподіл бронювань і доходу за джерелами](https://hotelos.webart.work/sales/#sources-overview)
+- [Таблиця джерел бронювань](https://hotelos.webart.work/sales/#sources-table)
+- [Прямі vs сторонні платформи](https://hotelos.webart.work/sales/#direct-vs-ota)
+- [Динаміка частки прямих бронювань](https://hotelos.webart.work/sales/#direct-share-trend)
+- [Графік бронювань протягом місяця](https://hotelos.webart.work/sales/#monthly-bookings-chart)
+- [Середній чек і тривалість проживання](https://hotelos.webart.work/sales/#avg-and-stay)
+- [Вартість бронювань, нові й повторні гості](https://hotelos.webart.work/sales/#revenue-and-guests)
+- [Як повертаються постійні гості](https://hotelos.webart.work/sales/#returning-guests)
+- [Перше джерело vs останнє джерело](https://hotelos.webart.work/sales/#first-last-source)
+- [Кампанії](https://hotelos.webart.work/sales/#campaigns)

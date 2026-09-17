@@ -38,7 +38,7 @@
   <div class="grid">
    <div class="col-main">
 
-    <section class="card card-pad">
+    <section class="card card-pad" id="booking-overview">
      <div class="guest-row">
       <div><h2 id="guest-name"></h2><p class="guest-contact" id="guest-contact"></p></div>
       <div class="guest-icons">
@@ -61,12 +61,12 @@
      <div class="status-flow" id="status-flow"></div>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad" id="booking-guests">
      <h2>Гості</h2>
      <div class="result-list" id="guests-list"></div>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad" id="room-section">
      <h2>Номер</h2>
      <div class="room-card-row">
       <div style="display:flex;gap:12px"><span class="room-badge" id="room-number"></span><div><b id="room-type"></b><div class="room-facts">2 гості · 1 двоспальне ліжко · Сніданок включено</div></div></div>
@@ -76,37 +76,37 @@
      <div class="dialog-actions"><button class="button secondary" id="btn-change-room">Змінити номер</button><button class="button secondary" id="btn-open-room">Відкрити номер</button></div>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad" id="payments-section">
      <h2>Оплати</h2>
      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Вартість проживання — <b id="pay-total"></b> · Оплачено — <b id="pay-paid"></b> · Залишок — <b id="pay-balance"></b></p>
      <div id="payment-history"></div>
      <div class="dialog-actions"><button class="button primary" id="btn-add-payment-2">+ Додати оплату</button><button class="button secondary" id="btn-refund">Повернути кошти</button><button class="button secondary" id="btn-remind">Надіслати нагадування</button></div>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad" id="extras-section">
      <h2>Додаткові послуги</h2>
      <div id="extras-list"></div>
      <div class="dialog-actions"><button class="button secondary" id="btn-add-extra">+ Додати послугу</button></div>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad" id="notes-section">
      <h2>Нотатки <span class="internal-tag">Бачить лише персонал</span></h2>
      <div class="notes-block"><p id="notes-text"></p></div>
      <button class="button secondary" id="btn-edit-notes">Редагувати нотатки</button>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad" id="preferences-section">
      <h2>Побажання</h2>
      <div class="tags" id="preferences-tags"></div>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad" id="messages-section">
      <h2>Повідомлення <button class="text-action" id="btn-all-messages">Вся історія ↗</button></h2>
      <div class="timeline" id="messages-timeline"></div>
      <div class="dialog-actions"><button class="button primary" id="btn-send-message">Надіслати повідомлення</button></div>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad" id="history-section">
      <h2>Історія бронювання</h2>
      <div class="timeline" id="history-timeline"></div>
     </section>
@@ -114,7 +114,7 @@
    </div>
 
    <div class="col-side">
-    <div class="ai-card">
+    <div class="ai-card" id="ai-panel">
      <b><span data-icon="spark"></span>Hotel AI</b>
      <button class="ai-q" data-ai-q="summary">Підсумуй це бронювання</button>
      <button class="ai-q" data-ai-q="todo">Що ще потрібно зробити?</button>
@@ -122,7 +122,7 @@
      <button class="ai-q" data-ai-q="balance">Чи є неоплачений залишок?</button>
      <button class="ai-q" data-ai-q="returning">Чи повертався цей гість раніше?</button>
     </div>
-    <section class="card card-pad">
+    <section class="card card-pad" id="source-section">
      <h2>Джерело</h2>
      <p style="font-size:13px;font-weight:700;margin-bottom:6px" id="source-name"></p>
      <p style="font-size:11px;color:var(--muted);margin:0">Кампанія: <b id="source-campaign"></b></p>

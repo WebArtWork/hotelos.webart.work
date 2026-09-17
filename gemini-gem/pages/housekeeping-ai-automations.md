@@ -33,6 +33,16 @@
 - Немає можливості видалити задачу чи номер, лише створювати задачі та змінювати статуси.
 - Створення нової задачі не додає реальну картку в дошку — показується лише підтвердження (тост).
 
+### Прямі посилання
+- [KPI прибирання](https://hotelos.webart.work/housekeeping/#kpis)
+- [Запитати AI про прибирання](https://hotelos.webart.work/housekeeping/#ai-panel)
+- [Стрічка сповіщень](https://hotelos.webart.work/housekeeping/#alerts-strip)
+- [Перемикання Board/Список](https://hotelos.webart.work/housekeeping/#view-switch)
+- [Панель фільтрів (працівник, пріоритет)](https://hotelos.webart.work/housekeeping/#filters-panel)
+- [Дошка задач (Board)](https://hotelos.webart.work/housekeeping/#board)
+- [Бічна панель деталей номера/задачі](https://hotelos.webart.work/housekeeping/#side-panel)
+- [Підсумок команди на сьогодні](https://hotelos.webart.work/housekeeping/#team-row)
+
 ## AI-помічник (/ai/)
 
 ### Призначення
@@ -57,6 +67,13 @@
 - Це демонстраційна база знань з фіксованими прикладами (жорстко закодовані відповіді на набір типових запитань), а не повноцінна LLM з довільними відповідями — не гарантовано відповість на запит поза заданими сценаріями (є типова fallback-відповідь "не знайшов точної відповіді").
 - Перемикання ролі на цій сторінці — лише демонстраційна функція.
 
+### Прямі посилання
+- [Швидкі підказки (чіпи)](https://hotelos.webart.work/ai/#quick-chips)
+- [Історія чату / повідомлення](https://hotelos.webart.work/ai/#messages)
+- [Поле введення запиту](https://hotelos.webart.work/ai/#composer-area)
+- [Перемикач ролі (Owner/Manager/Reception/Housekeeping)](https://hotelos.webart.work/ai/#role-select)
+- [Вітальний блок / ранковий огляд](https://hotelos.webart.work/ai/#welcome-block)
+
 ## Автоматизації (/automations/)
 
 ### Призначення
@@ -80,3 +97,10 @@
 - Канали — лише Email та SMS.
 - "AI"-створення автоматизацій — спрощений розпізнавач ключових слів, не повноцінний вільний AI.
 - Це демо: реальні листи/SMS не надсилаються, дії з даними (додавання, вмикання/вимикання) не зберігаються між перезавантаженнями сторінки.
+
+### Прямі посилання
+- [KPI автоматизацій](https://hotelos.webart.work/automations/#kpis)
+- [Вкладки Активні/Вимкнені/Шаблони/Історія](https://hotelos.webart.work/automations/#tabs)
+- [Список автоматизацій / вміст вкладки](https://hotelos.webart.work/automations/#tab-content)
+- [Найближчі виконання](https://hotelos.webart.work/automations/#upcoming-card)
+- [Бічна панель деталей автоматизації](https://hotelos.webart.work/automations/#side-panel)

@@ -36,7 +36,7 @@
    </div>
   </div>
 
-  <div class="quick-row">
+  <div class="quick-row" id="quick-actions">
    <button id="q-new-booking">+ Нове бронювання</button>
    <button id="q-message">Написати</button>
    <button id="q-call">Подзвонити</button>
@@ -46,7 +46,7 @@
   <div class="grid">
    <div class="col-main">
 
-    <section class="card">
+    <section class="card" id="profile-summary">
      <div class="profile-summary">
       <div class="profile-left">
        <span class="avatar-lg" id="guest-avatar"></span>
@@ -58,49 +58,49 @@
 
     <section class="status-card" id="status-card"></section>
 
-    <section class="card">
+    <section class="card" id="history">
      <h2>Історія проживань</h2>
      <div class="stay-summary-row" id="stay-summary-row"></div>
      <div id="history-list" style="margin-top:16px"></div>
     </section>
 
-    <section class="card">
+    <section class="card" id="preferences">
      <h2>Побажання гостя <button class="text-action" id="btn-add-pref">+ Додати</button></h2>
      <p class="card-sub">Ці побажання можна використовувати під час наступного бронювання.</p>
      <div class="tags" id="pref-tags"></div>
      <div class="pref-cards" id="pref-cards"></div>
     </section>
 
-    <section class="card">
+    <section class="card" id="notes">
      <h2>Внутрішні нотатки <button class="text-action" id="btn-add-note">+ Додати нотатку</button></h2>
      <p class="card-sub">Бачить лише персонал.</p>
      <div id="notes-list"></div>
     </section>
 
-    <section class="card">
+    <section class="card" id="communication">
      <h2>Комунікація <button class="text-action" id="btn-all-messages">Вся історія ↗</button></h2>
      <div class="timeline" id="messages-timeline"></div>
      <div class="dialog-actions"><button class="button primary" id="btn-send-message">Надіслати повідомлення</button></div>
     </section>
 
-    <section class="card">
+    <section class="card" id="guest-payments">
      <h2>Історія оплат <button class="text-action" id="btn-all-payments">Відкрити всі оплати ↗</button></h2>
      <div class="payment-summary-row" id="payment-summary-row"></div>
      <div id="payments-list"></div>
     </section>
 
-    <section class="card">
+    <section class="card" id="sources">
      <h2>Як гість нас знаходив</h2>
      <div id="sources-list"></div>
      <p class="card-sub" style="margin-top:12px" id="sources-note"></p>
     </section>
 
-    <section class="card">
+    <section class="card" id="tags">
      <h2>Теги <button class="text-action" id="btn-add-tag">+ Додати тег</button></h2>
      <div class="tags" id="tags-list"></div>
     </section>
 
-    <section class="card">
+    <section class="card" id="activity">
      <h2>Історія активності</h2>
      <div class="timeline" id="activity-timeline"></div>
     </section>
@@ -108,7 +108,7 @@
    </div>
 
    <div class="col-side">
-    <div class="ai-card">
+    <div class="ai-card" id="ai-panel">
      <b class="ai-title"><span data-icon="spark"></span>Hotel AI</b>
      <h3>Що варто знати про цього гостя</h3>
      <button class="ai-q" data-ai-q="summary">Підсумуй історію гостя</button>

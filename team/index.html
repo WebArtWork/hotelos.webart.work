@@ -14,11 +14,11 @@
  <header class="topbar"><a class="topbar-logo" href="/" aria-label="Hotel OS — головна сторінка">H</a><button class="icon-button mobile-menu" aria-label="Відкрити навігацію" aria-expanded="false" aria-controls="sidebar" data-icon="menu"></button><div class="greeting"><b>Команда <span class="greeting-spark">✦</span></b><span>Grand Hotel · Кам’янець-Подільський</span></div><div class="top-actions"><a class="icon-button" aria-label="Пошук" href="/search/" data-icon="search"></a><a class="icon-button notification-button" aria-label="Сповіщення" href="/notifications/"><span data-icon="bell"></span><i></i></a><span class="top-divider"></span><a class="ai-button" href="/ai/"><span data-icon="spark"></span>Hotel AI</a><a class="profile" href="/profile/" aria-label="Профіль">ОК</a></div></header>
  <main id="main" tabindex="-1">
 
-  <div class="page-heading"><div><h1>Команда</h1><p>Додавайте працівників, призначайте ролі та керуйте доступом до Hotel OS.</p></div><div class="page-actions"><button class="button secondary" id="btn-role-matrix">Ролі та доступ</button><button class="button primary" id="btn-add-employee">+ Додати працівника</button></div></div>
+  <div class="page-heading"><div><h1>Команда</h1><p>Додавайте працівників, призначайте ролі та керуйте доступом до Hotel OS.</p></div><div class="page-actions" id="team-actions"><button class="button secondary" id="btn-role-matrix">Ролі та доступ</button><button class="button primary" id="btn-add-employee">+ Додати працівника</button></div></div>
 
   <div class="kpis" id="kpis"></div>
 
-  <div class="toolbar-row">
+  <div class="toolbar-row" id="team-filters">
    <div class="search-wrap"><span data-icon="search"></span><input id="search-input" placeholder="Знайти працівника"></div>
    <div class="segments" id="segments">
     <button data-seg="all" class="active">Усі</button>
@@ -30,7 +30,7 @@
    </div>
   </div>
 
-  <div class="table-card">
+  <div class="table-card" id="employee-list">
    <div class="table-wrap">
     <table><thead><tr><th>Працівник</th><th>Роль</th><th>Контакти</th><th>Статус</th><th>Остання активність</th><th></th></tr></thead><tbody id="team-tbody"></tbody></table>
    </div>

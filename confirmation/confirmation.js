@@ -24,10 +24,10 @@ function statusHeader(kind){
   cancelled:{icon:'✕',cls:'danger',h:'Бронювання скасовано',sub:'Це бронювання більше не активне.',pill:['cancelled','Скасовано']}
  };
  const m=map[kind];
- return `<div class="status-header"><div class="status-icon ${m.cls}">${m.icon}</div><h1>${m.h}</h1><p>${m.sub}</p><div class="booking-number">Номер бронювання #${booking.id}</div><span class="status-pill ${m.pill[0]}">${m.pill[1]}</span></div>`;
+ return `<div class="status-header" id="status-header"><div class="status-icon ${m.cls}">${m.icon}</div><h1>${m.h}</h1><p>${m.sub}</p><div class="booking-number">Номер бронювання #${booking.id}</div><span class="status-pill ${m.pill[0]}">${m.pill[1]}</span></div>`;
 }
 function stayCard(){
- return `<div class="card"><h2>Деталі проживання</h2><div class="stay-grid">
+ return `<div class="card" id="stay-details"><h2>Деталі проживання</h2><div class="stay-grid">
   <div><small>Заїзд</small><b>${booking.start}</b><span>після ${HOTEL.checkIn}</span></div>
   <div><small>Виїзд</small><b>${booking.end}</b><span>до ${HOTEL.checkOut}</span></div>
   <div><small>Тривалість</small><b>${booking.nights} ночі</b></div>
@@ -35,7 +35,7 @@ function stayCard(){
  </div></div>`;
 }
 function roomCard(){
- return `<div class="card"><h2>Номер</h2><div class="room-visual">
+ return `<div class="card" id="room-card"><h2>Номер</h2><div class="room-visual">
   <figure class="room-image">${HotelPhotos.image(booking.roomType)}<figcaption>Ілюстративне фото · Згенеровано AI</figcaption></figure>
   <div><h3>${booking.roomType}${booking.roomNumber?' · '+booking.roomNumber:''}</h3><div class="facts">До ${booking.capacity} гостей · ${booking.area} м² · ${booking.beds}</div><div class="feature-tags">${booking.features.map(f=>`<span>${f}</span>`).join('')}</div><button class="btn secondary" style="margin-top:12px" id="btn-room-details">Детальніше про номер</button></div>
  </div></div>`;
@@ -47,32 +47,32 @@ function paymentCard(kind){
  else if(kind==='failed'){statusLabel='Оплату не завершено';note='Бронювання створено, але платіж не було завершено.';action=`<div class="action-row"><button class="btn primary" id="btn-retry-pay">Спробувати оплатити ще раз</button><button class="btn secondary" id="btn-contact-2">Зв’язатися з готелем</button></div>`}
  else if(bal<=0){statusLabel='Оплачено повністю';note='Додаткових платежів за проживання не очікується.'}
  else{statusLabel='Частково оплачено';note='Залишок можна оплатити під час заселення.';action=`<button class="btn primary full" id="btn-pay-balance">Оплатити ${money(bal)}</button><p class="pay-note">Безпечна онлайн-оплата.</p>`}
- return `<div class="card"><h2>Оплата</h2><div class="pay-figures"><div><b>${money(booking.total)}</b><small>Загальна сума</small></div><div><b>${money(kind==='failed'||kind==='pending'?0:booking.paid)}</b><small>Оплачено</small></div><div><b>${money(kind==='failed'||kind==='pending'?booking.total:bal)}</b><small>Залишок</small></div></div><span class="status-pill ${bal<=0&&kind!=='failed'&&kind!=='pending'?'confirmed':kind==='failed'?'failed':'partial'}">${statusLabel}</span><p class="pay-note">${note}</p>${action}</div>`;
+ return `<div class="card" id="payment-card"><h2>Оплата</h2><div class="pay-figures"><div><b>${money(booking.total)}</b><small>Загальна сума</small></div><div><b>${money(kind==='failed'||kind==='pending'?0:booking.paid)}</b><small>Оплачено</small></div><div><b>${money(kind==='failed'||kind==='pending'?booking.total:bal)}</b><small>Залишок</small></div></div><span class="status-pill ${bal<=0&&kind!=='failed'&&kind!=='pending'?'confirmed':kind==='failed'?'failed':'partial'}">${statusLabel}</span><p class="pay-note">${note}</p>${action}</div>`;
 }
 function arrivalCard(){
- return `<div class="card"><h2>Перед заїздом</h2>
+ return `<div class="card" id="arrival-card"><h2>Перед заїздом</h2>
  <div class="arrival-row"><div><small>Час заселення</small><b>Після ${HOTEL.checkIn}</b></div></div>
  <div class="arrival-row" style="margin-top:12px"><div><small>Орієнтовний час прибуття</small><b>${state.arrivalTime?state.arrivalTime:'Час ще не вказано'}</b></div><button class="btn secondary" id="btn-update-arrival">${state.arrivalTime?'Змінити час прибуття':'Повідомити час прибуття'}</button></div>
  <p class="pay-note" style="margin-top:14px">Рецепція працює з ${HOTEL.reception}. Після прибуття зверніться на рецепцію та назвіть номер бронювання: <b>#${booking.id}</b>.</p>
  </div>`;
 }
 function requestsCard(){
- return `<div class="card"><h2>Ваші побажання</h2>${booking.prefs.length?`<div class="tags">${booking.prefs.map(p=>`<span>${esc(p)}</span>`).join('')}</div>`:''}<p class="pay-note">Ми врахуємо побажання, якщо це буде можливо.</p><button class="btn secondary" id="btn-add-request">Додати побажання</button></div>`;
+ return `<div class="card" id="requests-card"><h2>Ваші побажання</h2>${booking.prefs.length?`<div class="tags">${booking.prefs.map(p=>`<span>${esc(p)}</span>`).join('')}</div>`:''}<p class="pay-note">Ми врахуємо побажання, якщо це буде можливо.</p><button class="btn secondary" id="btn-add-request">Додати побажання</button></div>`;
 }
 function locationCard(){
- return `<div class="card"><h2>Як нас знайти</h2><p style="font-size:13px;margin:0 0 12px"><b>${HOTEL.name}</b><br>${HOTEL.address}</p><div class="action-row"><button class="btn secondary" id="btn-open-map">Відкрити карту</button><button class="btn secondary" id="btn-directions">Прокласти маршрут</button></div></div>`;
+ return `<div class="card" id="location-card"><h2>Як нас знайти</h2><p style="font-size:13px;margin:0 0 12px"><b>${HOTEL.name}</b><br>${HOTEL.address}</p><div class="action-row"><button class="btn secondary" id="btn-open-map">Відкрити карту</button><button class="btn secondary" id="btn-directions">Прокласти маршрут</button></div></div>`;
 }
 function contactCard(){
- return `<div class="card"><h2>Потрібна допомога?</h2><p class="pay-note">Якщо плани змінилися або маєте питання — зв’яжіться з нами.</p><div class="action-row"><a class="btn secondary" href="tel:${HOTEL.phone.replace(/\s/g,'')}">Зателефонувати</a><button class="btn secondary" id="btn-message-hotel">Написати</button></div><div class="contact-block"><b>${HOTEL.phone}</b><br>${HOTEL.email}</div></div>`;
+ return `<div class="card" id="contact-card"><h2>Потрібна допомога?</h2><p class="pay-note">Якщо плани змінилися або маєте питання — зв’яжіться з нами.</p><div class="action-row"><a class="btn secondary" href="tel:${HOTEL.phone.replace(/\s/g,'')}">Зателефонувати</a><button class="btn secondary" id="btn-message-hotel">Написати</button></div><div class="contact-block"><b>${HOTEL.phone}</b><br>${HOTEL.email}</div></div>`;
 }
 function rulesCard(){
- return `<div class="card"><h2>Правила бронювання</h2><div class="rules-grid"><div><small>Заселення</small>після ${HOTEL.checkIn}</div><div><small>Виїзд</small>до ${HOTEL.checkOut}</div><div><small>Скасування</small>${booking.cancellation}</div><div><small>Передоплата</small>${money(booking.deposit)}</div></div><button class="text-link" id="btn-full-rules" style="margin-top:12px;font-size:11px;font-weight:700;color:#8b6c30">Повні правила →</button></div>`;
+ return `<div class="card" id="rules-card"><h2>Правила бронювання</h2><div class="rules-grid"><div><small>Заселення</small>після ${HOTEL.checkIn}</div><div><small>Виїзд</small>до ${HOTEL.checkOut}</div><div><small>Скасування</small>${booking.cancellation}</div><div><small>Передоплата</small>${money(booking.deposit)}</div></div><button class="text-link" id="btn-full-rules" style="margin-top:12px;font-size:11px;font-weight:700;color:#8b6c30">Повні правила →</button></div>`;
 }
 function modifyCard(){
  return `<div class="card"><h2>Хочете змінити бронювання?</h2><p class="pay-note">Змінити дати, номер або кількість гостей можна лише через готель.</p><button class="btn secondary" id="btn-modify">Зв’язатися з готелем</button></div>`;
 }
 function timelineCard(){
- return `<div class="card"><h2>Статус бронювання</h2><div class="timeline-mini">
+ return `<div class="card" id="timeline-card"><h2>Статус бронювання</h2><div class="timeline-mini">
   <div class="done"><span class="dot"></span>Бронювання створено</div>
   <div class="${booking.paid>0?'done':''}"><span class="dot"></span>Передоплату отримано</div>
   <div><span class="dot"></span>Заїзд · ${booking.start}</div>
@@ -80,13 +80,13 @@ function timelineCard(){
  </div></div>`;
 }
 function upcomingCard(){
- return `<div class="card"><h2>Що буде далі</h2>
+ return `<div class="card" id="upcoming-card"><h2>Що буде далі</h2>
  <div class="upcoming-msg"><b>За день до приїзду</b><span>Ми надішлемо нагадування та інформацію про заселення.</span></div>
  <div class="upcoming-msg"><b>У день заїзду</b><span>За потреби уточнимо час вашого прибуття.</span></div>
  </div>`;
 }
 function duringStayCard(){
- return `<div class="card"><h2>Інформація про проживання</h2><div class="rules-grid"><div><small>Wi-Fi</small>${HOTEL.wifi}</div><div><small>Сніданок</small>${HOTEL.breakfast}</div><div><small>Рецепція</small>${HOTEL.reception}</div><div><small>Check-out</small>до ${HOTEL.checkOut}</div></div></div>`;
+ return `<div class="card" id="during-stay-card"><h2>Інформація про проживання</h2><div class="rules-grid"><div><small>Wi-Fi</small>${HOTEL.wifi}</div><div><small>Сніданок</small>${HOTEL.breakfast}</div><div><small>Рецепція</small>${HOTEL.reception}</div><div><small>Check-out</small>до ${HOTEL.checkOut}</div></div></div>`;
 }
 function actionsRow(kind){
  if(kind==='return'||kind==='confirmed'){

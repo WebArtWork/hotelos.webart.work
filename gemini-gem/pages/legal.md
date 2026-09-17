@@ -23,6 +23,15 @@
 - Аналітичні cookie наразі не використовуються взагалі; якщо їх додадуть у майбутньому, згода запитуватиметься окремо (поки що не реалізовано).
 - Немає жодної інтерактивності чи форм на сторінці — лише статичний текст.
 
+### Прямі посилання
+- [Що таке cookie](https://hotelos.webart.work/cookies/#what)
+- [Які cookie ми використовуємо (категорії)](https://hotelos.webart.work/cookies/#types)
+- [Таблиця конкретних cookie](https://hotelos.webart.work/cookies/#table)
+- [Сторонні cookie](https://hotelos.webart.work/cookies/#third-party)
+- [Як керувати cookie в браузері](https://hotelos.webart.work/cookies/#manage)
+- [Зміни цієї Політики](https://hotelos.webart.work/cookies/#changes)
+- [Контакти](https://hotelos.webart.work/cookies/#contact)
+
 ## Політика конфіденційності (/privacy/)
 
 ### Призначення
@@ -48,3 +57,17 @@
 - Це демонстраційний сайт: текст політики — типовий/шаблонний і має бути перевірений юристом з урахуванням реальної юрисдикції перед запуском продакшн-версії.
 - Немає форми для подання запиту на доступ/видалення даних безпосередньо на сторінці — лише вказано email для звернення вручну.
 - Немає інтерактивних елементів чи можливості керувати власними даними прямо з цієї сторінки (наприклад, завантажити свої дані чи видалити акаунт) — усе відбувається через ручне звернення на email.
+
+### Прямі посилання
+- [Хто є розпорядником/оператором даних](https://hotelos.webart.work/privacy/#who)
+- [Які дані ми обробляємо](https://hotelos.webart.work/privacy/#data)
+- [Навіщо ми обробляємо дані](https://hotelos.webart.work/privacy/#purpose)
+- [Правові підстави обробки](https://hotelos.webart.work/privacy/#basis)
+- [Кому передаються дані](https://hotelos.webart.work/privacy/#sharing)
+- [Строки зберігання даних](https://hotelos.webart.work/privacy/#retention)
+- [Ваші права](https://hotelos.webart.work/privacy/#rights)
+- [Заходи безпеки](https://hotelos.webart.work/privacy/#security)
+- [Діти](https://hotelos.webart.work/privacy/#children)
+- [Міжнародна передача даних](https://hotelos.webart.work/privacy/#transfer)
+- [Зміни цієї Політики](https://hotelos.webart.work/privacy/#changes)
+- [Контакти](https://hotelos.webart.work/privacy/#contact)

@@ -16,9 +16,9 @@
 
   <div class="page-heading"><div><h1>Гості</h1><p>Усі гості та історія їхніх проживань в одному місці.</p></div><div class="page-actions"><button class="button secondary" id="btn-export">Експорт</button><button class="button primary" id="btn-add-guest">+ Додати гостя</button></div></div>
 
-  <div class="kpis" id="kpis"></div>
+  <div class="kpis" id="kpi"></div>
 
-  <div class="ai-strip">
+  <div class="ai-strip" id="ai-panel">
    <b><span data-icon="spark"></span>Запитати AI про гостей</b>
    <button class="ai-q" data-ai-q="returning">Хто найчастіше повертається?</button>
    <button class="ai-q" data-ai-q="topspend">Хто витратив найбільше цього року?</button>
@@ -28,7 +28,7 @@
   </div>
   <div id="ai-answer"></div>
 
-  <div class="segments" id="segments">
+  <div class="segments" id="segments-filter">
    <button data-seg="all" class="active">Усі</button>
    <button data-seg="staying">Зараз у готелі</button>
    <button data-seg="upcoming">Мають бронювання</button>
@@ -37,7 +37,7 @@
    <button data-seg="away">Давно не були</button>
   </div>
 
-  <div class="toolbar-row">
+  <div class="toolbar-row" id="search-toolbar">
    <div class="search-wrap"><span data-icon="search"></span><input id="search-input" placeholder="Ім’я, телефон або email"></div>
    <select class="plain" id="sort-select">
     <option value="activity">Остання активність</option>
@@ -66,9 +66,9 @@
    </div>
   </div>
 
-  <div class="bulk-bar" id="bulk-bar"><b id="bulk-count">0 вибрано</b><button id="bulk-tag">Додати тег</button><button id="bulk-message">Надіслати повідомлення</button><button id="bulk-export">Експорт</button></div>
+  <div class="bulk-bar" id="bulk-actions"><b id="bulk-count">0 вибрано</b><button id="bulk-tag">Додати тег</button><button id="bulk-message">Надіслати повідомлення</button><button id="bulk-export">Експорт</button></div>
 
-  <div class="table-card">
+  <div class="table-card" id="guest-list">
    <div class="table-wrap">
     <table>
      <thead><tr><th><input type="checkbox" id="select-all"></th><th>Гість</th><th>Контакти</th><th>Проживань</th><th>Ночей</th><th>Витрачено</th><th>Останній візит</th><th>Наступне бронювання</th><th>Статус</th><th></th></tr></thead>

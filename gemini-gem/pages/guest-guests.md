@@ -35,6 +35,20 @@
 - AI-відповіді — заготовлені шаблонні тексти на основі демо-даних гостя, а не результат аналізу реальної бази.
 - Відкриття бронювання з історії/наступного заїзду завжди веде на загальну сторінку /booking/, а не на конкретний запис.
 
+### Прямі посилання
+- [Швидкі дії](https://hotelos.webart.work/guest/#quick-actions)
+- [Основні дані та метрики гостя](https://hotelos.webart.work/guest/#profile-summary)
+- [Наступний заїзд](https://hotelos.webart.work/guest/#status-card)
+- [Історія проживань](https://hotelos.webart.work/guest/#history)
+- [Побажання гостя](https://hotelos.webart.work/guest/#preferences)
+- [Внутрішні нотатки](https://hotelos.webart.work/guest/#notes)
+- [Комунікація](https://hotelos.webart.work/guest/#communication)
+- [Історія оплат](https://hotelos.webart.work/guest/#guest-payments)
+- [Джерела бронювань](https://hotelos.webart.work/guest/#sources)
+- [Теги](https://hotelos.webart.work/guest/#tags)
+- [Історія активності](https://hotelos.webart.work/guest/#activity)
+- [Hotel AI про гостя](https://hotelos.webart.work/guest/#ai-panel)
+
 ## Гості (/guests/)
 
 ### Призначення
@@ -66,3 +80,11 @@ CRM-база гостей готелю: список усіх гостей із 
 - Відкриття повного профілю гостя працює лише для одного демо-гостя (Анна Коваленко, id=1) — для решти показується повідомлення "Профіль ще у розробці для цього демо-гостя".
 - Видалення гостя видаляє його лише з локального стану сторінки (не є справжнім видаленням даних).
 - Кнопки "Створити бронювання" ведуть на сторінку /new-booking/, яка є окремим (не перевіреним у цьому огляді) розділом.
+
+### Прямі посилання
+- [KPI-плитки гостей](https://hotelos.webart.work/guests/#kpi)
+- [AI-помічник про гостей](https://hotelos.webart.work/guests/#ai-panel)
+- [Фільтри за сегментами](https://hotelos.webart.work/guests/#segments-filter)
+- [Пошук, сортування та фільтри](https://hotelos.webart.work/guests/#search-toolbar)
+- [Масові дії над вибраними гостями](https://hotelos.webart.work/guests/#bulk-actions)
+- [Список гостей (таблиця/картки)](https://hotelos.webart.work/guests/#guest-list)

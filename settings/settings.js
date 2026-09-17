@@ -83,7 +83,7 @@ function toggleRow(key,title,sub,disabled){
 }
 
 function sectionGeneral(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="general">
   <h2>Загальна інформація</h2><p class="card-sub">Основна інформація, яка використовується всередині Hotel OS та на публічних сторінках.</p>
   <div class="field-grid">
    ${field('Назва готелю *',`<input data-bind="name" value="${esc(settings.name)}">`)}
@@ -102,7 +102,7 @@ function sectionGeneral(){
  </div>`;
 }
 function sectionContacts(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="contacts">
   <h2>Контакти</h2>
   <div class="field-grid">
    ${field('Телефон',`<input data-bind="phone" value="${esc(settings.phone)}">`)}
@@ -128,7 +128,7 @@ function sectionContacts(){
  </div>`;
 }
 function sectionStay(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="checkin-checkout">
   <h2>Заселення та виїзд</h2>
   <div class="field-grid">
    ${field('Check-in',`<input type="time" data-bind="checkIn" value="${settings.checkIn}">`)}
@@ -146,7 +146,7 @@ function sectionStay(){
  </div>`;
 }
 function sectionBooking(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="booking-rules">
   <h2>Правила бронювання</h2>
   <div class="field-grid">
    ${field('Мінімальна кількість ночей',`<input type="number" min="1" data-bind="minNights" value="${settings.minNights}">`)}
@@ -175,7 +175,7 @@ function sectionBooking(){
 function sectionPayments(){
  const total=5000;
  const required=settings.paymentRule==='none'?0:settings.paymentRule==='fixed'?settings.fixedDeposit:settings.paymentRule==='percent'?Math.round(total*settings.percentDeposit/100):total;
- return `<div class="settings-card">
+ return `<div class="settings-card" id="payments">
   <h2>Правила оплати</h2><p class="card-sub">Визначте, що гість повинен оплатити під час прямого бронювання.</p>
   <div class="option-cards">
    <div class="opt-card ${settings.paymentRule==='none'?'selected':''}" data-pick="paymentRule" data-val="none"><b>Оплата не потрібна</b><span>Повна оплата при заселенні.</span></div>
@@ -196,7 +196,7 @@ function sectionPayments(){
  </div>`;
 }
 function sectionRules(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="policies">
   <h2>Політика скасування</h2>
   <div class="option-cards">
    <div class="opt-card ${settings.cancellationType==='flexible'?'selected':''}" data-pick="cancellationType" data-val="flexible"><b>Гнучка</b><span>Безкоштовне скасування до X годин до заїзду.</span>${settings.cancellationType==='flexible'?`<input type="number" data-bind="cancellationHours" value="${settings.cancellationHours}">`:''}</div>
@@ -221,7 +221,7 @@ function sectionRules(){
  </div>`;
 }
 function sectionBookingPage(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="booking-page">
   <h2>Сторінка прямого бронювання <span class="pill ${settings.bookingPageActive?'ready':''}" style="margin-left:8px">${settings.bookingPageActive?'Активна':'Вимкнена'}</span></h2>
   ${toggleRow('bookingPageActive','Booking Page')}
   <div class="subhead">Посилання для бронювання</div>
@@ -240,7 +240,7 @@ function sectionBookingPage(){
  </div>`;
 }
 function sectionMessages(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="messaging">
   <h2>Комунікація з гостями</h2>
   <div class="field-grid">
    ${field('Відправник Email',`<input data-bind="emailSenderName" value="${esc(settings.emailSenderName)}">`)}
@@ -256,14 +256,14 @@ function sectionMessages(){
  </div>`;
 }
 function sectionAutomations(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="automations">
   <h2>Автоматизації</h2>
   <p class="card-sub">6 активних · підтвердження, перед заїздом, час прибуття, оплата, check-out, після проживання.</p>
   <a class="button secondary" href="/automations/">Керувати автоматизаціями →</a>
  </div>`;
 }
 function sectionNotifications(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="notifications">
   <h2>Сповіщення</h2>
   ${toggleRow('notifyNewBooking','Нове бронювання')}
   ${toggleRow('notifyCancellation','Скасування')}
@@ -277,14 +277,14 @@ function sectionNotifications(){
  </div>`;
 }
 function sectionSources(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="sources">
   <h2>Джерела бронювань</h2>
   <div id="sources-list">${sources.map((s,i)=>`<div class="source-row"><span>${esc(s.name)}</span><span class="switch ${s.active?'on':''}" data-toggle-source="${i}"></span></div>`).join('')}</div>
   <button class="button secondary" id="btn-add-source" style="margin-top:16px">+ Додати джерело</button>
  </div>`;
 }
 function sectionAi(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="ai">
   <h2>Hotel AI</h2><p class="card-sub">Визначте, як AI-помічник може працювати з даними готелю.</p>
   ${toggleRow('aiEnabled','Увімкнути AI-помічника')}
   <div class="subhead">Можливості AI</div>
@@ -297,7 +297,7 @@ function sectionAi(){
  </div>`;
 }
 function sectionSecurity(){
- return `<div class="settings-card">
+ return `<div class="settings-card" id="security">
   <h2>Нумерація бронювань</h2>
   <div class="field-grid">
    ${field('Префікс',`<input data-bind="prefix" value="${esc(settings.prefix)}">`,'необов’язково')}
@@ -406,4 +406,9 @@ document.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBo
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');document.documentElement.classList.remove('no-scroll')}});
 window.addEventListener('beforeunload',e=>{if(state.dirty){e.preventDefault();e.returnValue=''}});
 
+const HASH_TO_SECTION={general:'general',contacts:'contacts','checkin-checkout':'stay','booking-rules':'booking',payments:'payments',policies:'rules','booking-page':'bookingpage',messaging:'messages',automations:'automations',notifications:'notifications',sources:'sources',ai:'ai',security:'security'};
+(function initFromHash(){
+ const hashId=(location.hash||'').slice(1);
+ if(HASH_TO_SECTION[hashId])state.section=HASH_TO_SECTION[hashId];
+})();
 renderAll();

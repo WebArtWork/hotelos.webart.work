@@ -18,7 +18,7 @@
 
   <div class="kpis" id="kpis"></div>
 
-  <div class="ai-strip">
+  <div class="ai-strip" id="ai-panel">
    <b><span data-icon="spark"></span>Запитати AI про номери</b>
    <button class="ai-q" data-ai-q="freeToday">Які номери сьогодні вільні?</button>
    <button class="ai-q" data-ai-q="toClean">Які ще потрібно прибрати?</button>
@@ -37,7 +37,7 @@
   </div>
 
   <div class="toolbar-row">
-   <div class="view-switch"><button data-view-mode="cards" class="active">Картки</button><button data-view-mode="list">Список</button></div>
+   <div class="view-switch" id="view-switch"><button data-view-mode="cards" class="active">Картки</button><button data-view-mode="list">Список</button></div>
    <div class="search-wrap"><span data-icon="search"></span><input id="search-input" placeholder="Знайти номер"></div>
    <div class="filters-wrap">
     <button class="button secondary" id="filters-toggle">Фільтри</button>

@@ -32,12 +32,12 @@
    <button class="text-action" id="btn-view-unknown">Переглянути →</button>
   </div>
 
-  <div class="top-cards">
+  <div class="top-cards" id="top-sources">
    <div class="top-card"><small>НАЙБІЛЬШЕ БРОНЮВАНЬ</small><h3>Пряме бронювання</h3><span>29 бронювань</span></div>
    <div class="top-card"><small>НАЙБІЛЬШИЙ ДОХІД</small><h3>Пряме бронювання</h3><span>142 000 ₴</span></div>
   </div>
 
-  <div class="ai-card">
+  <div class="ai-card" id="hotel-ai">
    <b class="ai-title"><span data-icon="spark"></span>Hotel AI</b>
    <h2>Що змінилося у продажах</h2>
    <p>Цього місяця частка прямих бронювань зросла з 31% до 34%.</p>
@@ -53,7 +53,7 @@
    <div id="ai-answer"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="sources-overview">
    <h2>Звідки приходять гості</h2>
    <p class="card-sub">Розподіл бронювань за джерелами · натисніть, щоб побачити деталі.</p>
    <div class="grid2">
@@ -65,32 +65,32 @@
    </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="sources-table">
    <h2>Джерела бронювань</h2>
    <div class="table-card"><div class="table-wrap"><table><thead><tr><th>Джерело</th><th>Бронювання</th><th>Ночі</th><th>Дохід</th><th>Середній чек</th><th>Частка</th><th>Повторні гості</th></tr></thead><tbody id="source-tbody"></tbody></table></div></div>
    <button class="button secondary" id="btn-manage-sources" style="margin-top:16px">Керувати джерелами</button>
   </div>
 
-  <div class="card">
+  <div class="card" id="direct-vs-ota">
    <h2>Прямі та сторонні бронювання</h2>
    <div class="direct-cards" id="direct-cards"></div>
    <p class="direct-note">Чим більше прямих бронювань — тим більше контролю залишається у готелю.</p>
   </div>
 
-  <div class="card">
+  <div class="card" id="direct-share-trend">
    <h2>Частка прямих бронювань</h2>
    <p class="card-sub" id="direct-trend-sub"></p>
    <div class="trend-chart" id="direct-trend"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="monthly-bookings-chart">
    <h2>Бронювання протягом місяця</h2>
    <p class="card-sub">1–30 вересня</p>
    <div class="chart-toggle"><button data-metric="bookings" class="active">Бронювання</button><button data-metric="revenue">Дохід</button></div>
    <div class="bar-chart2" id="month-chart"></div>
   </div>
 
-  <div class="grid2">
+  <div class="grid2" id="avg-and-stay">
    <div class="card">
     <h2>Середній чек</h2>
     <b style="font-size:26px;display:block">4 984 ₴</b>
@@ -105,7 +105,7 @@
    </div>
   </div>
 
-  <div class="grid2">
+  <div class="grid2" id="revenue-and-guests">
    <div class="card">
     <h2>Вартість бронювань</h2>
     <div class="info-grid" style="font-size:12px"><dt>Вартість бронювань</dt><dd>461 200 ₴</dd><dt>Фактично отримано</dt><dd>428 600 ₴</dd><dt>Outstanding</dt><dd>18 600 ₴</dd><dt>Повернено</dt><dd>14 000 ₴</dd></div>
@@ -118,19 +118,19 @@
    </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="returning-guests">
    <h2>Як повертаються постійні гості</h2>
    <p class="card-sub">Джерело останнього бронювання постійних гостей.</p>
    <div id="return-sources"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="first-last-source">
    <h2>Перше джерело vs останнє джерело</h2>
    <p class="card-sub">Гість може вперше прийти через OTA, а наступного разу забронювати напряму.</p>
    <div class="transition-card"><div><small>Перше джерело</small><b>Booking.com</b></div><span class="transition-arrow">→</span><div><small>Останнє джерело</small><b>Пряме бронювання</b></div></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="campaigns">
    <h2>Кампанії</h2>
    <p class="card-sub">Джерела бронювань з міткою кампанії.</p>
    <div class="campaign-cards" id="campaign-cards"></div>

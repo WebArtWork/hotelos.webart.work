@@ -27,6 +27,21 @@
 - Дані гостя в модалці бронювання — фіктивні демонстраційні дані ("Це демонстраційні дані" вказано прямо в тексті).
 - Кнопка прибирання "Позначити готовим" не зберігає стан і не синхронізується з реальним розділом прибирання.
 
+### Прямі посилання
+- [Опис продукту (головний екран)](https://hotelos.webart.work/#product)
+- [Можливості системи](https://hotelos.webart.work/#features)
+- [Демонстраційний дашборд на лендингу](https://hotelos.webart.work/#hero-dashboard)
+- [Календар бронювань](https://hotelos.webart.work/#calendar)
+- [CRM гостей](https://hotelos.webart.work/#crm)
+- [Пряме бронювання](https://hotelos.webart.work/#booking)
+- [Оплати](https://hotelos.webart.work/#payments)
+- [Прибирання](https://hotelos.webart.work/#housekeeping)
+- [Автоматизація повідомлень](https://hotelos.webart.work/#messages)
+- [Джерела бронювань / аналітика](https://hotelos.webart.work/#sales)
+- [Hotel AI](https://hotelos.webart.work/#ai)
+- [Для готелів (типи об'єктів)](https://hotelos.webart.work/#hotels)
+- [Тарифи](https://hotelos.webart.work/#pricing)
+
 ## Огляд / Dashboard (/dashboard/)
 
 ### Призначення
@@ -58,3 +73,15 @@
 - "Команда" та "Налаштування" з бічної панелі показують спрощені демонстраційні заглушки, а не повноцінні розділи.
 - Порівняння доходу (+12% до минулого четверга) — фіксоване демонстраційне значення, не розрахунок у реальному часі.
 - Перемикання на "порожній готель" — це лише демонстрація UI onboarding, не створення реального нового акаунта готелю.
+
+### Прямі посилання
+- [KPI дня](https://hotelos.webart.work/dashboard/#kpis)
+- [Найближчі заїзди](https://hotelos.webart.work/dashboard/#arrivals)
+- [Потребує уваги](https://hotelos.webart.work/dashboard/#attention)
+- [Стан номерів](https://hotelos.webart.work/dashboard/#rooms)
+- [Нові бронювання](https://hotelos.webart.work/dashboard/#bookings)
+- [Завантаження на 7 днів](https://hotelos.webart.work/dashboard/#occupancy)
+- [Джерела бронювань цього місяця](https://hotelos.webart.work/dashboard/#sales)
+- [Hotel AI — щоденний інсайт](https://hotelos.webart.work/dashboard/#insight)
+- [Швидкі дії](https://hotelos.webart.work/dashboard/#quick-actions)
+- [Порожній стан "новий готель"](https://hotelos.webart.work/dashboard/#empty-state)

@@ -18,7 +18,7 @@
 
   <div class="kpis" id="kpis"></div>
 
-  <div class="ai-strip">
+  <div class="ai-strip" id="ask-ai">
    <b><span data-icon="spark"></span>Запитати AI про оплати</b>
    <button class="ai-q" data-ai-q="unpaid">Хто сьогодні ще не оплатив?</button>
    <button class="ai-q" data-ai-q="today">Скільки грошей ми отримали сьогодні?</button>
@@ -34,7 +34,7 @@
    <div class="outstanding-cards" id="outstanding-cards"></div>
   </div>
 
-  <div class="chart-card">
+  <div class="chart-card" id="monthly-chart">
    <h2>Оплати цього місяця</h2>
    <p class="card-sub">1–30 вересня</p>
    <div class="bar-chart" id="bar-chart"></div>
@@ -66,7 +66,7 @@
    <button data-tab="refunded">Повернення</button>
   </div>
 
-  <div class="toolbar-row">
+  <div class="toolbar-row" id="search-filters">
    <div class="search-wrap"><span data-icon="search"></span><input id="search-input" placeholder="Гість, бронювання або номер"></div>
    <div class="filters-wrap">
     <button class="button secondary" id="filters-toggle">Фільтри</button>
@@ -90,14 +90,14 @@
   </div>
 
   <div id="empty-state" hidden></div>
-  <div class="table-card">
+  <div class="table-card" id="payments-table">
    <div class="table-wrap">
     <table><thead><tr><th>Дата</th><th>Гість</th><th>Бронювання</th><th>Номер</th><th>Тип</th><th>Спосіб</th><th>Сума</th><th>Статус</th></tr></thead><tbody id="payments-tbody"></tbody></table>
    </div>
   </div>
   <div class="payment-cards" id="payment-cards"></div>
 
-  <div class="chart-card" style="margin-top:22px">
+  <div class="chart-card" id="upcoming-payments" style="margin-top:22px">
    <h2>Очікується найближчим часом</h2>
    <div class="upcoming-row"><span>Сьогодні</span><b id="up-today"></b></div>
    <div class="upcoming-row"><span>Завтра</span><b id="up-tomorrow"></b></div>
