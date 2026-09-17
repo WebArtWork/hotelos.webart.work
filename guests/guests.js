@@ -190,7 +190,7 @@ document.addEventListener('click',e=>{
   $('#filters-panel').hidden=true;renderList();return;
  }
  if(el&&el.dataset.aiQ){aiAnswer(el.dataset.aiQ);return}
- if(el&&(el.id==='btn-add-guest'||el.id==='empty-add-guest'||el.id==='empty-new-guest'||el.id==='floating-add')){addGuestModal();return}
+ if(el&&(el.id==='btn-add-guest'||el.id==='empty-add-guest'||el.id==='empty-new-guest')){addGuestModal();return}
  if(el&&el.id==='btn-export'){toast('Експорт CRM · Демо')}
  if(el&&el.id==='bulk-tag'){show('Додати тег кільком гостям',`<p>${state.selected.size} гостей буде позначено тегом.</p><form class="demo-form" id="bulk-tag-form"><label class="full">Тег<select name="tag"><option>VIP</option><option>Постійний гість</option><option>Бізнес</option><option>Сім’я</option></select></label><button class="button primary full" type="submit">Застосувати</button></form>`);return}
  if(el&&el.id==='bulk-message'){show('Масова розсилка','<p class="form-note">Масова розсилка повідомлень буде доступна незабаром.</p>');return}

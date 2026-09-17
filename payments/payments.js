@@ -256,7 +256,7 @@ document.addEventListener('click',e=>{
   state.filters.types=new Set([...sections[1].querySelectorAll('input:checked')].map(c=>c.value));
   $('#filters-panel').hidden=true;renderTable();return;
  }
- if(el&&(el.id==='btn-add-payment'||el.id==='floating-add')){addPaymentModal();return}
+ if(el&&el.id==='btn-add-payment'){addPaymentModal();return}
  if(el&&el.id==='btn-export'){toast('Експорт оплат · Демо');return}
  if(el&&el.dataset.quickPay){addPaymentModal(el.dataset.quickPay);return}
  if(el&&el.dataset.remind){reminderModal(el.dataset.remind);return}

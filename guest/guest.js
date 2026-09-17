@@ -135,8 +135,8 @@ document.addEventListener('click',e=>{
  if(el.dataset.aiQ){aiAnswer(el.dataset.aiQ);return}
  switch(el.id){
   case 'more-toggle':$('#more-menu').hidden=!$('#more-menu').hidden;return;
-  case 'btn-new-booking':case 'q-new-booking':case 'btn-create-from-empty':case 'btn-mobile-booking':window.location.href='/new-booking/';return;
-  case 'btn-message':case 'q-message':case 'btn-send-message':case 'btn-mobile-message':messageModal();return;
+  case 'btn-new-booking':case 'q-new-booking':case 'btn-create-from-empty':window.location.href='/new-booking/';return;
+  case 'btn-message':case 'q-message':case 'btn-send-message':messageModal();return;
   case 'q-call':toast('Дзвінок демо: '+guest.phone);return;
   case 'q-note':case 'btn-add-note':case 'btn-add-note-menu':addNoteModal();return;
   case 'btn-add-tag':case 'btn-add-tag-menu':case 'tags-add-inline':addTagModal();return;

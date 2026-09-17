@@ -69,8 +69,6 @@ function render(){
  const primaryLabel=state.status==='checkedin'?'Оформити виїзд':state.status==='checkedout'?'Виїзд оформлено':state.status==='cancelled'?'Скасовано':'Заселити гостя';
  $('#btn-primary-action').textContent=primaryLabel;
  $('#btn-primary-action').disabled=state.status==='checkedout'||state.status==='cancelled';
- $('#btn-mobile-primary').textContent=primaryLabel;
- $('#btn-mobile-primary').disabled=$('#btn-primary-action').disabled;
 
  hydrate();
 }
@@ -151,7 +149,7 @@ document.addEventListener('click',e=>{
  if(el.matches('.nav-overlay')){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');return}
  switch(el.id){
   case 'more-toggle':$('#more-menu').hidden=!$('#more-menu').hidden;return;
-  case 'btn-primary-action':case 'btn-mobile-primary':
+  case 'btn-primary-action':
    if(state.status==='checkedin')checkoutModal();else if(state.status!=='checkedout'&&state.status!=='cancelled')checkinModal();return;
   case 'confirm-checkin':state.status='checkedin';pushHistory('Гостя заселено');closeDialog();render();toast('Гостя заселено · Демо');return;
   case 'confirm-checkout':case 'confirm-checkout-anyway':state.status='checkedout';state.roomReady=false;pushHistory('Оформлено виїзд');closeDialog();render();toast('Виїзд оформлено · Номер потребує прибирання');return;

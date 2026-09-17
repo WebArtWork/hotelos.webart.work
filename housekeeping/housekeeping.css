@@ -26,7 +26,7 @@ svg{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-wi
 .plan-note small{display:block;font-size:10px;font-weight:400;color:var(--muted)}
 .plan-dot{width:6px;height:6px;background:var(--gold);border-radius:50%;align-self:flex-start;margin-top:8px}.plan-note a{margin-left:auto;color:#8c8d91}
 .workspace{margin-left:238px}
-.topbar{height:88px;background:#fafafa;border-bottom:1px solid #dedee2;padding:0 34px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.topbar{height:88px;background:#fafafa;border-bottom:1px solid #dedee2;padding:0 34px;display:flex;align-items:center;justify-content:space-between;gap:20px;position:sticky;top:0;z-index:15}
 .greeting b{font-size:15px;font-weight:700;display:block;letter-spacing:-.3px}.greeting>span{font-size:11px;color:var(--muted);display:block;margin-top:3px}
 .greeting-spark{font-size:14px;color:var(--gold);margin-left:4px}
 .top-actions{display:flex;align-items:center;gap:19px}
@@ -158,7 +158,7 @@ dialog::backdrop{background:#20212460;backdrop-filter:blur(3px)}
 .empty-state{text-align:center;padding:60px 20px}
 .empty-state h2{font-size:24px;margin-bottom:8px}
 .empty-state p{color:#8b8c93;font-size:13px;margin-bottom:20px}
-.floating-add{display:none}
+
 
 @media(min-width:1500px){main{padding:36px 42px 120px}.topbar{padding:0 42px}}
 @media(max-width:1250px){.sidebar{width:211px;padding:25px 13px 15px}.workspace{margin-left:211px}.topbar{padding:0 24px}main{padding:25px 24px 120px}.kpis{grid-template-columns:repeat(2,1fr)}.board{grid-template-columns:repeat(2,1fr)}}
@@ -187,7 +187,6 @@ dialog::backdrop{background:#20212460;backdrop-filter:blur(3px)}
  .mobile-tabs button.active{background:var(--gold-bg);color:var(--gold-ink)}
  .mobile-cards{display:flex;flex-direction:column;gap:10px}
  .team-row{flex-direction:column}
- .floating-add{display:grid;place-items:center;position:fixed;right:18px;bottom:22px;width:52px;height:52px;border-radius:50%;background:var(--gold);color:#25211b;box-shadow:0 8px 22px #0003;z-index:20;font-size:24px}
  .side-panel{width:100%}
  dialog{max-height:calc(100dvh - 30px)}
 }
@@ -202,7 +201,6 @@ dialog::backdrop{background:#20212460;backdrop-filter:blur(3px)}
  .bottom-nav a,.bottom-nav button{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9.5px;color:#9b9ca2;padding:6px 8px;border-radius:12px;flex:1;min-width:0}
  .bottom-nav svg{width:19px;height:19px}
  .bottom-nav .selected{color:#a48241}
- .floating-add,.floating-ai{bottom:88px;z-index:26}
 }
 
 .workspace-footer{padding:23px 0 21px;display:flex;justify-content:space-between;font-size:9px;color:#a0a1a7;gap:10px}

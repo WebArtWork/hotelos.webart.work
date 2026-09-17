@@ -158,7 +158,7 @@ function renderSummary(){
   <div class="summary-line"><span>Оплачено</span><b>${money(paidAmount())}</b></div>
   <div class="summary-line"><span>Залишок</span><b>${money(remaining())}</b></div>
   <div class="summary-line"><span>Джерело</span><b>${state.source||'—'}</b></div>`;
- $$('#submit-btn,#submit-btn-2,#btn-mobile-submit').forEach(b=>b.disabled=!valid);
+ $$('#submit-btn,#submit-btn-2').forEach(b=>b.disabled=!valid);
  if(!errs.includes('room'))$('#err-room').classList.remove('show');
  if(!errs.includes('guest'))$('#err-guest').classList.remove('show');
  if(!errs.includes('source'))$('#err-source').classList.remove('show');
@@ -230,7 +230,7 @@ document.addEventListener('click',e=>{
  if(pickAlt){state.room=rooms.find(r=>r.number===pickAlt.dataset.pickAlt);closeDialog();renderAll();return}
  if(e.target.matches('[data-close]')){closeDialog();return}
  if(e.target.id==='btn-create-another'){window.location.reload();return}
- if(e.target.id==='submit-btn'||e.target.id==='submit-btn-2'||e.target.id==='btn-mobile-submit'){submitBooking();return}
+ if(e.target.id==='submit-btn'||e.target.id==='submit-btn-2'){submitBooking();return}
 });
 document.addEventListener('input',e=>{
  if(['ng-name','ng-surname','ng-phone','ng-email'].includes(e.target.id)){

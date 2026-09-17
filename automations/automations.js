@@ -213,7 +213,7 @@ document.addEventListener('click',e=>{
 
  if(el.dataset.tab){$$('#tabs button').forEach(b=>b.classList.remove('active'));el.classList.add('active');state.tab=el.dataset.tab;renderTabContent();return}
  if(el.id==='btn-history'){$$('#tabs button').forEach(b=>b.classList.remove('active'));$('[data-tab="history"]').classList.add('active');state.tab='history';renderTabContent();return}
- if(el.id==='btn-new-automation'||el.id==='btn-new-automation-2'||el.id==='floating-add'){newWizard();return}
+ if(el.id==='btn-new-automation'||el.id==='btn-new-automation-2'){newWizard();return}
  if(el.id==='btn-ai-create'){aiCreateModal();return}
  if(el.id==='btn-enable-recommended'){automations.forEach(a=>a.active=true);renderAll();toast('Рекомендовані автоматизації увімкнено');return}
  if(el.dataset.addPreset){addPresetModal(el.dataset.addPreset);return}

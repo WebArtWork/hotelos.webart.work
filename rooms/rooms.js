@@ -266,7 +266,7 @@ document.addEventListener('click',e=>{
   state.filters.capacity=new Set([...sections[2].querySelectorAll('input:checked')].map(c=>c.value));
   $('#filters-panel').hidden=true;renderRooms();return;
  }
- if(el&&(el.id==='btn-add-room'||el.id==='empty-add-room'||el.id==='floating-add')){addRoomModal();return}
+ if(el&&(el.id==='btn-add-room'||el.id==='empty-add-room')){addRoomModal();return}
  if(el&&el.id==='btn-room-types'){roomTypesModal();return}
  if(el&&el.id==='btn-add-type'){addTypeModal();return}
  if(el&&el.dataset.quickBook){window.location.href='/new-booking/';return}

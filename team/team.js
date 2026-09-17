@@ -196,7 +196,7 @@ document.addEventListener('click',e=>{
  if(el.matches('[data-close]')){closeDialog();return}
 
  if(el.dataset.seg){$$('#segments button').forEach(b=>b.classList.remove('active'));el.classList.add('active');state.segment=el.dataset.seg;renderList();return}
- if(el.id==='btn-add-employee'||el.id==='floating-add'){addEmployeeModal();return}
+ if(el.id==='btn-add-employee'){addEmployeeModal();return}
  if(el.id==='btn-role-matrix'){roleMatrixModal();return}
  if(el.id==='send-invite'){
   const data=JSON.parse(el.dataset._pending);

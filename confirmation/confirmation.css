@@ -10,7 +10,7 @@ svg{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-wi
 [hidden]{display:none!important}
 .hotel-photo{display:block;width:100%;max-width:100%;object-fit:cover;background:#ecedef;border-radius:8px}
 
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--white);z-index:30}
 .tb-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px}
 .tb-logo .mark{width:30px;height:30px;border-radius:7px;background:var(--ink);color:var(--gold);display:grid;place-items:center;font-size:14px}
 .demo-switch{display:flex;align-items:center;gap:8px}

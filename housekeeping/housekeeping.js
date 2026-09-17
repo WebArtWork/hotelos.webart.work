@@ -296,7 +296,7 @@ document.addEventListener('click',e=>{
   state.filters.priority=new Set([...sections[1].querySelectorAll('input:checked')].map(c=>c.value));
   $('#filters-panel').hidden=true;renderAll();return;
  }
- if(el&&(el.id==='btn-add-task'||el.id==='floating-add')){addTaskModal();return}
+ if(el&&el.id==='btn-add-task'){addTaskModal();return}
  if(el&&el.id==='btn-distribute'){distributeModal();return}
  if(el&&el.id==='save-distribute'){
   $$('[data-distribute]').forEach(sel=>{const r=rooms.find(r=>r.number===sel.dataset.distribute);if(r)r.assigned=sel.value||null});
