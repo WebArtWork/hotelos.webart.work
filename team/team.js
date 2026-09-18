@@ -185,7 +185,12 @@ function editModal(id){
 }
 function deactivateModal(id){
  const e=employees.find(e=>e.id===Number(id));
- show('Деактивувати працівника?',`<p>${esc(fullName(e))} більше не зможе входити в Hotel OS.</p><p>Її/його попередні дії та історія залишаться в системі.</p><div class="dialog-actions"><button class="button primary destructive" id="confirm-deactivate" data-id="${e.id}">Деактивувати</button><button class="button secondary" data-close>Скасувати</button></div>`);
+ const taskNote=e.role==='housekeeping'
+  ?'<p class="form-note"><b>Задачі прибирання, призначені на неї/нього, лишаться призначеними.</b> Перепризначте їх вручну на сторінці Прибирання або переведіть у чергу непризначених задач — деактивація доступу сама по собі цього не робить.</p>'
+  :e.role==='reception'
+  ?'<p class="form-note"><b>Бронювання та діалоги, які вона/він вів(ла), не переприв’язуються автоматично.</b> Перевірте незавершені діалоги в Повідомленнях і передайте їх колегам.</p>'
+  :'';
+ show('Деактивувати працівника?',`<p>${esc(fullName(e))} більше не зможе входити в Hotel OS.</p><p>Її/його попередні дії та історія залишаться в системі під її/його іменем — деактивація не переписує авторство минулих дій.</p>${taskNote}<div class="dialog-actions"><button class="button primary destructive" id="confirm-deactivate" data-id="${e.id}">Деактивувати</button><button class="button secondary" data-close>Скасувати</button></div>`);
 }
 
 document.addEventListener('click',e=>{

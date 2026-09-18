@@ -38,16 +38,23 @@ const state={compare:false,monthMetric:'bookings'};
 function renderKpis(){
  $('#kpis').innerHTML=`
  <div class="kpi"><small>Бронювань</small><b>${totalBookings}</b><span>+12% до минулого місяця</span>${state.compare?'<span class="cmp">Минулий місяць: 78</span>':''}</div>
- <div class="kpi"><small>Дохід</small><b>${money(totalRevenue)}</b><span>фактично отримані платежі</span>${state.compare?'<span class="cmp">Минулий місяць: 391 200 ₴</span>':''}</div>
+ <div class="kpi"><small>Отримано оплат</small><b>${money(totalRevenue)}</b><span>валові надходження, без вирахування повернень</span>${state.compare?'<span class="cmp">Минулий місяць: 391 200 ₴</span>':''}</div>
  <div class="kpi"><small>Середній чек</small><b>${money(Math.round(totalRevenue/totalBookings))}</b><span>&nbsp;</span>${state.compare?'<span class="cmp">Минулий місяць: 4 620 ₴</span>':''}</div>
  <div class="kpi gold"><small>Прямі бронювання</small><b>34%</b><span>29 бронювань</span>${state.compare?'<span class="cmp">Минулий місяць: 31%</span>':''}</div>`;
 }
 function renderSourceBars(){
- $('#source-bars').innerHTML=sources.map(s=>`<div class="source-bar-row" data-open-source="${esc(s.name)}"><div class="sbr-top"><span>${esc(s.name)}</span><b>${s.pct}%</b></div><div class="sbr-track"><span class="${s.category==='Direct'?'direct':''}" style="width:${s.pct}%"></span></div><div class="sbr-facts">${s.count} бронювань · ${money(s.revenue)}</div></div>`).join('');
+ const channelSources=sources.filter(s=>s.category!=='Social');
+ const discoverySources=sources.filter(s=>s.category==='Social');
+ const channelTotal=channelSources.reduce((s,x)=>s+x.count,0);
+ const discoveryTotal=discoverySources.reduce((s,x)=>s+x.count,0);
+ const bar=(s,total)=>{const pct=Math.round(s.count/total*100);return `<div class="source-bar-row" data-open-source="${esc(s.name)}"><div class="sbr-top"><span>${esc(s.name)}</span><b>${pct}%</b></div><div class="sbr-track"><span class="${s.category==='Direct'?'direct':''}" style="width:${pct}%"></span></div><div class="sbr-facts">${s.count} бронювань · ${money(s.revenue)}</div></div>`};
+ $('#channel-bars').innerHTML=channelSources.map(s=>bar(s,channelTotal)).join('');
+ $('#discovery-bars').innerHTML=discoverySources.map(s=>bar(s,discoveryTotal)).join('')+`<div class="source-bar-row"><div class="sbr-top"><span>Невідомо</span><b>—</b></div><div class="sbr-facts">18 бронювань без вказаного джерела виявлення</div></div>`;
 }
 function renderRevenueBars(){
- const max=Math.max(...sources.map(s=>s.revenue));
- $('#revenue-bars').innerHTML=sources.map(s=>`<div class="source-bar-row" data-open-source="${esc(s.name)}"><div class="sbr-top"><span>${esc(s.name)}</span><b>${money(s.revenue)}</b></div><div class="sbr-track"><span class="${s.category==='Direct'?'direct':''}" style="width:${s.revenue/max*100}%"></span></div></div>`).join('');
+ const channelSources=sources.filter(s=>s.category!=='Social');
+ const max=Math.max(...channelSources.map(s=>s.revenue));
+ $('#revenue-bars').innerHTML=channelSources.map(s=>`<div class="source-bar-row" data-open-source="${esc(s.name)}"><div class="sbr-top"><span>${esc(s.name)}</span><b>${money(s.revenue)}</b></div><div class="sbr-track"><span class="${s.category==='Direct'?'direct':''}" style="width:${s.revenue/max*100}%"></span></div></div>`).join('');
 }
 function renderSourceTable(){
  $('#source-tbody').innerHTML=sources.map(s=>`<tr data-open-source="${esc(s.name)}"><td class="name-cell">${esc(s.name)}</td><td><b>${s.count}</b></td><td>${s.nights} ночей</td><td><b>${money(s.revenue)}</b></td><td>${money(Math.round(s.revenue/s.count))}</td><td>${s.pct}%</td><td>${s.repeat} повторних</td></tr>`).join('');
@@ -156,4 +163,8 @@ document.addEventListener('submit',e=>{
 document.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');closeSidePanel()}});
 
+if(!HotelRole.isOwner()){
+ $('#main').innerHTML=`<div class="page-heading"><h1>Продажі</h1><p>Дохід, джерела бронювань та кампанії.</p></div><div class="empty-state"><span class="empty-label">ДОСТУП ОБМЕЖЕНО</span><h2>Дані доступні лише власнику</h2><p>Роль «${esc(HotelRole.LABELS[HotelRole.get()])}» не має доступу до фінансових показників. Змініть роль у Налаштуваннях, щоб переглянути цей розділ.</p><a class="button primary" href="/settings/">Перейти до налаштувань</a></div><div class="workspace-footer"><span>Hotel OS · Продажі</span><span>Демонстраційні дані · 17.09.2026</span></div>`;
+}else{
 renderAll();
+}

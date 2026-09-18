@@ -1,0 +1,10 @@
+html{color-scheme:light}
+html[data-theme="dark"]{color-scheme:dark}
+input[type="checkbox"],input[type="radio"]{accent-color:var(--gold)}
+.theme-toggle{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--white);color:var(--muted);font-size:10.5px;font-weight:700;padding:6px 12px;border-radius:20px;cursor:pointer;white-space:nowrap}
+.theme-toggle:hover{border-color:#cbb580}
+.theme-toggle .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.theme-toggle-label:after{content:"Світла тема"}
+html[data-theme="dark"] .theme-toggle-label:after{content:"Темна тема"}
+.footer-theme-toggle{font-size:9px;padding:4px 9px;gap:5px}
+.footer-theme-toggle .dot{width:5px;height:5px}

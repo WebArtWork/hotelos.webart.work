@@ -12,7 +12,8 @@ const TEMPLATES=[
  {id:'arrival',name:'Перед заїздом',category:'Заїзд',channel:'Email',chip:'Перед заїздом',text:'Вітаємо, {{guest.firstName}}!\n\nНагадуємо, що завтра очікуємо вас у {{hotel.name}}.\nЗаселення доступне після {{hotel.checkInTime}}.\n\nЯкщо вже знаєте приблизний час прибуття — напишіть нам у відповідь.'},
  {id:'payment',name:'Нагадування про оплату',category:'Оплата',channel:'SMS',chip:'Оплата',text:'Вітаємо, {{guest.firstName}}!\n\nЗа вашим бронюванням залишилося оплатити {{booking.balance}}.\n\nЯкщо оплату вже здійснено — можете проігнорувати це повідомлення.'},
  {id:'checkout',name:'Нагадування про виїзд',category:'Виїзд',channel:'Email',chip:'Check-out',text:'Доброго ранку, {{guest.firstName}}!\n\nНагадуємо, що сьогодні check-out до {{hotel.checkOutTime}}.\n\nДякуємо, що обрали {{hotel.name}}.'},
- {id:'thanks',name:'Після проживання',category:'Подяка',channel:'Email',chip:'Подяка',text:'Дякуємо, {{guest.firstName}}, що гостювали у нас!\n\nБудемо раді бачити вас знову. Якщо матимете хвилину — будемо вдячні за ваш відгук.'}
+ {id:'thanks',name:'Після проживання',category:'Подяка',channel:'Email',chip:'Подяка',text:'Дякуємо, {{guest.firstName}}, що гостювали у нас!\n\nБудемо раді бачити вас знову. Якщо матимете хвилину — будемо вдячні за ваш відгук.'},
+ {id:'prepay-dm',name:'Пропозиція номера в месенджері',category:'Продаж',channel:'Telegram',chip:'AI-продаж',text:'Вітаємо! На ці дати вільний номер «{{room.name}}» — {{booking.total}}.\n\nЗабронювати й надіслати посилання на передоплату?'}
 ];
 const VARIABLES=[['Ім’я гостя','{{guest.firstName}}'],['Назва готелю','{{hotel.name}}'],['Дата заїзду','{{booking.checkIn}}'],['Дата виїзду','{{booking.checkOut}}'],['Номер','{{room.name}}'],['Тип номера','{{room.type}}'],['Сума','{{booking.total}}'],['Залишок','{{booking.balance}}'],['Час check-in','{{hotel.checkInTime}}'],['Час check-out','{{hotel.checkOutTime}}']];
 
@@ -139,7 +140,7 @@ function renderChat(){
  </div>
  <div class="chat-body" id="chat-body">${body}</div>
  <div class="composer-wrap">
-  <div class="channel-row"><span style="font-size:10px;color:#9b9ca2">Канал</span><select id="channel-select"><option>Email</option><option>SMS</option></select></div>
+  <div class="channel-row"><span style="font-size:10px;color:#9b9ca2">Канал</span><select id="channel-select"><option>Email</option><option>SMS</option><option>Instagram</option><option>Telegram</option></select></div>
   <div class="template-chips">${TEMPLATES.map(t=>`<button data-insert-template="${t.id}">${t.chip}</button>`).join('')}</div>
   <div class="composer-row" style="position:relative">
    <button class="composer-icon" aria-label="Додати вкладення" data-icon="attach" data-attach></button>
@@ -203,7 +204,7 @@ function newMessageModal(){
  show('Нове повідомлення',`<form class="demo-form" id="new-message-form">
   <label class="full">Одержувач<input id="nm-recipient" placeholder="Ім’я, телефон або бронювання" list="nm-list" autocomplete="off"></label>
   <datalist id="nm-list">${conversations.map(c=>`<option value="${esc(c.guest)}">`).join('')}</datalist>
-  <label>Канал<select name="channel"><option>Email</option><option>SMS</option></select></label>
+  <label>Канал<select name="channel"><option>Email</option><option>SMS</option><option>Instagram</option><option>Telegram</option></select></label>
   <label>Шаблон<select id="nm-template"><option value="">Без шаблону</option>${TEMPLATES.map(t=>`<option value="${t.id}">${t.name}</option>`).join('')}</select></label>
   <label class="full">Повідомлення<textarea name="message" id="nm-text" required maxlength="800"></textarea></label>
   <button class="button primary full" type="submit">Надіслати</button>
@@ -226,7 +227,7 @@ function newTemplateModal(){
   show('Новий шаблон',`<form class="demo-form" id="new-template-form">
    <label>Назва<input name="name" required></label>
    <label>Категорія<input name="category"></label>
-   <label class="full">Канал<select name="channel"><option>Email</option><option>SMS</option></select></label>
+   <label class="full">Канал<select name="channel"><option>Email</option><option>SMS</option><option>Instagram</option><option>Telegram</option></select></label>
    <label class="full">Повідомлення<textarea name="message" id="nt-text" required maxlength="800"></textarea></label>
    <div class="full var-chips">${VARIABLES.map(([label,token])=>`<button type="button" data-insert-var="${token}">${label}</button>`).join('')}</div>
    <button class="button primary full" type="submit">Зберегти шаблон</button>
@@ -255,7 +256,6 @@ document.addEventListener('click',e=>{
  if(el.matches('.mobile-menu')){const opened=$('#sidebar').classList.toggle('open');$('.nav-overlay').hidden=!opened;document.documentElement.classList.toggle('no-scroll',opened);el.setAttribute('aria-expanded',String(opened));return}
  if(el.matches('.nav-overlay')){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');return}
  if(el.matches('[data-close]')){closeDialog();return}
- if(el.dataset.view==='automations'&&el.classList.contains('nav-item')){show('Автоматизації','<p>Розділ автоматизацій ще у розробці в демонстраційній версії.</p>');return}
  if(el.dataset.view){show('Розділ у розробці','<p>Цей розділ ще недоступний у демонстраційній версії.</p>');return}
 
  if(el.dataset.openConvo){state.activeId=Number(el.dataset.openConvo);renderAll();document.body.classList.add('chat-open');return}
@@ -281,7 +281,7 @@ document.addEventListener('click',e=>{
  if(el.id==='archive-convo'){activeConvo().archived=true;closeDialog();state.activeId=conversations.find(c=>!c.archived)?.id;renderAll();toast('Розмову архівовано');return}
  if(el.dataset.retry!==undefined){toast('Повторна спроба надсилання...');return}
  if(el.dataset.changeChannel!==undefined){toast('Канал змінено на SMS · Демо');return}
- if(el.dataset.openAutomation!==undefined){show('Автоматизація',`<p>Правило: «${el.title||'За 24 години до заїзду'}»</p><p class="form-note">Повний розділ автоматизацій ще у розробці.</p>`);return}
+ if(el.dataset.openAutomation!==undefined){window.location.href='/automations/';return}
  if(el.dataset.editScheduled!==undefined){show('Редагувати заплановане повідомлення',`<form class="demo-form" id="edit-sched-form"><label class="full">Текст<textarea name="text">${esc(activeConvo().scheduled.text)}</textarea></label><button class="button primary full" type="submit">Зберегти</button></form>`);return}
  if(el.dataset.cancelScheduled!==undefined){const c=activeConvo();c.scheduled=null;renderChat();toast('Заплановане повідомлення скасовано');return}
 });

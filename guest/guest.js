@@ -43,7 +43,7 @@ function render(){
  $('#guest-phone').textContent=guest.phone;
  $('#guest-email').textContent=guest.email;$('#guest-email').href='mailto:'+guest.email;
  $('#first-visit').textContent=guest.firstVisit;$('#last-visit').textContent=guest.lastVisit;
- $('#metrics-row').innerHTML=`<div><b>${stays()}</b><span>Проживання</span></div><div><b>${totalNights()}</b><span>Ночей</span></div><div><b>${money(totalSpent())}</b><span>Витрачено</span></div><div><b>${upcomingCount()}</b><span>Майбутнє бронювання</span></div>`;
+ $('#metrics-row').innerHTML=`<div><b>${stays()}</b><span>Проживання</span></div><div><b>${totalNights()}</b><span>Ночей</span></div><div title="Сума завершених проживань, без вирахування повернень і без урахування майбутніх передоплат"><b>${money(totalSpent())}</b><span>Витрачено</span></div><div><b>${upcomingCount()}</b><span>Майбутнє бронювання</span></div>`;
 
  const ns=guest.nextStay;
  $('#status-card').innerHTML=ns?`<h2>Наступний заїзд</h2><div class="stay-facts">${ns.start}–${ns.end} · ${ns.room} · ${ns.type}<br>${ns.guests} гості · ${money(ns.total)}<br>Статус: <b>${ns.status}</b></div><button class="button primary" style="margin-top:12px" id="btn-open-next">Відкрити бронювання</button>`:`<div class="status-empty">Немає активних бронювань<br><button class="button primary" style="margin-top:12px" id="btn-create-from-empty">+ Створити бронювання</button></div>`;
@@ -58,7 +58,7 @@ function render(){
 
  $('#messages-timeline').innerHTML=guest.messages.map(m=>`<div class="timeline-item"><span class="t-date">${m.date}</span><b style="flex:1">${esc(m.text)}</b><span class="t-state">Надіслано</span></div>`).join('');
 
- $('#payment-summary-row').innerHTML=`<div><b>${money(totalSpent())}</b><span>Фактично отримано</span></div><div><b>0 ₴</b><span>Refunds</span></div><div><b>0 ₴</b><span>Outstanding</span></div>`;
+ $('#payment-summary-row').innerHTML=`<div><b>${money(totalSpent())}</b><span>Фактично отримано</span></div><div><b>0 ₴</b><span>Повернено</span></div><div><b>0 ₴</b><span>Очікується оплата</span></div>`;
  $('#payments-list').innerHTML=guest.payments.map(p=>`<div class="timeline-item"><span class="t-date">${p.date}</span><div><b>${money(p.amount)}</b><small>Бронювання #${p.bookingId} · ${esc(p.method)}</small></div></div>`).join('');
 
  $('#sources-list').innerHTML=guest.sources.map(s=>`<div class="source-row"><span>${esc(s.name)}</span><b>${s.count} бронюванн${s.count===1?'я':'я'}</b></div>`).join('');
@@ -87,7 +87,7 @@ function addPrefModal(){
  show('Додати побажання',`<form class="demo-form" id="pref-form"><label class="full">Побажання<input name="pref" required maxlength="40"></label><button class="button primary full" type="submit">Додати</button></form>`);
 }
 function mergeModal(){
- show('Об’єднати профілі?',`<p>Знайдено схожий профіль:</p><div class="detail-grid"><div><small>Профіль 1</small><b>Анна Коваленко</b><br><small>${esc(guest.phone)}</small></div><div><small>Профіль 2</small><b>Anna Kovalenko</b><br><small>anna.k@example.com</small></div></div><p class="form-note">Після об’єднання: бронювання, оплати, нотатки, комунікація та теги буде об’єднано. Дію дозволено лише Owner / Manager.</p><div class="dialog-actions"><button class="button primary" id="confirm-merge">Об’єднати</button><button class="button secondary" data-close>Скасувати</button></div>`);
+ show('Об’єднати профілі?',`<p>Знайдено схожий профіль — це записи <b>однієї людини</b> під різним написанням імені, а не просто спільний номер телефону:</p><div class="detail-grid"><div><small>Профіль 1 (залишиться)</small><b>Анна Коваленко</b><br><small>${esc(guest.phone)}</small></div><div><small>Профіль 2 (буде видалено)</small><b>Anna Kovalenko</b><br><small>anna.k@example.com</small></div></div><label class="full" style="display:block;margin-top:10px"><input type="checkbox" id="merge-keep-email" checked style="width:auto;margin-right:6px">Додати anna.k@example.com як другий контакт до профілю 1</label><p class="form-note">Залишиться профіль 1 з іменем «Анна Коваленко» та вказаним телефоном. Історія проживань, повідомлення, нотатки й теги обох профілів об’єднаються в один запис — це <b>не створює нових бронювань чи оплат</b> і не збільшує суму витраченого, лише показує обидві історії разом. Дію дозволено лише Owner / Manager, подія об’єднання лишиться в журналі дій гостя з можливістю звернутися в підтримку, якщо об’єднано помилково.</p><div class="dialog-actions"><button class="button primary" id="confirm-merge">Об’єднати</button><button class="button secondary" data-close>Скасувати</button></div>`);
 }
 function deleteModal(){
  show('Видалити гостя?',`<div class="notice danger">Профіль має історію бронювань (${stays()}). Booking history повинна залишитися для фінансових записів.</div><p class="form-note">Рекомендуємо архівувати гостя замість повного видалення.</p><div class="dialog-actions"><button class="button primary" id="confirm-archive">Архівувати гостя</button><button class="button secondary destructive" id="confirm-delete-anyway">Все одно видалити</button></div>`);
@@ -115,7 +115,7 @@ function aiAnswer(key){
   summary:`<p>Анна проживала у вас <b>${stays()}</b> рази.</p><p>Найчастіше обирає номери категорії «${favoriteType()}».</p><p>Зазвичай проживає <b>${avgNights()} ночі</b>.</p><p>У попередніх бронюваннях просила тихий номер.</p><p>Останній візит — <b>${guest.lastVisit}</b>.</p>`,
   prefs:`<p>${guest.preferences.map(esc).join(', ')}.</p>`,
   last:`<p>Востаннє гість проживав у вас <b>${guest.lastVisit}</b>.</p>`,
-  spent:`<p>Загалом гість витратив <b>${money(totalSpent())}</b> за ${stays()} проживання.</p>`,
+  spent:`<p>Загалом гість витратив <b>${money(totalSpent())}</b> за ${stays()} завершених проживань (без вирахування повернень, без урахування майбутніх передоплат).</p>`,
   offer:`<p>Вітаємо, Анно!</p><p>Будемо раді бачити вас знову. Маємо доступні номери категорії «${favoriteType()}», яку ви обирали раніше.</p><p>Якщо плануєте поїздку — із задоволенням підберемо зручні дати.</p><button id="use-ai-message">Використати повідомлення</button>`
  };
  box.innerHTML=`<div class="ai-answer-box">${map[key]||'<p>Відповідь доступна лише в межах цього профілю.</p>'}</div>`;

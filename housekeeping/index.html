@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="uk">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Hotel OS — прибирання. Контролюйте готовність номерів і роботу команди прибирання."><title>Прибирання — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/housekeeping/"><link rel="stylesheet" href="/housekeeping/housekeeping.css"></head>
+<head><meta charset="utf-8"><script src="/assets/theme.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Hotel OS — прибирання. Контролюйте готовність номерів і роботу команди прибирання."><title>Прибирання — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/housekeeping/"><link rel="stylesheet" href="/housekeeping/housekeeping.css"><link rel="stylesheet" href="/assets/theme.css"></head>
 <body>
 <a class="skip" href="#main">Перейти до прибирання</a>
 <aside class="sidebar" id="sidebar" aria-label="Навігація готелю">
  <a class="logo" href="/" aria-label="Hotel OS — головна сторінка"><span class="logo-mark">H</span>Hotel <b>OS</b></a>
  <div class="hotel"><span class="hotel-icon" data-icon="hotel"></span><div><b>Grand Hotel</b><small>Кам’янець-Подільський</small></div><span class="hotel-chevron">⌄</span></div>
  <span class="nav-label">РОБОЧИЙ ПРОСТІР</span>
- <nav><a class="nav-item" href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a class="nav-item" href="/calendar/"><span data-icon="calendar"></span>Календар</a><a class="nav-item" href="/booking/"><span data-icon="booking"></span>Бронювання</a><a class="nav-item" href="/guests/"><span data-icon="guests"></span>Гості</a><a class="nav-item" href="/rooms/"><span data-icon="hotel"></span>Номери</a><a class="nav-item" href="/payments/"><span data-icon="wallet"></span>Оплати</a><a class="nav-item active" href="/housekeeping/" aria-current="page"><span data-icon="clean"></span>Прибирання</a><a class="nav-item" href="/messages/"><span data-icon="message"></span>Повідомлення</a><a class="nav-item" href="/automations/"><span data-icon="automation"></span>Автоматизації</a><a class="nav-item" href="/sales/"><span data-icon="chart"></span>Продажі</a><a class="nav-item ai-nav" href="/ai/"><span data-icon="spark"></span>AI-помічник<span class="ai-label">AI</span></a></nav>
+ <nav><a class="nav-item" href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a class="nav-item" href="/calendar/"><span data-icon="calendar"></span>Календар</a><a class="nav-item" href="/guests/"><span data-icon="guests"></span>Гості</a><a class="nav-item" href="/rooms/"><span data-icon="hotel"></span>Номери</a><a class="nav-item" href="/payments/"><span data-icon="wallet"></span>Оплати</a><a class="nav-item active" href="/housekeeping/" aria-current="page"><span data-icon="clean"></span>Прибирання</a><a class="nav-item" href="/messages/"><span data-icon="message"></span>Повідомлення</a><a class="nav-item" href="/automations/"><span data-icon="automation"></span>Автоматизації</a><a class="nav-item" href="/sales/"><span data-icon="chart"></span>Продажі</a><a class="nav-item ai-nav" href="/ai/"><span data-icon="spark"></span>AI-помічник<span class="ai-label">AI</span></a></nav>
  <div class="sidebar-bottom"><a class="nav-item" href="/team/"><span data-icon="guests"></span>Команда</a><a class="nav-item" href="/settings/"><span data-icon="settings"></span>Налаштування</a><div class="plan-note"><span class="plan-dot"></span><span>Тариф Small<small>Демонстраційний готель</small></span><a href="/#pricing" aria-label="Переглянути тарифи">↗</a></div></div>
 </aside><button class="nav-overlay" aria-label="Закрити навігацію" hidden></button>
 <div class="workspace">
@@ -32,7 +32,7 @@
 
   <div class="toolbar-row">
    <div class="day-tabs" id="day-tabs"><button data-day="today" class="active">Сьогодні</button><button data-day="tomorrow">Завтра</button><button data-day="all">Усі активні</button></div>
-   <div class="view-switch" id="view-switch"><button data-view-mode="board" class="active">Board</button><button data-view-mode="list">Список</button></div>
+   <div class="view-switch" id="view-switch"><button data-view-mode="board" class="active">Дошка</button><button data-view-mode="list">Список</button></div>
    <select class="plain" id="sort-select">
     <option value="arrival">Найближчий заїзд</option>
     <option value="room">Номер</option>
@@ -71,12 +71,12 @@
   <div id="empty-state" hidden></div>
 
   <div class="team-row" id="team-row"></div>
-  <div class="workspace-footer"><span>Hotel OS · Прибирання</span><span>Демонстраційні дані · 17.09.2026</span></div>
+  <div class="workspace-footer"><span>Hotel OS · Прибирання</span><span>Демонстраційні дані · 17.09.2026</span><button class="theme-toggle footer-theme-toggle" data-theme-toggle aria-label="Перемкнути тему"><span class="dot"></span><span class="theme-toggle-label"></span></button></div>
  </main>
 </div>
 
 
-<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/"><span data-icon="calendar"></span>Календар</a><a href="/booking/"><span data-icon="booking"></span>Бронювання</a><button class="mobile-menu" aria-label="Відкрити меню" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span>Меню</button></div>
+<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/"><span data-icon="calendar"></span>Календар</a><a href="/guests/"><span data-icon="guests"></span>Гості</a><button class="mobile-menu" aria-label="Відкрити меню" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span>Меню</button></div>
 <div class="side-scrim" id="side-scrim" hidden></div>
 <aside class="side-panel" id="side-panel" aria-label="Деталі задачі">
  <div class="side-panel-head"><span class="dialog-label">HOTEL OS <span>· ПРИБИРАННЯ</span></span><button class="icon-button" id="side-close" aria-label="Закрити" data-icon="close"></button></div>

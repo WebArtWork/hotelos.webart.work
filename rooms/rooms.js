@@ -27,7 +27,7 @@ function buildRooms(){
  for(let i=301;i<=306;i++)push(String(i),'Апартаменти',3);
 
  const set=(num,overrides)=>Object.assign(list.find(r=>r.number===num),overrides);
- set('204',{status:'occupied',guest:'Анна Коваленко',checkin:'17 вересня',checkout:'20 вересня',nights:3,payment:'Оплачено',nextGuest:'Олег Бондар',nextStart:'21 вересня',nextEnd:'23 вересня',nextArrival:'14:30',maintenanceNotes:[{date:'12 вересня',text:'Потрібно замінити лампу біля ліжка.',status:'Виконано'},{date:'2 серпня',text:'Перевірити кондиціонер.',status:'Виконано'}]});
+ set('204',{status:'occupied',needsCleaning:true,guest:'Анна Коваленко',checkin:'17 вересня',checkout:'20 вересня',nights:3,payment:'Оплачено',nextGuest:'Олег Бондар',nextStart:'21 вересня',nextEnd:'23 вересня',nextArrival:'14:30',maintenanceNotes:[{date:'12 вересня',text:'Потрібно замінити лампу біля ліжка.',status:'Виконано'},{date:'2 серпня',text:'Перевірити кондиціонер.',status:'Виконано'}]});
  set('103',{status:'ready',guest:null,nextGuest:null,nextArrival:'21 вересня',lastCleaned:'17 вересня · 11:40',cleanedBy:'Марія'});
  set('205',{status:'ready',guest:null,nextArrival:null,lastCleaned:'16 вересня · 10:20',cleanedBy:'Оксана'});
  set('207',{status:'needs-cleaning',guest:null,checkoutTime:'11:08',assigned:null});
@@ -47,10 +47,12 @@ function counts(){
  return{total:rooms.length,occupied,ready,cleaningKpi,unavailable};
 }
 
-const state={search:'',segment:'all',viewMode:'cards',filters:{types:new Set(typeOrder()),statuses:new Set(['ready','occupied','needs-cleaning','cleaning','unavailable']),capacity:new Set(['1','2','3','4'])}};
+const state={search:'',segment:'all',viewMode:'cards',filters:{types:new Set(typeOrder()),statuses:new Set(['ready','occupied','needs-cleaning','cleaning','unavailable']),cleaningOnly:false,capacity:new Set(['1','2','3','4'])}};
 
 function capBucket(cap){return cap>=4?'4':cap>=3?'3':String(cap)}
+function needsCleaning(r){return Boolean(r.needsCleaning)||r.status==='needs-cleaning'||r.status==='cleaning'}
 function passesFilters(r){
+ if(state.filters.cleaningOnly&&!needsCleaning(r))return false;
  if(!state.filters.types.has(r.type))return false;
  if(!state.filters.statuses.has(r.status))return false;
  if(!state.filters.capacity.has(capBucket(r.capacity)))return false;
@@ -85,7 +87,7 @@ function roomCardHtml(r){
   :r.status==='unavailable'?`<button data-edit-block="${r.number}">Редагувати блокування</button>`
   :`<button data-open-booking="${r.number}">Відкрити бронювання</button>`;
  return `<div class="room-card status-${r.status}" data-room="${r.number}">
-  <div class="rc-top"><div><div class="rc-num">${r.number}</div><div class="rc-type">${r.type}</div></div><span class="status-tag ${r.status}">${statusLabel(r.status)}</span></div>
+  <div class="rc-top"><div><div class="rc-num">${r.number}</div><div class="rc-type">${r.type}</div></div><div class="rc-tags"><span class="status-tag ${r.status}">${statusLabel(r.status)}</span>${r.status==='occupied'&&r.needsCleaning?'<span class="status-tag needs-cleaning">Потребує прибирання</span>':''}</div></div>
   <div class="rc-facts">${r.capacity} гості · ${r.beds}</div>
   <div class="rc-price">${money(r.price)} / ніч</div>
   ${sub}
@@ -258,12 +260,13 @@ document.addEventListener('click',e=>{
  if(el&&el.dataset.viewMode){$$('.view-switch button').forEach(b=>b.classList.remove('active'));el.classList.add('active');state.viewMode=el.dataset.viewMode;renderRooms();return}
  if(el&&el.dataset.seg){$$('#chips-mobile button').forEach(b=>b.classList.remove('active'));el.classList.add('active');state.segment=el.dataset.seg;renderRooms();return}
  if(el&&el.id==='filters-toggle'){$('#filters-panel').hidden=!$('#filters-panel').hidden;return}
- if(el&&el.id==='filters-clear'){$$('#filters-panel input[type=checkbox]').forEach(c=>c.checked=true);return}
+ if(el&&el.id==='filters-clear'){$$('#filters-panel input[type=checkbox]').forEach(c=>c.checked=true);$('#filter-needs-cleaning').checked=false;return}
  if(el&&el.id==='filters-apply'){
   const sections=$$('#filters-panel section');
   state.filters.types=new Set([...sections[0].querySelectorAll('input:checked')].map(c=>c.value));
   state.filters.statuses=new Set([...sections[1].querySelectorAll('input:checked')].map(c=>c.value));
-  state.filters.capacity=new Set([...sections[2].querySelectorAll('input:checked')].map(c=>c.value));
+  state.filters.cleaningOnly=$('#filter-needs-cleaning').checked;
+  state.filters.capacity=new Set([...sections[3].querySelectorAll('input:checked')].map(c=>c.value));
   $('#filters-panel').hidden=true;renderRooms();return;
  }
  if(el&&(el.id==='btn-add-room'||el.id==='empty-add-room')){addRoomModal();return}
@@ -271,7 +274,7 @@ document.addEventListener('click',e=>{
  if(el&&el.id==='btn-add-type'){addTypeModal();return}
  if(el&&el.dataset.quickBook){window.location.href='/new-booking/';return}
  if(el&&el.dataset.assignClean){const r=rooms.find(r=>r.number===el.dataset.assignClean);r.status='cleaning';r.assigned='Марія';r.startedAt=new Date().toTimeString().slice(0,5);renderAll();toast('Прибирання призначено · Демо');return}
- if(el&&el.dataset.openTask){show('Задача прибирання','<p>Повний трекер задач прибирання ще у розробці в демонстраційній версії.</p>');return}
+ if(el&&el.dataset.openTask){window.location.href='/housekeeping/';return}
  if(el&&el.dataset.editBlock){blockRoomModal(el.dataset.editBlock);return}
  if(el&&el.dataset.openBooking){window.location.href='/booking/';return}
  if(el&&el.dataset.openCalendar!==undefined){window.location.href='/calendar/';return}

@@ -20,7 +20,7 @@ function render(){
  if(!items.length){el.innerHTML='<div class="notif-empty">Немає непрочитаних сповіщень.</div>';return}
  el.innerHTML=items.map(n=>`<div class="notif-item ${n.read?'':'unread'} ${n.kind!=='default'?'n-'+n.kind:''}" data-id="${n.id}">
   <span class="n-icon" data-icon="${n.kind==='warn'?'attention':n.kind==='ok'?'check':'bell'}"></span>
-  <div class="n-body"><b>${n.title}</b><p>${n.desc}</p><a href="${n.href}">${n.cta} →</a></div>
+  <div class="n-body"><b>${n.title}</b>${n.kind==='warn'?'<span class="pill n-open">Потребує дії</span>':''}<p>${n.desc}</p><a href="${n.href}">${n.cta} →</a></div>
   <time>${n.time}</time>
  </div>`).join('');
  hydrate(el);

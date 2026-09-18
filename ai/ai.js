@@ -41,7 +41,7 @@ const KB={
  sales:{topSource:'Пряме бронювання',topCount:29,revenueMonth:428600,instagram:{count:15,revenue:76200},directShare:34,directSharePrev:31,returning:18},
  roomPrices:{'204':{type:'Люкс',price:1600},'205':{type:'Люкс',price:1800}}
 };
-const CURRENT_ROLE={value:'owner'};
+const CURRENT_ROLE={value:HotelRole.get()};
 const ROLE_LABEL={owner:'Owner',manager:'Manager',reception:'Reception',housekeeping:'Housekeeping'};
 let pendingFlow=null;
 
@@ -329,7 +329,7 @@ document.addEventListener('click',e=>{
   return;
  }
 });
-document.addEventListener('change',e=>{if(e.target.id==='role-select'){CURRENT_ROLE.value=e.target.value;toast('Роль (демо): '+ROLE_LABEL[CURRENT_ROLE.value])}});
+document.addEventListener('change',e=>{if(e.target.id==='role-select'){CURRENT_ROLE.value=e.target.value;HotelRole.set(e.target.value);toast('Роль (демо): '+ROLE_LABEL[CURRENT_ROLE.value])}});
 $('#composer-input').addEventListener('input',e=>{e.target.style.height='auto';e.target.style.height=Math.min(120,e.target.scrollHeight)+'px'});
 $('#composer-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#send-btn').click()}});
 document.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()}});

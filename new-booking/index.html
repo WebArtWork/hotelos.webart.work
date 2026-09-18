@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="uk">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Hotel OS — нове бронювання. Оберіть дати, номер та додайте гостя за 1–2 хвилини."><title>Нове бронювання — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/new-booking/"><link rel="stylesheet" href="/new-booking/new-booking.css"></head>
+<head><meta charset="utf-8"><script src="/assets/theme.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Hotel OS — нове бронювання. Оберіть дати, номер та додайте гостя за 1–2 хвилини."><title>Нове бронювання — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/new-booking/"><link rel="stylesheet" href="/new-booking/new-booking.css"><link rel="stylesheet" href="/assets/theme.css"></head>
 <body>
 <a class="skip" href="#main">Перейти до форми</a>
 <aside class="sidebar" id="sidebar" aria-label="Навігація готелю">
  <a class="logo" href="/" aria-label="Hotel OS — головна сторінка"><span class="logo-mark">H</span>Hotel <b>OS</b></a>
  <div class="hotel"><span class="hotel-icon" data-icon="hotel"></span><div><b>Grand Hotel</b><small>Кам’янець-Подільський</small></div><span class="hotel-chevron">⌄</span></div>
  <span class="nav-label">РОБОЧИЙ ПРОСТІР</span>
- <nav><a class="nav-item" href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a class="nav-item active" href="/calendar/" aria-current="page"><span data-icon="calendar"></span>Календар</a><a class="nav-item" href="/booking/"><span data-icon="booking"></span>Бронювання</a><a class="nav-item" href="/guests/"><span data-icon="guests"></span>Гості</a><a class="nav-item" href="/rooms/"><span data-icon="hotel"></span>Номери</a><a class="nav-item" href="/payments/"><span data-icon="wallet"></span>Оплати</a><a class="nav-item" href="/housekeeping/"><span data-icon="clean"></span>Прибирання</a><a class="nav-item" href="/messages/"><span data-icon="message"></span>Повідомлення</a><a class="nav-item" href="/automations/"><span data-icon="automation"></span>Автоматизації</a><a class="nav-item" href="/sales/"><span data-icon="chart"></span>Продажі</a><a class="nav-item ai-nav" href="/ai/"><span data-icon="spark"></span>AI-помічник<span class="ai-label">AI</span></a></nav>
+ <nav><a class="nav-item" href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a class="nav-item active" href="/calendar/" aria-current="page"><span data-icon="calendar"></span>Календар</a><a class="nav-item" href="/guests/"><span data-icon="guests"></span>Гості</a><a class="nav-item" href="/rooms/"><span data-icon="hotel"></span>Номери</a><a class="nav-item" href="/payments/"><span data-icon="wallet"></span>Оплати</a><a class="nav-item" href="/housekeeping/"><span data-icon="clean"></span>Прибирання</a><a class="nav-item" href="/messages/"><span data-icon="message"></span>Повідомлення</a><a class="nav-item" href="/automations/"><span data-icon="automation"></span>Автоматизації</a><a class="nav-item" href="/sales/"><span data-icon="chart"></span>Продажі</a><a class="nav-item ai-nav" href="/ai/"><span data-icon="spark"></span>AI-помічник<span class="ai-label">AI</span></a></nav>
  <div class="sidebar-bottom"><a class="nav-item" href="/team/"><span data-icon="guests"></span>Команда</a><a class="nav-item" href="/settings/"><span data-icon="settings"></span>Налаштування</a><div class="plan-note"><span class="plan-dot"></span><span>Тариф Small<small>Демонстраційний готель</small></span><a href="/#pricing" aria-label="Переглянути тарифи">↗</a></div></div>
 </aside><button class="nav-overlay" aria-label="Закрити навігацію" hidden></button>
 <div class="workspace">
@@ -55,7 +55,7 @@
      <h2>Хто бронює?</h2>
      <p class="card-sub">Знайдіть існуючого гостя або створіть нового.</p>
      <div id="guest-block"></div>
-     <p class="field-error" id="err-guest">Вкажіть ім’я та телефон гостя.</p>
+     <p class="field-error" id="err-guest">Вкажіть ім’я гостя та телефон або email — потрібен хоча б один контакт.</p>
     </section>
 
     <section class="card" id="section-price">
@@ -67,26 +67,42 @@
     </section>
 
     <section class="card" id="section-payment">
-     <h2>Оплата</h2>
+     <h2>Умови оплати</h2>
+     <p class="card-sub">Скільки гість повинен внести зараз — не те, що вже отримано.</p>
      <div class="pay-options">
-      <div class="pay-option selected" data-pay="none"><b>Без оплати</b><span>Гість оплатить пізніше.</span></div>
-      <div class="pay-option" data-pay="deposit"><b>Передоплата</b><span>Внести частину суми.</span></div>
-      <div class="pay-option" data-pay="full"><b>Повна оплата</b><span>Оплачено повністю.</span></div>
+      <div class="pay-option selected" data-pay="none"><b>Без оплати зараз</b><span>Гість оплатить під час заселення.</span></div>
+      <div class="pay-option" data-pay="deposit"><b>Потрібна передоплата</b><span>Частина суми вноситься зараз, залишок — при заселенні.</span></div>
+      <div class="pay-option" data-pay="full"><b>Потрібна повна оплата</b><span>Уся сума вноситься зараз, під час бронювання.</span></div>
      </div>
      <div class="deposit-fields" id="deposit-fields" hidden>
       <label>Сума передоплати<input type="number" id="deposit-amount" min="1"></label>
-      <label>Спосіб оплати<select id="deposit-method"><option>Готівка</option><option>Карта</option><option>Банківський переказ</option><option>Онлайн</option><option>Інше</option></select></label>
+      <label>Спосіб оплати<select id="deposit-method"><option>Готівка</option><option>Картка на місці</option><option>Банківський переказ</option><option>Оплата онлайн (за посиланням)</option><option>Інше</option></select></label>
      </div>
      <p class="pay-summary" id="pay-summary"></p>
     </section>
 
     <section class="card" id="section-source">
      <h2>Звідки прийшов гість?</h2>
-     <select class="plain" id="f-source" required>
-      <option value="">Оберіть джерело</option>
-      <option>Пряме бронювання</option><option>Телефон</option><option>Instagram</option><option>Google</option><option>Facebook</option><option>Booking.com</option><option>Walk-in</option><option>Інше</option>
-     </select>
-     <p class="field-error" id="err-source">Оберіть джерело бронювання.</p>
+     <div class="date-row">
+      <div class="date-field">
+       <label for="f-channel">Канал бронювання</label>
+       <select class="plain" id="f-channel" required>
+        <option value="">Оберіть канал</option>
+        <optgroup label="Прямі (без комісії платформам)"><option>Сайт готелю</option><option>Телефон</option><option>Email</option><option>Месенджер</option><option>Walk-in</option></optgroup>
+        <optgroup label="Сторонні платформи"><option>Booking.com</option></optgroup>
+        <option>Інше</option>
+       </select>
+       <p class="help" style="font-size:10px;color:var(--muted);margin-top:6px">«Прямі» рахуються разом як пряме бронювання — незалежно від того, дзвінком, поштою чи в месенджері домовились.</p>
+       <p class="field-error" id="err-channel">Оберіть канал бронювання.</p>
+      </div>
+      <div class="date-field">
+       <label for="f-discovery">Звідки дізнався(лась) (необов'язково)</label>
+       <select class="plain" id="f-discovery">
+        <option value="">Невідомо</option>
+        <option>Instagram</option><option>Google</option><option>Facebook</option><option>Інше</option>
+       </select>
+      </div>
+     </div>
     </section>
 
     <section class="card" id="section-arrival">
@@ -138,12 +154,12 @@
    </div>
   </div>
   </form>
-  <div class="workspace-footer"><span>Hotel OS · Нове бронювання</span><span>Демонстраційні дані · 17.09.2026</span></div>
+  <div class="workspace-footer"><span>Hotel OS · Нове бронювання</span><span>Демонстраційні дані · 17.09.2026</span><button class="theme-toggle footer-theme-toggle" data-theme-toggle aria-label="Перемкнути тему"><span class="dot"></span><span class="theme-toggle-label"></span></button></div>
  </main>
 </div>
 
 
-<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/"><span data-icon="calendar"></span>Календар</a><a href="/booking/"><span data-icon="booking"></span>Бронювання</a><button class="mobile-menu" aria-label="Відкрити меню" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span>Меню</button></div>
+<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/"><span data-icon="calendar"></span>Календар</a><a href="/guests/"><span data-icon="guests"></span>Гості</a><button class="mobile-menu" aria-label="Відкрити меню" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span>Меню</button></div>
 <dialog id="details-dialog"><div class="dialog-head"><span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span><button class="icon-button" data-close aria-label="Закрити вікно" data-icon="close"></button></div><div id="dialog-content"></div></dialog>
 <div class="toast" id="toast" role="status" hidden></div>
 <script src="/new-booking/new-booking.js"></script>

@@ -31,12 +31,12 @@ function statusOf(g){
  if(g.stays>0)return{key:'former',label:'Колишній гість'};
  return{key:'new',label:'Новий гість'};
 }
-function isAway(g){return g.stays>=2&&g.lastVisit&&dayDiff(g.lastVisit,TODAY)>180}
+function isAway(g){return g.stays>=2&&g.lastVisit&&dayDiff(g.lastVisit,TODAY)>180&&!g.nextBooking}
 function isRegular(g){return g.stays>=2}
 
-const state={search:'',segment:'all',sort:'activity',selected:new Set(),filters:{stays:new Set(['1','2-3','4-5','6+']),tags:new Set(['Постійний гість','VIP','Бізнес','Сім’я'])}};
+const state={search:'',segment:'all',sort:'activity',selected:new Set(),filters:{stays:new Set(['0','1','2-3','4-5','6+']),tags:new Set(['Постійний гість','VIP','Бізнес','Сім’я'])}};
 
-function staysBucket(n){return n<=1?'1':n<=3?'2-3':n<=5?'4-5':'6+'}
+function staysBucket(n){return n===0?'0':n<=1?'1':n<=3?'2-3':n<=5?'4-5':'6+'}
 function passesFilters(g){
  if(!state.filters.stays.has(staysBucket(g.stays)))return false;
  if(g.tags.length&&!g.tags.some(t=>state.filters.tags.has(t)))return false;

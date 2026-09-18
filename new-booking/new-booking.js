@@ -33,7 +33,7 @@ const state={
  guest:{mode:'search',query:'',selected:null,newData:null},
  priceOverride:null,priceReason:'',priceNote:'',
  payment:'none',depositAmount:0,depositMethod:'Готівка',
- source:'',
+ channel:'',discovery:'',
  arrivalUnknown:true,arrivalTime:'',
  prefs:[],note:'',
  confirmSend:true,messageOverride:null
@@ -51,6 +51,7 @@ function remaining(){const paid=state.payment==='full'?finalPrice():state.paymen
 function paidAmount(){return state.payment==='full'?finalPrice():state.payment==='deposit'?state.depositAmount:0}
 function guestName(){return state.guest.selected?state.guest.selected.name:state.guest.newData?state.guest.newData.name+' '+(state.guest.newData.surname||''):'' }
 function guestPhone(){return state.guest.selected?state.guest.selected.phone:state.guest.newData?state.guest.newData.phone:''}
+function guestEmail(){return state.guest.selected?state.guest.selected.email:state.guest.newData?state.guest.newData.email:''}
 
 function messageTemplate(){
  const firstName=guestName().split(' ')[0]||'Гостю';
@@ -141,8 +142,8 @@ function validation(){
  const errs=[];
  if(!(nights()>0))errs.push('dates');
  if(!state.room)errs.push('room');
- if(!guestName().trim()||!guestPhone().trim())errs.push('guest');
- if(!state.source)errs.push('source');
+ if(!guestName().trim()||(!guestPhone().trim()&&!guestEmail().trim()))errs.push('guest');
+ if(!state.channel)errs.push('channel');
  return errs;
 }
 function renderSummary(){
@@ -150,6 +151,7 @@ function renderSummary(){
  const valid=errs.length===0;
  $('#summary-body').innerHTML=`
   <div class="summary-line"><span>Гість</span><b>${esc(guestName())||'—'}</b></div>
+  <div class="summary-line"><span>Підтвердження надішлемо на</span><b>${guestPhone().trim()?'SMS · '+esc(guestPhone()):guestEmail().trim()?'Email · '+esc(guestEmail()):'— (бронювання без контакту)'}</b></div>
   <div class="summary-line"><span>Проживання</span><b>${nights()>0?shortDate(state.start)+' – '+shortDate(state.end):'—'}</b></div>
   <div class="summary-line"><span>Ночей</span><b>${nights()>0?nights():'—'}</b></div>
   <div class="summary-line"><span>Гостей</span><b>${state.adults} дорослих${state.children?', '+state.children+' дітей':''}</b></div>
@@ -157,11 +159,12 @@ function renderSummary(){
   <div class="summary-line"><span>Ціна</span><b>${money(finalPrice())}</b></div>
   <div class="summary-line"><span>Оплачено</span><b>${money(paidAmount())}</b></div>
   <div class="summary-line"><span>Залишок</span><b>${money(remaining())}</b></div>
-  <div class="summary-line"><span>Джерело</span><b>${state.source||'—'}</b></div>`;
+  <div class="summary-line"><span>Канал</span><b>${state.channel||'—'}</b></div>
+  <div class="summary-line"><span>Джерело</span><b>${state.discovery||'Невідомо'}</b></div>`;
  $$('#submit-btn,#submit-btn-2').forEach(b=>b.disabled=!valid);
  if(!errs.includes('room'))$('#err-room').classList.remove('show');
  if(!errs.includes('guest'))$('#err-guest').classList.remove('show');
- if(!errs.includes('source'))$('#err-source').classList.remove('show');
+ if(!errs.includes('channel'))$('#err-channel').classList.remove('show');
 }
 function renderAll(){renderDates();renderGuestsCount();renderRooms();renderGuestBlock();renderPrice();renderPayment();renderPrefs();renderMessage();renderSummary();hydrate()}
 
@@ -201,7 +204,8 @@ $$('.stepper button').forEach(b=>b.addEventListener('click',()=>{const key=b.dat
 $$('.pay-option').forEach(el=>el.addEventListener('click',()=>{state.payment=el.dataset.pay;if(state.payment==='deposit'&&!state.depositAmount)state.depositAmount=Math.round(finalPrice()/2);renderAll()}));
 $('#deposit-amount').addEventListener('input',e=>{state.depositAmount=Number(e.target.value)||0;renderAll()});
 $('#deposit-method').addEventListener('change',e=>{state.depositMethod=e.target.value});
-$('#f-source').addEventListener('change',e=>{state.source=e.target.value;renderSummary()});
+$('#f-channel').addEventListener('change',e=>{state.channel=e.target.value;renderSummary()});
+$('#f-discovery').addEventListener('change',e=>{state.discovery=e.target.value;renderSummary()});
 $('#f-arrival-unknown').addEventListener('change',e=>{state.arrivalUnknown=e.target.checked;$('#f-arrival-time').disabled=state.arrivalUnknown});
 $('#f-arrival-time').addEventListener('change',e=>{state.arrivalTime=e.target.value});
 $('#f-note').addEventListener('input',e=>{state.note=e.target.value});
@@ -252,12 +256,12 @@ function submitBooking(){
  const errs=validation();
  if(errs.length){
   const first=errs[0];
-  const targets={dates:'section-dates',room:'section-rooms',guest:'section-guest',source:'section-source'};
+  const targets={dates:'section-dates',room:'section-rooms',guest:'section-guest',channel:'section-source'};
   document.getElementById(targets[first]).scrollIntoView({behavior:'smooth',block:'center'});
   if(first==='dates')$('#err-dates').classList.add('show');
   if(first==='room')$('#err-room').classList.add('show');
   if(first==='guest')$('#err-guest').classList.add('show');
-  if(first==='source')$('#err-source').classList.add('show');
+  if(first==='channel')$('#err-channel').classList.add('show');
   return;
  }
  if(roomsOverlap(state.room.number,state.start,state.end)){unavailableModal();return}

@@ -18,7 +18,7 @@ const state={
  expectedArrival:'13:30',
  total:4800,paid:3000,
  status:'confirmed',
- createdDate:'14 вересня 2026',source:'Instagram',campaign:'Summer stories',referrer:'instagram.com',
+ createdDate:'14 вересня 2026',channel:'Пряме бронювання',discovery:'Instagram',campaign:'Summer stories',referrer:'instagram.com',
  additionalGuests:['Олексій Коваленко'],previousStays:2,
  roomReady:true,roomStaff:'Марія',roomReadyTime:'13:10',
  notes:'Потрібен тихий номер.\nГість приїде раніше стандартного часу.\nПросив дитяче ліжечко.',
@@ -36,7 +36,7 @@ function pushHistory(text,meta){state.timeline.push({date:'17 вересня · 
 function render(){
  const meta=statusMeta[state.status];
  $('#status-chip').className='status-chip '+state.status;$('#status-chip').textContent=meta.label;
- $('#heading-sub').textContent=`Створено ${state.createdDate} · ${state.source}`;
+ $('#heading-sub').textContent=`Створено ${state.createdDate} · ${state.channel}`;
  $('#guest-name').textContent=state.name;
  $('#guest-contact').innerHTML=`${esc(state.phone)} · <a href="mailto:${esc(state.email)}">${esc(state.email)}</a>`;
  $('#stay-dl').innerHTML=`<dt>Номер</dt><dd>${state.room} · ${state.roomType}</dd><dt>Заїзд</dt><dd>${state.checkin}, ${state.checkinTime}</dd><dt>Виїзд</dt><dd>${state.checkout}, ${state.checkoutTime}</dd><dt>Тривалість</dt><dd>${state.nights} ночі</dd><dt>Гостей</dt><dd>${state.adults} дорослих</dd><dt>Очікуваний заїзд</dt><dd>${state.expectedArrival}</dd>`;
@@ -64,7 +64,7 @@ function render(){
  $('#messages-timeline').innerHTML=state.messages.map(m=>`<div class="timeline-item"><span class="t-date">${m.date}</span><b style="flex:1">${esc(m.text)}</b><span class="t-state ${m.state}">${m.state==='sent'?'Надіслано':'Заплановано'}</span></div>`).join('');
  $('#history-timeline').innerHTML=state.timeline.slice().reverse().map(t=>`<div class="timeline-item"><span class="t-date">${t.date}</span><div><b>${esc(t.text)}</b>${t.meta?`<small>${esc(t.meta)}</small>`:''}</div></div>`).join('');
 
- $('#source-name').textContent=state.source;$('#source-campaign').textContent=state.campaign;$('#source-referrer').textContent=state.referrer;
+ $('#source-channel').textContent=state.channel;$('#source-discovery').textContent=state.discovery||'Невідомо';$('#source-campaign').textContent=state.campaign;$('#source-referrer').textContent=state.referrer;
 
  const primaryLabel=state.status==='checkedin'?'Оформити виїзд':state.status==='checkedout'?'Виїзд оформлено':state.status==='cancelled'?'Скасовано':'Заселити гостя';
  $('#btn-primary-action').textContent=primaryLabel;
@@ -111,7 +111,8 @@ function editModal(){
   <label>Гостей<input name="adults" type="number" min="1" value="${state.adults}"></label>
   <label>Ціна, ₴<input name="total" type="number" min="1" value="${state.total}"></label>
   <label>Очікуваний заїзд<input name="expectedArrival" value="${state.expectedArrival}"></label>
-  <label>Джерело<input name="source" value="${esc(state.source)}"></label>
+  <label>Канал бронювання<input name="channel" value="${esc(state.channel)}"></label>
+  <label>Звідки дізнався(лась)<input name="discovery" value="${esc(state.discovery)}"></label>
   <label>Статус<select name="status"><option value="new" ${state.status==='new'?'selected':''}>Нове</option><option value="confirmed" ${state.status==='confirmed'?'selected':''}>Підтверджено</option><option value="checkedin" ${state.status==='checkedin'?'selected':''}>Заїхав</option><option value="checkedout" ${state.status==='checkedout'?'selected':''}>Виїхав</option></select></label>
   <p class="full form-note">Зміна номера, дат або ціни потребує підтвердження при збереженні.</p>
   <button class="button primary full" type="submit">Зберегти зміни</button>
@@ -193,7 +194,7 @@ document.addEventListener('submit',e=>{
   state.additionalGuests.push(String(data.get('name')).trim());closeDialog();render();toast('Гостя додано');
  }else if(f.id==='edit-form'){
   const critical=data.get('room')!==state.room||data.get('checkin')!==state.checkin||data.get('checkout')!==state.checkout||Number(data.get('total'))!==state.total;
-  Object.assign(state,{name:String(data.get('name')),room:String(data.get('room')),roomType:String(data.get('roomType')),checkin:String(data.get('checkin')),checkout:String(data.get('checkout')),adults:Number(data.get('adults')),total:Number(data.get('total')),expectedArrival:String(data.get('expectedArrival')),source:String(data.get('source')),status:String(data.get('status'))});
+  Object.assign(state,{name:String(data.get('name')),room:String(data.get('room')),roomType:String(data.get('roomType')),checkin:String(data.get('checkin')),checkout:String(data.get('checkout')),adults:Number(data.get('adults')),total:Number(data.get('total')),expectedArrival:String(data.get('expectedArrival')),channel:String(data.get('channel')),discovery:String(data.get('discovery')),status:String(data.get('status'))});
   if(critical)pushHistory('Внесено критичні зміни (номер/дати/ціна)');
   closeDialog();render();toast('Зміни збережено'+(critical?' · Потребувало підтвердження':''));
  }else if(f.id==='cancel-form'){

@@ -10,18 +10,18 @@ const dayDiff=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
 const fmt=d=>new Intl.DateTimeFormat('uk-UA',{day:'numeric',month:'long'}).format(new Date(d));
 
 const payments=[
- {id:1,date:'2026-09-17',time:'10:42',guest:'Анна Коваленко',bookingId:1842,room:'204',roomType:'Люкс',type:'Доплата',method:'Карта',amount:1800,status:'success',note:'Оплата при заселенні.',createdBy:'Олександр',dates:'17–20 вересня'},
+ {id:1,date:'2026-09-17',time:'10:42',guest:'Анна Коваленко',bookingId:1842,room:'204',roomType:'Люкс',type:'Доплата',method:'Картка на місці',amount:1800,status:'success',note:'Оплата при заселенні.',createdBy:'Олександр',dates:'17–20 вересня'},
  {id:2,date:'2026-09-17',time:'09:14',guest:'Олег Бондар',bookingId:1847,room:'103',roomType:'Стандарт',type:'Передоплата',method:'Банківський переказ',amount:1500,status:'success',note:'',createdBy:'Олександр',dates:'17–18 вересня'},
  {id:3,date:'2026-09-17',time:'08:40',guest:'Максим Ткаченко',bookingId:1855,room:'106',roomType:'Покращений',type:'Оплата',method:'Готівка',amount:2000,status:'success',note:'',createdBy:'Марія',dates:'16–19 вересня'},
- {id:4,date:'2026-09-17',time:'07:55',guest:'Дмитро Левченко',bookingId:1866,room:'112',roomType:'Покращений',type:'Оплата',method:'Онлайн',amount:5800,status:'success',note:'Оплата через сайт бронювання.',createdBy:'Онлайн',dates:'17–20 вересня'},
- {id:5,date:'2026-09-16',time:'18:20',guest:'Марія Петренко',bookingId:1812,room:'202',roomType:'Люкс',type:'Повернення',method:'Карта',amount:-2400,status:'refunded',note:'Скорочення терміну проживання.',createdBy:'Олександр',dates:'10–14 вересня'},
- {id:6,date:'2026-09-16',time:'11:05',guest:'Наталія Коваль',bookingId:1858,room:'203',roomType:'Люкс',type:'Передоплата',method:'Карта',amount:3000,status:'success',note:'',createdBy:'Олександр',dates:'18–21 вересня'},
+ {id:4,date:'2026-09-17',time:'07:55',guest:'Дмитро Левченко',bookingId:1866,room:'112',roomType:'Покращений',type:'Оплата',method:'Оплата онлайн',amount:5800,status:'success',note:'Оплата через сайт бронювання.',createdBy:'Онлайн',dates:'17–20 вересня'},
+ {id:5,date:'2026-09-16',time:'18:20',guest:'Марія Петренко',bookingId:1812,room:'202',roomType:'Люкс',type:'Повернення',method:'Картка на місці',amount:-2400,status:'refunded',note:'Скорочення терміну проживання.',createdBy:'Олександр',dates:'10–14 вересня'},
+ {id:6,date:'2026-09-16',time:'11:05',guest:'Наталія Коваль',bookingId:1858,room:'203',roomType:'Люкс',type:'Передоплата',method:'Картка на місці',amount:3000,status:'success',note:'',createdBy:'Олександр',dates:'18–21 вересня'},
  {id:7,date:'2026-09-15',time:'15:30',guest:'Андрій Мельник',bookingId:1860,room:'107',roomType:'Покращений',type:'Оплата',method:'Банківський переказ',amount:1600,status:'success',note:'',createdBy:'Марія',dates:'20–22 вересня'},
  {id:8,date:'2026-09-14',time:'12:11',guest:'Тарас Гончар',bookingId:1862,room:'101',roomType:'Стандарт',type:'Передоплата',method:'Готівка',amount:1400,status:'success',note:'',createdBy:'Олександр',dates:'22–23 вересня'},
- {id:9,date:'2026-09-12',time:'09:40',guest:'Юлія Савчук',bookingId:1864,room:'302',roomType:'Апартаменти',type:'Оплата',method:'Карта',amount:4000,status:'success',note:'',createdBy:'Олександр',dates:'24–27 вересня'},
- {id:10,date:'2026-09-10',time:'14:00',guest:'Віктор Коваль',bookingId:1690,room:'205',roomType:'Люкс',type:'Оплата',method:'Онлайн',amount:5400,status:'success',note:'',createdBy:'Онлайн',dates:'5–8 вересня'},
- {id:11,date:'2026-09-08',time:'10:22',guest:'Олена Романюк',bookingId:1671,room:'101',roomType:'Стандарт',type:'Оплата',method:'Карта',amount:3200,status:'success',note:'',createdBy:'Олександр',dates:'1–3 вересня'},
- {id:12,date:'2026-09-05',time:'17:15',guest:'Ірина Шевченко',bookingId:1652,room:'204',roomType:'Люкс',type:'Повернення',method:'Банківський переказ',amount:-1000,status:'refunded',note:'Помилкова оплата.',createdBy:'Олександр',dates:'28–30 серпня'}
+ {id:9,date:'2026-09-12',time:'09:40',guest:'Юлія Савчук',bookingId:1864,room:'302',roomType:'Апартаменти',type:'Оплата',method:'Картка на місці',amount:4000,status:'success',note:'',createdBy:'Олександр',dates:'24–27 вересня'},
+ {id:10,date:'2026-09-10',time:'14:00',guest:'Віктор Коваль',bookingId:1690,room:'205',roomType:'Люкс',type:'Оплата',method:'Оплата онлайн',amount:5400,status:'success',note:'',createdBy:'Онлайн',dates:'5–8 вересня'},
+ {id:11,date:'2026-09-08',time:'10:22',guest:'Олена Романюк',bookingId:1671,room:'101',roomType:'Стандарт',type:'Оплата',method:'Картка на місці',amount:3200,status:'success',note:'',createdBy:'Олександр',dates:'1–3 вересня'},
+ {id:12,date:'2026-09-05',time:'17:15',guest:'Ірина Шевченко',bookingId:1652,room:'204',roomType:'Люкс',type:'Повернення',method:'Банківський переказ',amount:-1000,status:'refunded',note:'Скорочення терміну проживання.',createdBy:'Олександр',dates:'28–30 серпня'}
 ];
 const outstanding=[
  {bookingId:1847,guest:'Олег Бондар',room:'103',roomType:'Стандарт',dates:'17–18 вересня',total:3200,paid:2000,checkin:'2026-09-17',staying:false},
@@ -37,7 +37,7 @@ function remaining(o){return o.total-o.paid}
 function outstandingRank(o){if(o.staying)return 0;if(o.checkin===TODAY)return 1;if(dayDiff(TODAY,o.checkin)===1)return 2;return 3}
 function outstandingStatusLabel(o){if(o.staying)return'Гість проживає';if(o.checkin===TODAY)return'Заїжджає сьогодні';if(dayDiff(TODAY,o.checkin)===1)return'Заїжджає завтра';return'Майбутнє бронювання'}
 
-const state={period:'month',tab:'all',search:'',filters:{methods:new Set(['Готівка','Карта','Банківський переказ','Онлайн','Інше']),types:new Set(['Оплата','Передоплата','Доплата','Повернення'])}};
+const state={period:'month',tab:'all',search:'',filters:{methods:new Set(['Готівка','Картка на місці','Банківський переказ','Оплата онлайн','Інше']),types:new Set(['Оплата','Передоплата','Доплата','Повернення'])}};
 
 function passesFilters(p){
  if(!state.filters.methods.has(p.method))return false;
@@ -61,9 +61,10 @@ function renderKpis(){
  const outstandingTotal=outstanding.reduce((s,o)=>s+remaining(o),0);
  const deposits=payments.filter(p=>p.type==='Передоплата').reduce((s,p)=>s+p.amount,0);
  const monthRefunds=payments.filter(p=>p.status==='refunded').reduce((s,p)=>s+Math.abs(p.amount),0);
- $('#kpis').innerHTML=`<div class="kpi"><small>Отримано сьогодні</small><b>${money(receivedToday)}</b><span>${todays.length} платежів</span></div><div class="kpi gold"><small>Очікується</small><b>${money(outstandingTotal)}</b><span>${outstanding.length} бронювань</span></div><div class="kpi"><small>Передоплати</small><b>${money(deposits)}</b><span>майбутні бронювання</span></div><div class="kpi"><small>Повернення</small><b>${money(monthRefunds)}</b><span>цього місяця</span></div>`;
+ const m_=v=>HotelRole.isOwner()?money(v):'••••• ₴';
+ $('#kpis').innerHTML=`<div class="kpi"><small>Отримано сьогодні</small><b>${m_(receivedToday)}</b><span>${todays.length} платежів</span></div><div class="kpi gold"><small>Очікується</small><b>${m_(outstandingTotal)}</b><span>${outstanding.length} бронювань</span></div><div class="kpi"><small>Передоплати</small><b>${m_(deposits)}</b><span>майбутні бронювання</span></div><div class="kpi"><small>Повернення</small><b>${m_(monthRefunds)}</b><span>цього місяця</span></div>`;
 
- const methods=['Готівка','Карта','Банківський переказ','Онлайн'];
+ const methods=['Готівка','Картка на місці','Банківський переказ','Оплата онлайн'];
  $('#daily-grid').innerHTML=methods.map(m=>{const sum=todays.filter(p=>p.method===m).reduce((s,p)=>s+p.amount,0);return `<div><b>${money(sum)}</b><span>${m}</span></div>`}).join('');
 
  const monthReceived=payments.filter(p=>p.status==='success').reduce((s,p)=>s+p.amount,0);
@@ -111,6 +112,12 @@ function renderTable(){
   return;
  }
  $('.table-card').hidden=false;$('#payment-cards').hidden=false;
+ if(state.tab==='pending'){
+  $('.table-card').hidden=true;$('#payment-cards').hidden=true;
+  $('#empty-state').hidden=false;
+  $('#empty-state').innerHTML=`<div class="empty-state"><h2>Це не транзакції, а борги за бронюваннями</h2><p>«Очікується» — стан балансу бронювання, а не платежу: тут ще немає жодної грошової операції. Перелік бронювань з неоплаченим залишком — вище, у розділі «Бронювання з неоплаченим залишком».</p><a class="button primary" href="#outstanding-section">Перейти до боргів →</a></div>`;
+  return;
+ }
  if(!list.length){
   $('.table-card').hidden=true;$('#payment-cards').hidden=true;
   $('#empty-state').hidden=false;
@@ -160,7 +167,7 @@ function openPaymentPanel(id){
  <p style="margin:0;font-size:12px">${p.note?esc(p.note):'Нотатки немає.'}</p>
  <div class="dialog-actions">
   <button class="button secondary" data-edit-note="${p.id}">Редагувати нотатку</button>
-  ${p.status==='success'?`<button class="button secondary" data-refund="${p.id}">Повернути кошти</button>`:''}
+  ${p.status==='success'?`<button class="button secondary" data-reassign="${p.id}">Виправити бронювання (не повернення)</button><button class="button secondary" data-refund="${p.id}">Повернути кошти</button>`:''}
  </div>`;
  hydrate($('#side-body'));
  $('#side-panel').classList.add('open');$('#side-scrim').hidden=false;
@@ -205,12 +212,22 @@ function bookingSummaryHtml(o){
 }
 function refundModal(id){
  const p=payments.find(p=>p.id===Number(id));if(!p)return;
- show('Повернення коштів',`<form class="demo-form" id="refund-form" data-id="${p.id}">
+ show('Повернення коштів',`<p class="form-note full">Повернення означає, що гроші фізично повертаються гостю. Якщо оплату просто прив’язано не до того бронювання — використайте «Виправити бронювання», а не повернення.</p><form class="demo-form" id="refund-form" data-id="${p.id}">
   <p class="full">Оригінальний платіж: <b>${money(p.amount)}</b> · Максимум до повернення: <b>${money(p.amount)}</b></p>
   <label class="full">Сума повернення, ₴<input name="amount" type="number" min="1" max="${p.amount}" value="${p.amount}"></label>
-  <label class="full">Причина<select name="reason"><option>Скасування бронювання</option><option>Зміна бронювання</option><option>Помилкова оплата</option><option>Інше</option></select></label>
+  <label class="full">Причина<select name="reason"><option>Скасування бронювання</option><option>Зміна бронювання</option><option>Інше</option></select></label>
   <label class="full">Нотатка (необов’язково)<input name="note" maxlength="120"></label>
   <button class="button primary full destructive" type="submit">Підтвердити повернення</button>
+ </form>`);
+}
+function reassignModal(id){
+ const p=payments.find(p=>p.id===Number(id));if(!p)return;
+ show('Виправити прив’язку до бронювання',`<p class="form-note full">Гроші лишаються в готелі — сума не змінюється і не рахується поверненням. Змінюється лише те, яке бронювання отримало цю оплату.</p><form class="demo-form" id="reassign-form" data-id="${p.id}">
+  <p class="full">Платіж <b>${money(p.amount)}</b> зараз зараховано на бронювання <b>#${p.bookingId}</b>.</p>
+  <label class="full">Правильний номер бронювання<input name="bookingId" type="number" required placeholder="Наприклад, 1843"></label>
+  <label class="full">Причина виправлення<select name="reason"><option>Оплату внесено не на те бронювання</option><option>Дубль запису</option><option>Інше</option></select></label>
+  <p class="form-note full">Баланс бронювання #${p.bookingId} зросте на ${money(p.amount)}, баланс нового бронювання зменшиться на ${money(p.amount)}. Виправлення, автор і час зберігаються в історії платежу.</p>
+  <button class="button primary full" type="submit">Перепризначити оплату</button>
  </form>`);
 }
 function reminderModal(bookingId){
@@ -262,6 +279,7 @@ document.addEventListener('click',e=>{
  if(el&&el.dataset.remind){reminderModal(el.dataset.remind);return}
  if(el&&el.dataset.editNote){show('Редагувати нотатку',`<form class="demo-form" id="note-form"><label class="full">Нотатка<textarea name="note" maxlength="200"></textarea></label><button class="button primary full" type="submit">Зберегти</button></form>`);return}
  if(el&&el.dataset.refund){closeSidePanel();refundModal(el.dataset.refund);return}
+ if(el&&el.dataset.reassign){closeSidePanel();reassignModal(el.dataset.reassign);return}
  if(el&&el.dataset.openGuest!==undefined){window.location.href='/guest/';return}
  if(el&&el.dataset.openBooking!==undefined){window.location.href='/booking/';return}
  if(el&&el.id==='ai-rewrite'){const ta=document.querySelector('#reminder-form textarea');if(ta)ta.value='Доброго дня! Ввічливо нагадуємо про залишок оплати за вашим бронюванням. Будемо вдячні, якщо ви зможете внести суму до заїзду.';return}
@@ -286,7 +304,7 @@ document.addEventListener('submit',e=>{
   payments.unshift({id:Math.max(...payments.map(p=>p.id))+1,date:String(data.get('date')),time:new Date().toTimeString().slice(0,5),guest,bookingId,room:'—',roomType:'',type:total&&paid===0?'Оплата':'Доплата',method:String(data.get('method')),amount,status:'success',note:data.get('note')?String(data.get('note')):'',createdBy:'Олександр',dates:''});
   const o=outstanding.find(o=>o.bookingId===bookingId);if(o){o.paid+=amount;if(o.paid>=o.total){outstanding.splice(outstanding.indexOf(o),1)}}
   closeDialog();renderAll();toast('Оплату збережено · '+money(amount));
- }else if(f.id==='refund-form'){closeDialog();toast('Повернення оформлено · Демо')}
+ }else if(f.id==='refund-form'){closeDialog();toast('Повернення оформлено · Демо')}else if(f.id==='reassign-form'){const newId=data.get('bookingId');closeDialog();toast('Оплату перепризначено на бронювання #'+newId+' · Сума в готелі не змінилась · Демо')}
  else if(f.id==='note-form'){closeDialog();toast('Нотатку збережено')}
  else if(f.id==='reminder-form'){closeDialog();toast('Нагадування надіслано · Демо')}
 });

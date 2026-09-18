@@ -54,7 +54,7 @@ const onboarding=[
  {label:'Правила бронювання',done:false},{label:'Оплати',done:false},{label:'Booking Page',done:false},{label:'Автоматизації',done:false}
 ];
 
-const state={section:'general',dirty:false,role:'owner',pendingSection:null};
+const state={section:'general',dirty:false,role:HotelRole.get(),pendingSection:null};
 
 function isReadonly(){return READONLY_ROLES[state.role]}
 function isLocked(sectionId){return isReadonly()||(OWNER_ONLY.has(sectionId)&&state.role!=='owner')}
@@ -83,7 +83,11 @@ function toggleRow(key,title,sub,disabled){
 }
 
 function sectionGeneral(){
- return `<div class="settings-card" id="general">
+ return `<div class="settings-card" id="appearance">
+  <h2>Оформлення</h2><p class="card-sub">Тема інтерфейсу Hotel OS — застосовується одразу і запам'ятовується в цьому браузері.</p>
+  <div class="toggle-row" style="border-top:0"><div><b>Темна тема</b><span class="sub">За замовчуванням Hotel OS відкривається в темній темі</span></div><button class="theme-toggle" data-theme-toggle aria-label="Перемкнути тему"><span class="dot"></span><span class="theme-toggle-label"></span></button></div>
+ </div>
+ <div class="settings-card" id="general">
   <h2>Загальна інформація</h2><p class="card-sub">Основна інформація, яка використовується всередині Hotel OS та на публічних сторінках.</p>
   <div class="field-grid">
    ${field('Назва готелю *',`<input data-bind="name" value="${esc(settings.name)}">`)}
@@ -191,7 +195,8 @@ function sectionPayments(){
   ${toggleRow('methodBank','Банківський переказ')}
   ${toggleRow('methodCard','Карта на місці')}
   <div class="subhead">Онлайн-оплата</div>
-  <div class="toggle-row" style="border-top:0"><div><b>Провайдер</b><span>${settings.onlineProvider?'Підключено':'Не підключено'}</span></div><button class="button secondary" id="btn-connect-online">${settings.onlineProvider?'Керувати':'Підключити онлайн-оплату'}</button></div>
+  <div class="toggle-row" style="border-top:0"><div><b>Провайдер</b><span>${settings.onlineProvider?'Підключено · '+settings.onlineProvider:'monobank, LiqPay, WayForPay'}</span></div><button class="button secondary" id="btn-connect-online">${settings.onlineProvider?'Керувати':'Підключити онлайн-оплату'}</button></div>
+  <div class="toggle-row"><div><b>Фіскальний чек (ПРРО)</b><span>Автоматичний чек через Checkbox після кожної оплати</span></div><span class="pill">у розробці</span></div>
   ${settings.methodBank?`<div class="subhead">Банківські реквізити</div>${field('',`<textarea data-bind="bankDetails" placeholder="IBAN, отримувач, банк...">${esc(settings.bankDetails)}</textarea>`,'показується гостю лише якщо обрано банківський переказ','full')}`:''}
  </div>`;
 }
@@ -294,6 +299,16 @@ function sectionAi(){
   ${toggleRow('aiSales','Sales insights',null,!settings.aiEnabled)}
   ${toggleRow('aiMessages','Допомога з повідомленнями',null,!settings.aiEnabled)}
   <div class="ai-limits">AI може: підготувати повідомлення, відкрити потрібний запис, заповнити форму, запропонувати дію.<br><br>AI <span class="cannot">не може</span> без підтвердження: скасовувати бронювання, повертати гроші, видаляти дані, надсилати повідомлення, змінювати фінансові записи.</div>
+ </div>
+ <div class="settings-card" id="ai-knowledge">
+  <h2>База знань AI</h2><p class="card-sub">Завантажте документи готелю — AI відповідатиме гостям правилами саме вашого об’єкта, без вигаданих фактів.</p>
+  <div class="kb-upload" id="kb-upload">
+   <div class="kb-drop"><span data-icon="spark"></span><b>Перетягніть PDF або оберіть файл</b><span>Правила проживання, прайс, FAQ · до 20 МБ</span><input type="file" id="kb-file" accept="application/pdf" class="sr-only"><label class="button secondary" for="kb-file">Обрати файл</label></div>
+   <div class="kb-files" id="kb-files">
+    <div class="kb-file"><span data-icon="spark"></span><div><b>Правила_проживання_2026.pdf</b><small>Оновлено 3 вересня · 240 КБ</small></div><span class="pill ready">Індексовано</span></div>
+    <div class="kb-file"><span data-icon="spark"></span><div><b>Прайс_номерів.pdf</b><small>Оновлено 12 вересня · 96 КБ</small></div><span class="pill ready">Індексовано</span></div>
+   </div>
+  </div>
  </div>`;
 }
 function sectionSecurity(){
@@ -354,7 +369,6 @@ document.addEventListener('click',e=>{
  if(el.matches('.mobile-menu')){const opened=$('#sidebar').classList.toggle('open');$('.nav-overlay').hidden=!opened;document.documentElement.classList.toggle('no-scroll',opened);el.setAttribute('aria-expanded',String(opened));return}
  if(el.matches('.nav-overlay')){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');return}
  if(el.matches('[data-close]')){closeDialog();return}
- if(el.dataset.view==='team'){show('Команда','<p>Розділ команди ще у розробці в демонстраційній версії.</p>');return}
 
  if(el.dataset.section){
   if(state.dirty){unsavedModal(el.dataset.section);return}
@@ -392,7 +406,15 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{
  if(e.target.dataset.bind&&e.target.tagName==='SELECT'){settings[e.target.dataset.bind]=e.target.value;markDirty();renderContent()}
- if(e.target.id==='role-select'){state.role=e.target.value;renderNav();renderContent();toast('Роль (демо): '+e.target.value)}
+ if(e.target.id==='role-select'){state.role=e.target.value;HotelRole.set(e.target.value);renderNav();renderContent();toast('Роль (демо): '+e.target.value)}
+ if(e.target.id==='kb-file'){
+  const f=e.target.files[0];if(!f)return;
+  const row=document.createElement('div');row.className='kb-file';
+  row.innerHTML=`<span data-icon="spark"></span><div><b>${esc(f.name)}</b><small>Індексується…</small></div><span class="pill gold">Обробка</span>`;
+  $('#kb-files').prepend(row);hydrate(row);
+  setTimeout(()=>{row.querySelector('small').textContent='Щойно завантажено';row.querySelector('.pill').className='pill ready';row.querySelector('.pill').textContent='Індексовано';toast('AI проіндексував '+f.name)},1200);
+  e.target.value='';
+ }
  if(e.target.id==='mobile-nav-select'){
   if(state.dirty){unsavedModal(e.target.value);return}
   goToSection(e.target.value);
@@ -406,7 +428,7 @@ document.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBo
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#sidebar').classList.remove('open');$('.nav-overlay').hidden=true;document.documentElement.classList.remove('no-scroll');document.documentElement.classList.remove('no-scroll')}});
 window.addEventListener('beforeunload',e=>{if(state.dirty){e.preventDefault();e.returnValue=''}});
 
-const HASH_TO_SECTION={general:'general',contacts:'contacts','checkin-checkout':'stay','booking-rules':'booking',payments:'payments',policies:'rules','booking-page':'bookingpage',messaging:'messages',automations:'automations',notifications:'notifications',sources:'sources',ai:'ai',security:'security'};
+const HASH_TO_SECTION={general:'general',appearance:'general',contacts:'contacts','checkin-checkout':'stay','booking-rules':'booking',payments:'payments',policies:'rules','booking-page':'bookingpage',messaging:'messages',automations:'automations',notifications:'notifications',sources:'sources',ai:'ai','ai-knowledge':'ai',security:'security'};
 (function initFromHash(){
  const hashId=(location.hash||'').slice(1);
  if(HASH_TO_SECTION[hashId])state.section=HASH_TO_SECTION[hashId];
