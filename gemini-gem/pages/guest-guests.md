@@ -81,7 +81,7 @@ CRM-база гостей готелю: список усіх гостей із 
 - Кнопки "Створити бронювання" ведуть на сторінку /new-booking/, яка є окремим (не перевіреним у цьому огляді) розділом.
 
 ### Прямі посилання
-- [KPI-плитки гостей](https://hotelos.webart.work/guests/#kpi)
+- [KPI-плитки гостей](https://hotelos.webart.work/guests/#kpis)
 - [AI-помічник про гостей](https://hotelos.webart.work/guests/#ai-panel)
 - [Фільтри за сегментами](https://hotelos.webart.work/guests/#segments-filter)
 - [Пошук, сортування та фільтри](https://hotelos.webart.work/guests/#search-toolbar)

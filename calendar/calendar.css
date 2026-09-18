@@ -163,7 +163,7 @@ dialog::backdrop{background:#20212460;backdrop-filter:blur(3px)}
  .page-actions .primary{order:-1}
  .cal-desktop{display:none}
  .cal-mobile{display:block}
- .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface)fa;border-top:1px solid var(--line);justify-content:space-around;padding:11px 0 calc(9px + env(safe-area-inset-bottom));z-index:15;backdrop-filter:blur(10px)}
+ .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);justify-content:space-around;padding:11px 0 calc(9px + env(safe-area-inset-bottom));z-index:15;backdrop-filter:blur(10px)}
  .bottom-nav a,.bottom-nav button{display:flex;align-items:center;flex-direction:column;gap:4px;font-size:9px;color:#999aa2;padding:0 9px}
  .bottom-nav svg{width:19px;height:19px}.bottom-nav .selected{color:#a48241}
  .side-panel{width:100%}

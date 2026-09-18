@@ -434,3 +434,4 @@ const HASH_TO_SECTION={general:'general',appearance:'general',contacts:'contacts
  if(HASH_TO_SECTION[hashId])state.section=HASH_TO_SECTION[hashId];
 })();
 renderAll();
+hydrate();
