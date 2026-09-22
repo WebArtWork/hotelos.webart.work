@@ -33,6 +33,9 @@ jobs:
             - name: Add SPA fallback for GitHub Pages route reload
               run: cp dist/app/browser/index.html dist/app/browser/404.html
 
+            - name: Disable Jekyll processing on GitHub Pages
+              run: touch dist/app/browser/.nojekyll
+
             - name: Set up SSH
               env:
                   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
