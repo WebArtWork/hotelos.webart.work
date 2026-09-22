@@ -1,0 +1,349 @@
+<app-shell activeNav="automations" greetingTitle="Автоматизації" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="page-heading">
+		<div>
+			<div class="breadcrumb">Робочий простір <span>/</span> Автоматизації</div>
+			<h1>Автоматизації</h1>
+			<p>Hotel OS автоматично виконує повторювані дії та комунікує з гостями у потрібний момент.</p>
+		</div>
+		<div class="page-actions">
+			<button class="button secondary" (click)="openHistoryTab()">Історія</button>
+			<button class="button secondary" (click)="aiCreateModal()"><app-icon name="spark" />Створити через AI</button>
+			<button class="button primary" (click)="newWizard()">+ Нова автоматизація</button>
+		</div>
+	</div>
+
+	<div class="kpis">
+		<div class="kpi"><small>Активні</small><b>{{ counts().active }}</b><span>автоматизацій працюють</span></div>
+		<div class="kpi"><small>Виконано сьогодні</small><b>{{ counts().today }}</b><span>автоматичних дій</span></div>
+		<div class="kpi"><small>Заплановано</small><b>{{ counts().scheduled }}</b><span>на найближчі 7 днів</span></div>
+		<div class="kpi" [class.gold]="counts().attention">
+			<small>Потребують уваги</small><b>{{ counts().attention }}</b><span>{{ counts().attention ? 'не вдалося виконати' : 'все працює' }}</span>
+		</div>
+	</div>
+
+	<div class="tabs">
+		<button [class.active]="tab() === 'active'" (click)="setTab('active')">Активні</button>
+		<button [class.active]="tab() === 'disabled'" (click)="setTab('disabled')">Вимкнені</button>
+		<button [class.active]="tab() === 'templates'" (click)="setTab('templates')">Шаблони</button>
+		<button [class.active]="tab() === 'history'" (click)="setTab('history')">Історія</button>
+	</div>
+
+	<div id="tab-content">
+		@switch (tab()) {
+			@case ('active') {
+				@if (activeList().length) {
+					<div class="automation-cards">
+						@for (a of activeList(); track a.id) {
+							<div class="auto-card" (click)="openAutomationPanel(a.id)">
+								<div class="ac-main">
+									<h3>{{ a.name }}</h3>
+									<div class="ac-flow" [innerHTML]="flowLabel(a)"></div>
+									<div class="ac-stats">
+										{{ a.next ? 'Наступне: ' + a.next + ' · ' + a.nextCount + ' гостям' : 'Сьогодні: ' + a.statsToday + ' · Цього місяця: ' + a.statsMonth }}
+									</div>
+								</div>
+								<div class="ac-right">
+									<span class="pill ready">Активна</span>
+									<button class="secondary text-action edit-btn" (click)="$event.stopPropagation(); editAutomation(a.id)">Редагувати</button>
+									<span class="switch on" role="switch" aria-checked="true" tabindex="0" (click)="$event.stopPropagation(); toggle(a.id)" (keydown.enter)="$event.stopPropagation(); toggle(a.id)"></span>
+								</div>
+							</div>
+						}
+					</div>
+				} @else {
+					<div class="empty-state">
+						<h2>Автоматизуйте повторювані задачі</h2>
+						<p>Hotel OS може автоматично підтверджувати бронювання, нагадувати про оплату та комунікувати з гостями до і після проживання.</p>
+						<div class="empty-actions">
+							<button class="button primary" (click)="enableRecommended()">Увімкнути рекомендовані</button>
+							<button class="button secondary" (click)="newWizard()">+ Створити автоматизацію</button>
+						</div>
+					</div>
+				}
+			}
+			@case ('disabled') {
+				@if (disabledList().length) {
+					<div class="automation-cards">
+						@for (a of disabledList(); track a.id) {
+							<div class="auto-card inactive" (click)="openAutomationPanel(a.id)">
+								<div class="ac-main">
+									<h3>{{ a.name }}</h3>
+									<div class="ac-flow" [innerHTML]="flowLabel(a)"></div>
+									<div class="ac-stats">Сьогодні: {{ a.statsToday }} · Цього місяця: {{ a.statsMonth }}</div>
+								</div>
+								<div class="ac-right">
+									<span class="pill">Вимкнена</span>
+									<button class="secondary text-action edit-btn" (click)="$event.stopPropagation(); editAutomation(a.id)">Редагувати</button>
+									<span class="switch" role="switch" aria-checked="false" tabindex="0" (click)="$event.stopPropagation(); toggle(a.id)" (keydown.enter)="$event.stopPropagation(); toggle(a.id)"></span>
+								</div>
+							</div>
+						}
+					</div>
+				} @else {
+					<div class="empty-state">
+						<h2>Немає вимкнених автоматизацій</h2>
+						<p>Усі автоматизації зараз активні.</p>
+					</div>
+				}
+			}
+			@case ('templates') {
+				<div class="template-cards">
+					@for (t of TEMPLATE_LIB; track t.id) {
+						<div class="template-card2">
+							@if (t.recommended) {
+								<span class="rec">Рекомендовано</span>
+							}
+							<h3>{{ t.name }}</h3>
+							<p>{{ t.text.split('\n')[0] }}</p>
+							@if (templateAdded(t.id)) {
+								<span class="pill ready">Вже додано</span>
+							} @else {
+								<button class="button secondary" (click)="addPresetModal(t.id)">Додати</button>
+							}
+						</div>
+					}
+				</div>
+			}
+			@case ('history') {
+				<div class="history-table">
+					<table>
+						<thead>
+							<tr><th>Час</th><th>Автоматизація</th><th>Гість</th><th>Бронювання</th><th>Канал</th><th>Результат</th></tr>
+						</thead>
+						<tbody>
+							@for (h of historyLog; track h.time + h.name + h.bookingId) {
+								<tr>
+									<td>{{ h.time }}</td>
+									<td><b>{{ h.name }}</b></td>
+									<td>{{ h.guest }}</td>
+									<td>#{{ h.bookingId }}</td>
+									<td>{{ h.channel }}</td>
+									<td>
+										<span class="status-tag" [class]="h.result">{{ RESULT_LABEL[h.result] }}</span>
+										@if (h.result === 'failed') {
+											<div class="history-note"><small class="fail-reason">{{ h.reason }}</small> · <button class="text-action" (click)="retryHistory()">Повторити</button></div>
+										} @else if (h.result === 'skipped') {
+											<div class="history-note"><small class="skip-reason">{{ h.reason }}</small></div>
+										}
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		}
+	</div>
+
+	@if (tab() === 'active') {
+		<div class="upcoming-card">
+			<h2>Найближчі виконання</h2>
+			<div>
+				@for (u of upcomingRuns; track u.time + u.bookingId) {
+					<div class="upcoming-row"><span class="time">{{ u.time }}</span><span class="upcoming-guest">{{ u.guest }} · #{{ u.bookingId }}</span><b>{{ u.name }}</b></div>
+				}
+			</div>
+		</div>
+	}
+</app-shell>
+
+<div class="side-scrim" [hidden]="selectedId() === null" (click)="closeSidePanel()"></div>
+<aside class="side-panel" [class.open]="selectedId() !== null" aria-label="Деталі автоматизації">
+	<div class="side-panel-head">
+		<span class="dialog-label">HOTEL OS <span>· АВТОМАТИЗАЦІЯ</span></span>
+		<button class="icon-button" aria-label="Закрити" (click)="closeSidePanel()"><app-icon name="close" /></button>
+	</div>
+	<div class="side-panel-body">
+		@if (selected(); as a) {
+			<span class="pill" [class.ready]="a.active">{{ a.active ? 'Активна' : 'Вимкнена' }}</span>
+			<h2>{{ a.name }}</h2>
+			<p class="side-desc">{{ a.description }}</p>
+
+			<h5>Правило</h5>
+			<div class="rule-chain">
+				<div class="rule-step"><small>Коли</small><b>{{ a.when }}{{ a.timing ? ' · ' + a.timing : '' }}</b></div>
+				@if (a.condition) {
+					<div class="rule-arrow">↓</div>
+					<div class="rule-step"><small>Умова</small><b>{{ a.condition }}</b></div>
+				}
+				<div class="rule-arrow">↓</div>
+				<div class="rule-step"><small>Дія</small><b>Надіслати {{ a.channel }}</b><br /><span class="rule-template">Шаблон: {{ selectedTemplateName() }}</span></div>
+			</div>
+
+			<h5>За останні 30 днів</h5>
+			<div class="stats-grid">
+				<div><b>{{ a.history30.done }}</b><span>Виконано</span></div>
+				<div><b>{{ a.history30.ok }}</b><span>Успішно</span></div>
+				<div><b>{{ a.history30.fail }}</b><span>Помилки</span></div>
+				<div><b>{{ a.history30.scheduled }}</b><span>Заплановано</span></div>
+			</div>
+
+			@if (selectedUpcoming().length) {
+				<h5>Найближчі виконання</h5>
+				@for (u of selectedUpcoming(); track u.time + u.bookingId) {
+					<div class="upcoming-row"><span class="time">{{ u.time }}</span><span class="upcoming-guest">{{ u.guest }}</span></div>
+				}
+			}
+
+			<h5>Дії</h5>
+			<div class="dialog-actions">
+				<button class="button secondary" (click)="editAutomation(a.id)">Редагувати</button>
+				<button class="button secondary" (click)="duplicate(a.id)">Дублювати</button>
+				<button class="button secondary" (click)="archive(a.id)">Архівувати</button>
+				@if (a.active) {
+					<button class="button secondary destructive" (click)="disableConfirmOpen(a.id)">Вимкнути</button>
+				} @else {
+					<button class="button primary" (click)="enable(a.id)">Увімкнути</button>
+				}
+			</div>
+		}
+	</div>
+</aside>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('disable-confirm') {
+				<h2>Вимкнути автоматизацію?</h2>
+				<p>Заплановані дії цієї автоматизації більше не виконуватимуться.</p>
+				<div class="dialog-actions">
+					<button class="button primary destructive" (click)="confirmDisable(view!.id)">Вимкнути</button>
+					<button class="button secondary" (click)="closeDialog()">Скасувати</button>
+				</div>
+			}
+			@case ('add-preset') {
+				@let tpl = TEMPLATE_LIB.find(tp => tp.id === view!.templateId);
+				@if (tpl) {
+					<h2>Додати автоматизацію?</h2>
+					<p>Hotel OS вже підготував рекомендовані налаштування.</p>
+					<div class="rule-chain">
+						<div class="rule-step"><small>Шаблон</small><b>{{ tpl.name }}</b></div>
+					</div>
+					<div class="preview-box">{{ tpl.text }}</div>
+					<div class="dialog-actions">
+						<button class="button primary" (click)="confirmPreset(tpl.id)">Додати та увімкнути</button>
+						<button class="button secondary" (click)="configurePreset(tpl.id)">Налаштувати</button>
+					</div>
+				}
+			}
+			@case ('ai-create') {
+				<h2>Створити через AI</h2>
+				<form class="demo-form" (ngSubmit)="submitAiCreate(promptInput.value)">
+					<label class="full">Опишіть, що має робити автоматизація<textarea #promptInput name="prompt" placeholder="Наприклад: За день до приїзду попроси гостя повідомити час заїзду." required maxlength="300"></textarea></label>
+					<button class="button primary full" type="submit">Запропонувати</button>
+				</form>
+			}
+			@case ('wizard') {
+				@let w = wizard();
+				@if (w) {
+					<h2>Нова автоматизація</h2>
+					@switch (wizardStepName()) {
+						@case ('when') {
+							<h2>Коли запустити автоматизацію?</h2>
+							<div class="option-cards">
+								@for (o of WHEN_OPTIONS; track o) {
+									<button [class.selected]="w.when === o" (click)="pickWhen(o)">{{ o }}</button>
+								}
+							</div>
+							@if (w.when === 'Перед заїздом' || w.when === 'Перед виїздом') {
+								<p class="wiz-hint">За скільки часу?</p>
+								<div class="option-cards">
+									@for (t of TIMING_BEFORE; track t) {
+										<button [class.selected]="w.timing === t" (click)="pickTiming(t)">{{ t }}</button>
+									}
+								</div>
+							}
+							@if (w.when === 'У день заїзду' || w.when === 'Після заселення') {
+								<p class="wiz-hint">О котрій годині?</p>
+								<label class="full"><input type="time" [value]="w.timing && w.timing.includes(':') ? w.timing : '09:00'" (change)="setWizTime($any($event.target).value)" /></label>
+							}
+							@if (w.when === 'Після виїзду') {
+								<p class="wiz-hint">Через скільки часу?</p>
+								<div class="option-cards">
+									<button [class.selected]="w.timing === '2 години'" (click)="pickTiming('2 години')">2 години</button>
+									<button [class.selected]="w.timing === '24 години'" (click)="pickTiming('24 години')">24 години</button>
+								</div>
+							}
+						}
+						@case ('condition') {
+							<h2>Чи потрібна додаткова умова?</h2>
+							<div class="option-cards">
+								@for (c of CONDITIONS; track c) {
+									<button [class.selected]="w.condition === c" (click)="pickCondition(c)">{{ c }}</button>
+								}
+							</div>
+						}
+						@case ('action') {
+							<h2>Що має зробити Hotel OS?</h2>
+							<div class="option-cards">
+								<button class="selected" (click)="pickAction('message')">Надіслати повідомлення</button>
+								<button (click)="pickAction('internal')">Створити внутрішнє нагадування</button>
+								<button (click)="pickAction('notify')">Повідомити персонал</button>
+							</div>
+							<label class="full wiz-field">
+								Канал
+								<select [ngModel]="w.channel" [ngModelOptions]="{ standalone: true }" (ngModelChange)="setWizChannel($event)">
+									<option>Email</option>
+									<option>SMS</option>
+								</select>
+							</label>
+							<label class="full wiz-field">
+								Шаблон
+								<select [ngModel]="w.template ?? ''" [ngModelOptions]="{ standalone: true }" (ngModelChange)="setWizTemplate($event)">
+									<option value="">Без шаблону</option>
+									@for (t of TEMPLATE_LIB; track t.id) {
+										<option [value]="t.id">{{ t.name }}</option>
+									}
+								</select>
+							</label>
+							<div class="preview-box">{{ wizardTemplate() ? wizardTemplate()!.text : 'Оберіть шаблон, щоб побачити попередній перегляд.' }}</div>
+						}
+						@case ('review') {
+							<h2>Перевірте автоматизацію</h2>
+							<div class="rule-chain">
+								<div class="rule-step"><small>Коли</small><b>{{ w.when || '-' }}{{ w.timing ? ' · ' + w.timing : '' }}</b></div>
+								<div class="rule-arrow">↓</div>
+								<div class="rule-step"><small>Якщо</small><b>{{ w.condition }}</b></div>
+								<div class="rule-arrow">↓</div>
+								<div class="rule-step">
+									<small>Тоді</small><b>Надіслати гостю {{ w.channel }}</b>
+									@if (wizardTemplate(); as tpl) {
+										<br />«{{ tpl.name }}»
+									}
+								</div>
+							</div>
+							@if (wizardTemplate(); as tpl) {
+								<div class="preview-box">{{ tpl.text }}</div>
+							}
+						}
+					}
+					<div class="step-dots">
+						@for (s of WIZARD_STEPS; track s; let idx = $index) {
+							<span [class.active]="idx === w.step"></span>
+						}
+					</div>
+					<div class="wizard-actions">
+						<button class="button secondary" [disabled]="w.step === 0" (click)="wizardBack()">Назад</button>
+						@if (w.step < WIZARD_STEPS.length - 1) {
+							<button class="button primary" (click)="wizardNext()">Продовжити</button>
+						} @else {
+							<div class="wizard-final-actions">
+								<button class="button secondary" (click)="saveWizard(false)">Зберегти вимкненою</button>
+								<button class="button primary" (click)="saveWizard(true)">Увімкнути автоматизацію</button>
+							</div>
+						}
+					</div>
+				}
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

@@ -1,0 +1,387 @@
+<app-shell activeNav="payments" greetingTitle="Оплати" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="page-heading">
+		<div>
+			<div class="breadcrumb">Робочий простір <span>/</span> Оплати</div>
+			<h1>Оплати</h1>
+			<p>Контролюйте платежі, передоплати, залишки та повернення.</p>
+		</div>
+		<div class="page-actions">
+			@if (showReports) {
+				<button class="button secondary" (click)="exportPayments()">Експорт</button>
+			}
+			<button class="button primary" (click)="openAddPayment()">+ Додати оплату</button>
+		</div>
+	</div>
+
+	<div class="kpis">
+		<div class="kpi"><small>Отримано сьогодні</small><b>{{ money(receivedToday()) }}</b><span>{{ todaysPayments().length }} платежів</span></div>
+		<div class="kpi gold"><small>Очікується</small><b>{{ money(outstandingTotal()) }}</b><span>{{ outstanding().length }} бронювань</span></div>
+		<div class="kpi"><small>Передоплати</small><b>{{ money(deposits()) }}</b><span>майбутні бронювання</span></div>
+		<div class="kpi"><small>Повернення</small><b>{{ money(monthRefunds()) }}</b><span>цього місяця</span></div>
+	</div>
+
+	<div class="ai-strip">
+		<b><app-icon name="spark" />Запитати AI про оплати</b>
+		<button class="ai-q" (click)="aiAnswer('unpaid')">Хто сьогодні ще не оплатив?</button>
+		<button class="ai-q" (click)="aiAnswer('today')">Скільки грошей ми отримали сьогодні?</button>
+		<button class="ai-q" (click)="aiAnswer('debt')">Які бронювання мають найбільший борг?</button>
+		<button class="ai-q" (click)="aiAnswer('deposits')">Скільки передоплат на наступний місяць?</button>
+		<button class="ai-q" (click)="aiAnswer('refunds')">Скільки повернень було цього місяця?</button>
+	</div>
+	@if (aiAnswerHtml()) {
+		<div class="ai-answer-box" [innerHTML]="aiAnswerHtml()"></div>
+	}
+
+	<div class="outstanding-section">
+		<h2>Очікується оплата</h2>
+		<p class="card-sub">Бронювання з неоплаченим залишком.</p>
+		@if (sortedOutstanding().length) {
+			<div class="outstanding-cards">
+				@for (o of sortedOutstanding(); track o.bookingId) {
+					<div class="out-card" [class.urgent]="outstandingRank(o) <= 1">
+						<h3>{{ o.guest }}</h3>
+						<div class="oc-facts">#{{ o.bookingId }} · {{ o.dates }} · {{ o.room }} · {{ o.roomType }}</div>
+						<div class="oc-status">{{ outstandingStatusLabel(o) }}</div>
+						<div class="oc-facts">Total: {{ money(o.total) }} · Paid: {{ money(o.paid) }}</div>
+						<div class="oc-remaining">{{ money(remaining(o)) }}</div>
+						<div class="oc-actions">
+							<button class="primary" (click)="openAddPayment(o.bookingId)">Додати оплату</button>
+							<button (click)="openReminder(o.bookingId)">{{ outstandingRank(o) <= 1 ? 'Нагадати гостю' : 'Надіслати нагадування' }}</button>
+						</div>
+					</div>
+				}
+			</div>
+		} @else {
+			<div class="success-state">
+				<h3>Усе оплачено</h3>
+				<p>Наразі немає бронювань із неоплаченим залишком.</p>
+			</div>
+		}
+	</div>
+
+	@if (showReports) {
+		<div class="chart-card">
+			<h2>Оплати цього місяця</h2>
+			<p class="card-sub">1–30 вересня</p>
+			<div class="bar-chart">
+				@for (bar of chartBars(); track $index) {
+					<span [class.today]="bar.today" [style.height.%]="bar.height" [title]="bar.label"></span>
+				}
+			</div>
+			<div class="chart-metrics">
+				<div><b>{{ money(monthReceived()) }}</b>Отримано</div>
+				<div><b>{{ money(monthRefunds()) }}</b>Повернено</div>
+				<div><b>{{ money(outstandingTotal()) }}</b>Очікується</div>
+			</div>
+		</div>
+
+		<div class="daily-grid">
+			@for (d of dailyGrid(); track d.method) {
+				<div><b>{{ money(d.sum) }}</b><span>{{ d.method }}</span></div>
+			}
+		</div>
+	}
+
+	<div class="period-row">
+		<select class="plain" [ngModel]="period()" (ngModelChange)="setPeriod($any($event))">
+			<option value="today">Сьогодні</option>
+			<option value="yesterday">Вчора</option>
+			<option value="week">Цей тиждень</option>
+			<option value="month">Цей місяць</option>
+			<option value="lastmonth">Минулий місяць</option>
+			<option value="custom">Власний період</option>
+		</select>
+	</div>
+
+	<div class="tabs">
+		<button [class.active]="tab() === 'all'" (click)="setTab('all')">Усі</button>
+		<button [class.active]="tab() === 'pending'" (click)="setTab('pending')">Борг за бронюванням</button>
+		<button [class.active]="tab() === 'partial'" (click)="setTab('partial')">Передоплати отримано (транзакції)</button>
+		<button [class.active]="tab() === 'success'" (click)="setTab('success')">Оплачено (транзакції)</button>
+		<button [class.active]="tab() === 'refunded'" (click)="setTab('refunded')">Повернення (транзакції)</button>
+	</div>
+
+	<div class="toolbar-row">
+		<div class="search-wrap">
+			<app-icon name="search" />
+			<input [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Гість, бронювання або номер" />
+		</div>
+		<div class="filters-wrap">
+			<button class="button secondary" (click)="toggleFilters()">Фільтри</button>
+			@if (filtersOpen()) {
+				<div class="filters-panel">
+					<section>
+						<h4>Спосіб оплати</h4>
+						@for (m of METHODS; track m) {
+							<label>
+								<input type="checkbox" [checked]="filterMethods().has(m)" (change)="toggleMethodFilter(m, $any($event.target).checked)" />{{ m }}
+							</label>
+						}
+					</section>
+					<section>
+						<h4>Тип</h4>
+						@for (t of TYPES; track t) {
+							<label>
+								<input type="checkbox" [checked]="filterTypes().has(t)" (change)="toggleTypeFilter(t, $any($event.target).checked)" />{{ t }}
+							</label>
+						}
+					</section>
+					<div class="filters-actions">
+						<button class="text-action" (click)="resetFilters()">Очистити</button>
+						<button class="button primary" (click)="applyFilters()">Застосувати</button>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+
+	@if (payments().length === 0) {
+		<div class="empty-state">
+			<h2>Платежів поки немає</h2>
+			<p>Оплати з’являться тут після першого бронювання.</p>
+			<a class="button primary" href="/new-booking/">Створити бронювання</a>
+		</div>
+	} @else if (tab() === 'pending') {
+		<div class="empty-state">
+			<h2>Це не транзакції, а борги за бронюваннями</h2>
+			<p>
+				«Очікується»: стан балансу бронювання, а не платежу, тут ще немає жодної грошової операції. Перелік бронювань з
+				неоплаченим залишком вище, у розділі «Бронювання з неоплаченим залишком».
+			</p>
+			<a class="button primary" href="#outstanding-section">Перейти до боргів →</a>
+		</div>
+	} @else if (filteredPayments().length === 0) {
+		<div class="empty-state">
+			<h2>Нічого не знайдено</h2>
+			<p>Спробуйте змінити фільтри або період.</p>
+		</div>
+	} @else {
+		<div class="table-card">
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>Дата</th>
+							<th>Гість</th>
+							<th>Бронювання</th>
+							<th>Номер</th>
+							<th>Тип</th>
+							<th>Спосіб</th>
+							<th>Сума</th>
+							<th>Статус операції</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (p of filteredPayments(); track p.id) {
+							<tr (click)="openPaymentPanel(p.id)">
+								<td>{{ shortDate(p.date) }} · {{ p.time }}</td>
+								<td class="guest-cell">{{ p.guest }}</td>
+								<td>#{{ p.bookingId }}</td>
+								<td>{{ p.room }}</td>
+								<td><b>{{ p.type }}</b></td>
+								<td>{{ p.method }}</td>
+								<td class="amount-cell" [class.negative]="p.amount < 0"><b>{{ money(p.amount) }}</b></td>
+								<td><span class="status-tag" [class.success]="p.status === 'success'" [class.refunded]="p.status === 'refunded'">{{ statusLabel(p) }}</span></td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="payment-cards">
+			@for (p of filteredPayments(); track p.id) {
+				<div class="payment-card" (click)="openPaymentPanel(p.id)">
+					<div class="pc-top">
+						<span class="pc-amount" [class.negative]="p.amount < 0">{{ money(p.amount) }}</span>
+						<span class="status-tag" [class.success]="p.status === 'success'" [class.refunded]="p.status === 'refunded'">{{ statusLabel(p) }}</span>
+					</div>
+					<div class="pc-guest">{{ p.guest }}</div>
+					<p>#{{ p.bookingId }} · Номер {{ p.room }}</p>
+					<p>{{ p.method }}</p>
+					<p>{{ shortDate(p.date) }} · {{ p.time }}</p>
+				</div>
+			}
+		</div>
+	}
+
+	<div class="chart-card" style="margin-top: 22px">
+		<h2>Очікується найближчим часом</h2>
+		<div class="upcoming-row"><span>Сьогодні</span><b>{{ money(upcoming().today) }}</b></div>
+		<div class="upcoming-row"><span>Завтра</span><b>{{ money(upcoming().tomorrow) }}</b></div>
+		<div class="upcoming-row"><span>Наступні 7 днів</span><b>{{ money(upcoming().week) }}</b></div>
+	</div>
+</app-shell>
+
+<div class="side-scrim" [hidden]="selectedPaymentId() === null" (click)="closeSidePanel()"></div>
+<aside class="side-panel" [class.open]="selectedPaymentId() !== null" aria-label="Деталі оплати">
+	<div class="side-panel-head">
+		<span class="dialog-label">HOTEL OS <span>· ОПЛАТА</span></span>
+		<button class="icon-button" aria-label="Закрити" (click)="closeSidePanel()"><app-icon name="close" /></button>
+	</div>
+	<div class="side-panel-body">
+		@if (selectedPayment(); as p) {
+			<span class="status-tag" [class.success]="p.status === 'success'" [class.refunded]="p.status === 'refunded'">{{ statusLabel(p) }}</span>
+			<div class="big-amount" [class.negative]="p.amount < 0">{{ money(p.amount) }}</div>
+			<h5>Гість</h5>
+			<p style="margin: 0; font-size: 13px; font-weight: 700">{{ p.guest }}</p>
+			<button class="text-action" style="margin-top: 6px" (click)="closeSidePanel()">Відкрити гостя →</button>
+			<h5>Бронювання</h5>
+			<p style="margin: 0; font-size: 12px">#{{ p.bookingId }}<br />{{ p.dates }}<br />{{ p.room }} · {{ p.roomType }}</p>
+			<button class="text-action" style="margin-top: 6px" (click)="closeSidePanel()">Відкрити бронювання →</button>
+			<h5>Деталі</h5>
+			<div class="info-grid">
+				<dt>Тип</dt>
+				<dd>{{ p.type }}</dd>
+				<dt>Метод</dt>
+				<dd>{{ p.method }}</dd>
+				<dt>Дата</dt>
+				<dd>{{ shortDate(p.date) }} 2026 · {{ p.time }}</dd>
+				<dt>Створив(ла)</dt>
+				<dd>{{ p.createdBy }}</dd>
+			</div>
+			<h5>Нотатка</h5>
+			<p style="margin: 0; font-size: 12px">{{ p.note || 'Нотатки немає.' }}</p>
+			<div class="dialog-actions">
+				<button class="button secondary" (click)="openNote(p.id)">Редагувати нотатку</button>
+				@if (p.status === 'success') {
+					<button class="button secondary" (click)="openReassign(p.id)">Виправити бронювання (не повернення)</button>
+					<button class="button secondary" (click)="openRefund(p.id)">Повернути кошти</button>
+				}
+			</div>
+		}
+	</div>
+</aside>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('add-payment') {
+				@let match = addPaymentMatch();
+				<h2>Додати оплату</h2>
+				<form
+					class="demo-form"
+					(ngSubmit)="submitAddPayment(amountInput.valueAsNumber, methodSelect.value, dateInput.value, noteInput.value)"
+				>
+					<label class="full">
+						Бронювання
+						<input
+							#bookingSearch
+							[ngModel]="match ? match.guest + ' · #' + match.bookingId : addPaymentSearch()"
+							(ngModelChange)="view!.forcedBookingId === null ? addPaymentSearch.set($event) : null"
+							[ngModelOptions]="{ standalone: true }"
+							[readOnly]="view!.forcedBookingId !== null"
+							placeholder="Гість або номер бронювання"
+						/>
+					</label>
+					<div class="full">
+						@if (match) {
+							<div class="detail-grid" style="margin: 10px 0">
+								<div><small>Сума бронювання</small><b>{{ money(match.total) }}</b></div>
+								<div><small>Оплачено</small><b>{{ money(match.paid) }}</b></div>
+								<div><small>Залишок</small><b>{{ money(remaining(match)) }}</b></div>
+							</div>
+						} @else {
+							<p class="form-note">Знайдіть бронювання, щоб побачити суму, оплачено та залишок.</p>
+						}
+					</div>
+					<label class="full">
+						Сума платежу, ₴
+						<input #amountInput name="amount" type="number" min="1" [value]="addPaymentAmount()" (input)="onAddPaymentAmountInput(amountInput.valueAsNumber)" />
+					</label>
+					<label>
+						Спосіб
+						<select #methodSelect name="method">
+							<option>Готівка</option>
+							<option>Карта</option>
+							<option>Банківський переказ</option>
+							<option>Онлайн</option>
+							<option>Інше</option>
+						</select>
+					</label>
+					<label>Дата<input #dateInput name="date" type="date" value="2026-09-17" /></label>
+					<label class="full">Нотатка (необов'язково)<input #noteInput name="note" maxlength="120" /></label>
+					@if (overpayWarning()) {
+						<div class="full notice danger">{{ overpayWarning() }}</div>
+					}
+					<button class="button primary full" type="submit">Зберегти оплату</button>
+				</form>
+			}
+			@case ('refund') {
+				@let p = payment(view!.paymentId);
+				@if (p) {
+					<h2>Повернення коштів</h2>
+					<p class="form-note full">
+						Повернення означає, що гроші фізично повертаються гостю. Якщо оплату просто прив'язано не до того бронювання,
+						використайте «Виправити бронювання», а не повернення.
+					</p>
+					<form class="demo-form" (ngSubmit)="submitRefund()">
+						<p class="full">Оригінальний платіж: <b>{{ money(p.amount) }}</b> · Максимум до повернення: <b>{{ money(p.amount) }}</b></p>
+						<label class="full">Сума повернення, ₴<input name="amount" type="number" min="1" [max]="p.amount" [value]="p.amount" /></label>
+						<label class="full">
+							Причина
+							<select name="reason">
+								<option>Скасування бронювання</option>
+								<option>Зміна бронювання</option>
+								<option>Інше</option>
+							</select>
+						</label>
+						<label class="full">Нотатка (необов'язково)<input name="note" maxlength="120" /></label>
+						<button class="button primary full destructive" type="submit">Підтвердити повернення</button>
+					</form>
+				}
+			}
+			@case ('reassign') {
+				@let p = payment(view!.paymentId);
+				@if (p) {
+					<h2>Виправити прив'язку до бронювання</h2>
+					<p class="form-note full">Гроші лишаються в готелі, сума не змінюється і не рахується поверненням. Змінюється лише те, яке бронювання отримало цю оплату.</p>
+					<form class="demo-form" (ngSubmit)="submitReassign(newBookingInput.value)">
+						<p class="full">Платіж <b>{{ money(p.amount) }}</b> зараз зараховано на бронювання <b>#{{ p.bookingId }}</b>.</p>
+						<label class="full">Правильний номер бронювання<input #newBookingInput name="bookingId" type="number" required placeholder="Наприклад, 1843" /></label>
+						<label class="full">
+							Причина виправлення
+							<select name="reason">
+								<option>Оплату внесено не на те бронювання</option>
+								<option>Дубль запису</option>
+								<option>Інше</option>
+							</select>
+						</label>
+						<p class="form-note full">
+							Баланс бронювання #{{ p.bookingId }} зросте на {{ money(p.amount) }}, баланс нового бронювання зменшиться на
+							{{ money(p.amount) }}. Виправлення, автор і час зберігаються в історії платежу.
+						</p>
+						<button class="button primary full" type="submit">Перепризначити оплату</button>
+					</form>
+				}
+			}
+			@case ('note') {
+				<h2>Редагувати нотатку</h2>
+				<form class="demo-form" (ngSubmit)="submitNote()">
+					<label class="full">Нотатка<textarea name="note" maxlength="200"></textarea></label>
+					<button class="button primary full" type="submit">Зберегти</button>
+				</form>
+			}
+			@case ('reminder') {
+				@let o = outstandingFor(view!.bookingId);
+				@if (o) {
+					<h2>Нагадування про оплату</h2>
+					<p>Гість: {{ o.guest }} · Залишок: <b>{{ money(remaining(o)) }}</b></p>
+					<form class="demo-form" (ngSubmit)="submitReminder()">
+						<label class="full">Текст повідомлення<textarea [ngModel]="reminderText()" (ngModelChange)="reminderText.set($event)" [ngModelOptions]="{ standalone: true }" name="text" maxlength="400"></textarea></label>
+						<button type="button" class="button secondary full" (click)="rewriteReminder()">✦ Переписати через AI</button>
+						<button class="button primary full" type="submit">Надіслати</button>
+					</form>
+				}
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

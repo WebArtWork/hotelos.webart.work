@@ -1,7 +1,9 @@
 import { Component, computed, ElementRef, signal, viewChild, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { getStoredRole } from '../../shared/role';
 
 interface Booking {
 	id: number;
@@ -126,11 +128,13 @@ const OCCUPANCY_BASE = [79, 86, 93, 93, 71, 64, 68];
 
 @Component({
 	selector: 'app-dashboard',
-	imports: [AppShellComponent, IconComponent, FormsModule],
+	imports: [AppShellComponent, IconComponent, FormsModule, RouterLink],
 	templateUrl: './dashboard.component.html',
 	styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
+	protected readonly showSalesCard = getStoredRole() !== 'reception';
+
 	protected readonly money = money;
 	protected readonly initials = initials;
 	protected readonly dates = dates;

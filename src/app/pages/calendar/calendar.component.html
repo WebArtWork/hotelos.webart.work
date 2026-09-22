@@ -109,6 +109,8 @@
 					[attr.draggable]="blk.booking.status !== 'cancelled'"
 					[style.grid-row]="blk.row"
 					[style.grid-column]="blk.colStart + ' / ' + blk.colEnd"
+					[style.margin-left]="'calc(4px + ' + blk.insetLeft + '%)'"
+					[style.margin-right]="'calc(4px + ' + blk.insetRight + '%)'"
 					tabindex="0"
 					role="button"
 					[attr.aria-label]="'Бронювання ' + blk.booking.name"
@@ -120,7 +122,7 @@
 					<b>{{ blk.booking.name }}</b>
 					<div class="bb-meta">
 						<span>{{ dayNum(blk.booking.start) }}–{{ dayNum(blk.booking.end) }} · {{ blk.booking.guests }} гост.</span>
-						@if (blk.booking.paid < blk.booking.total && blk.booking.status !== 'cancelled') {
+						@if (showFinance && blk.booking.paid < blk.booking.total && blk.booking.status !== 'cancelled') {
 							<span class="bb-unpaid" title="Не оплачено"></span>
 						}
 					</div>
@@ -135,8 +137,10 @@
 			<p>Номер {{ h.booking.room }} · {{ roomOf(h.booking.room)?.type }}</p>
 			<p>{{ shortDate(h.booking.start) }} – {{ shortDate(h.booking.end) }}</p>
 			<p>{{ dayDiff(h.booking.start, h.booking.end) }} ночі · {{ h.booking.guests }} гості</p>
-			<div class="hc-amount">{{ money(h.booking.total) }}</div>
-			<p>{{ paymentLabel(h.booking) }}</p>
+			@if (showFinance) {
+				<div class="hc-amount">{{ money(h.booking.total) }}</div>
+				<p>{{ paymentLabel(h.booking) }}</p>
+			}
 			<p>{{ h.booking.source }}</p>
 		</div>
 	}
@@ -197,22 +201,33 @@
 					<div><small>Ночей</small><b>{{ dayDiff(b.start, b.end) }}</b></div>
 					<div><small>Гостей</small><b>{{ b.guests }}</b></div>
 				</div>
-				<p>Заїзд: <b>{{ shortDate(b.start) }}, після 14:00</b><br />Виїзд: <b>{{ shortDate(b.end) }}, до 11:00</b></p>
-				<h5>Оплата</h5>
-				<div class="detail-grid">
-					<div><small>Загальна сума</small><b>{{ money(b.total) }}</b></div>
-					<div><small>Оплачено</small><b>{{ money(b.paid) }}</b></div>
-					<div><small>Статус</small><b>{{ paymentLabel(b) }}</b></div>
-				</div>
+				<p>
+					Заїзд: <b>{{ shortDate(b.start) }}, після 14:00</b><br />
+					Виїзд: <b>{{ shortDate(b.end) }}, до {{ checkoutLabel(b) }}</b>
+					@if (b.lateCheckoutHour) {
+						<span class="pill gold">Пізній виїзд</span>
+					}
+				</p>
+				@if (showFinance) {
+					<h5>Оплата</h5>
+					<div class="detail-grid">
+						<div><small>Загальна сума</small><b>{{ money(b.total) }}</b></div>
+						<div><small>Оплачено</small><b>{{ money(b.paid) }}</b></div>
+						<div><small>Статус</small><b>{{ paymentLabel(b) }}</b></div>
+					</div>
+				}
 				<h5>Джерело</h5>
 				<p>{{ b.source }}</p>
 				<h5>Нотатки</h5>
 				<p>{{ b.notes || 'Нотаток немає.' }}</p>
 				<div class="dialog-actions">
 					<a class="button primary full" href="/booking/">Відкрити бронювання</a>
+					@if (canExtendStay(b)) {
+						<button class="button secondary" (click)="openExtendStay(b.id)">Пізній виїзд</button>
+					}
 					<button class="button secondary" (click)="requestRoomChange()">Змінити номер</button>
 					<button class="button secondary" (click)="dialogView.set({ kind: 'message', bookingId: b.id })">Надіслати повідомлення</button>
-					@if (b.paid < b.total && b.status !== 'cancelled') {
+					@if (showFinance && b.paid < b.total && b.status !== 'cancelled') {
 						<button class="button secondary" (click)="dialogView.set({ kind: 'payment', bookingId: b.id })">Додати оплату</button>
 					}
 					@if (b.status !== 'cancelled') {
@@ -327,6 +342,28 @@
 					<form class="demo-form" (ngSubmit)="submitPayment(b.id, amountInput.valueAsNumber)">
 						<label class="full">Сума, ₴<input #amountInput name="amount" type="number" required min="1" [max]="b.total - b.paid" [value]="b.total - b.paid" /></label>
 						<button class="button primary full" type="submit">Підтвердити оплату</button>
+					</form>
+				}
+			}
+			@case ('extend-stay') {
+				@let b = booking(view!.bookingId);
+				@if (b) {
+					<h2>Пізній виїзд</h2>
+					<p>{{ b.name }} · Номер {{ b.room }}</p>
+					<p class="form-note">
+						Номер вільний після стандартного виїзду {{ shortDate(b.end) }}, тож можна продовжити перебування на кілька
+						годин без переїзду в інший номер.
+					</p>
+					<form class="demo-form" (ngSubmit)="submitExtendStay(b.id, +hourSelect.value)">
+						<label class="full">
+							Новий час виїзду
+							<select #hourSelect name="hour">
+								@for (h of LATE_CHECKOUT_OPTIONS; track h) {
+									<option [value]="h" [selected]="h === checkoutHourOf(b)">до {{ h }}:00</option>
+								}
+							</select>
+						</label>
+						<button class="button primary full" type="submit">Підтвердити пізній виїзд</button>
 					</form>
 				}
 			}

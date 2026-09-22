@@ -1,0 +1,443 @@
+<app-shell activeNav="rooms" greetingTitle="Номери" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="page-heading">
+		<div>
+			<div class="breadcrumb">Робочий простір <span>/</span> Номери</div>
+			<h1>Номери</h1>
+			<p>Керуйте номерами, типами, цінами та їхнім поточним станом.</p>
+		</div>
+		<div class="page-actions">
+			<button class="button secondary" (click)="openDialog({ kind: 'room-types' })">Типи номерів</button>
+			<button class="button primary" (click)="openDialog({ kind: 'add-room' })">+ Додати номер</button>
+		</div>
+	</div>
+
+	<div class="kpis">
+		<div class="kpi"><small>Усього номерів</small><b>{{ counts().total }}</b></div>
+		<div class="kpi"><small>Зайняті</small><b>{{ counts().occupied }}</b><span>{{ counts().total ? Math.round((counts().occupied / counts().total) * 100) : 0 }}%</span></div>
+		<div class="kpi"><small>Вільні</small><b>{{ counts().ready }}</b></div>
+		<div class="kpi"><small>Потребують прибирання</small><b>{{ counts().cleaningKpi }}</b></div>
+		<div class="kpi"><small>Недоступні</small><b>{{ counts().unavailable }}</b></div>
+	</div>
+	<p class="card-sub kpi-note">
+		Статуси нижче показують стан номерів зараз, а не на конкретні дати. Щоб перевірити наявність на певні дати заїзду/виїзду, відкрийте
+		<a routerLink="/calendar">Календар</a>.
+	</p>
+
+	<div class="ai-strip">
+		<b><app-icon name="spark" />Запитати AI про номери</b>
+		<button class="ai-q" (click)="askAi('freeToday')">Які номери сьогодні вільні?</button>
+		<button class="ai-q" (click)="askAi('toClean')">Які ще потрібно прибрати?</button>
+		<button class="ai-q" (click)="askAi('freeWeekend')">Які номери вільні на вихідні?</button>
+		<button class="ai-q" (click)="askAi('popular')">Який номер найчастіше бронюють?</button>
+		<button class="ai-q" (click)="askAi('blocked')">Які номери зараз заблоковані?</button>
+	</div>
+	@if (aiAnswerHtml()) {
+		<div class="ai-answer-box"><p [innerHTML]="aiAnswerHtml()"></p></div>
+	}
+
+	<div class="chips-mobile">
+		<button [class.active]="segment() === 'all'" (click)="setSegment('all')">Усі</button>
+		<button [class.active]="segment() === 'ready'" (click)="setSegment('ready')">Вільні зараз</button>
+		<button [class.active]="segment() === 'occupied'" (click)="setSegment('occupied')">Зайняті</button>
+		<button [class.active]="segment() === 'cleaning'" (click)="setSegment('cleaning')">Прибирання</button>
+		<button [class.active]="segment() === 'unavailable'" (click)="setSegment('unavailable')">Недоступні</button>
+	</div>
+
+	<div class="toolbar-row">
+		<div class="view-switch">
+			<button [class.active]="viewMode() === 'cards'" (click)="setViewMode('cards')">Картки</button>
+			<button [class.active]="viewMode() === 'list'" (click)="setViewMode('list')">Список</button>
+		</div>
+		<div class="search-wrap">
+			<app-icon name="search" />
+			<input [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Знайти номер" />
+		</div>
+		<div class="filters-wrap">
+			<button class="button secondary" (click)="toggleFilters()"><app-icon name="filter" />Фільтри</button>
+			@if (filtersOpen()) {
+				<div class="filters-panel">
+					<section>
+						<h4>Тип</h4>
+						@for (t of TYPE_ORDER; track t) {
+							<label><input type="checkbox" [checked]="typeFilter().has(t)" (change)="toggleTypeFilter(t, $any($event.target).checked)" />{{ t }}</label>
+						}
+					</section>
+					<section>
+						<h4>Статус</h4>
+						<label><input type="checkbox" [checked]="statusFilter().has('ready')" (change)="toggleStatusFilter('ready', $any($event.target).checked)" />Вільний / Готовий</label>
+						<label><input type="checkbox" [checked]="statusFilter().has('occupied')" (change)="toggleStatusFilter('occupied', $any($event.target).checked)" />Зайнятий</label>
+						<label><input type="checkbox" [checked]="statusFilter().has('needs-cleaning')" (change)="toggleStatusFilter('needs-cleaning', $any($event.target).checked)" />Потребує прибирання</label>
+						<label><input type="checkbox" [checked]="statusFilter().has('cleaning')" (change)="toggleStatusFilter('cleaning', $any($event.target).checked)" />Прибирається</label>
+						<label><input type="checkbox" [checked]="statusFilter().has('unavailable')" (change)="toggleStatusFilter('unavailable', $any($event.target).checked)" />Недоступний</label>
+					</section>
+					<section>
+						<h4>Прибирання</h4>
+						<label><input type="checkbox" [checked]="cleaningOnlyFilter()" (change)="setCleaningOnlyFilter($any($event.target).checked)" />Тільки ті, що потребують прибирання (незалежно від зайнятості)</label>
+					</section>
+					<section>
+						<h4>Місткість</h4>
+						<label><input type="checkbox" [checked]="capacityFilter().has('1')" (change)="toggleCapacityFilter('1', $any($event.target).checked)" />1 гість</label>
+						<label><input type="checkbox" [checked]="capacityFilter().has('2')" (change)="toggleCapacityFilter('2', $any($event.target).checked)" />2 гості</label>
+						<label><input type="checkbox" [checked]="capacityFilter().has('3')" (change)="toggleCapacityFilter('3', $any($event.target).checked)" />3+</label>
+						<label><input type="checkbox" [checked]="capacityFilter().has('4')" (change)="toggleCapacityFilter('4', $any($event.target).checked)" />4+</label>
+					</section>
+					<div class="filters-actions">
+						<button class="text-action" (click)="clearFilters()">Очистити</button>
+						<button class="button primary" (click)="filtersOpen.set(false)">Застосувати</button>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+
+	@if (rooms().length === 0) {
+		<div class="empty-state">
+			<h2>Додайте номерний фонд</h2>
+			<p>Створіть номери, щоб почати працювати з календарем та бронюваннями.</p>
+			<button class="button primary" (click)="openDialog({ kind: 'add-room' })">+ Додати перший номер</button>
+			<p class="form-note">Після цього ви зможете створювати бронювання та приймати гостей.</p>
+		</div>
+	} @else if (!filteredRooms().length) {
+		<div class="empty-state">
+			<h2>Номерів не знайдено</h2>
+			<p>Спробуйте змінити пошук або фільтри.</p>
+		</div>
+	} @else if (viewMode() === 'cards') {
+		<div class="type-groups">
+			@for (group of typeGroups(); track group.type) {
+				<div class="type-group">
+					<h2>{{ group.type }} <span>{{ group.rooms.length }} номер{{ group.rooms.length === 1 ? '' : 'и' }}</span></h2>
+					<div class="room-cards">
+						@for (r of group.rooms; track r.number) {
+							<div class="room-card" [class]="'status-' + r.status" (click)="openRoomPanel(r.number)">
+								<div class="rc-top">
+									<div>
+										<div class="rc-num">{{ r.number }}</div>
+										<div class="rc-type">{{ r.type }}</div>
+									</div>
+									<div class="rc-tags">
+										<span class="status-tag" [class]="r.status">{{ statusLabel(r.status) }}</span>
+										@if (r.status === 'occupied' && r.needsCleaning) {
+											<span class="status-tag needs-cleaning">Потребує прибирання</span>
+										}
+									</div>
+								</div>
+								<div class="rc-facts">{{ r.capacity }} гості · {{ r.beds }}</div>
+								@if (showGuestAndFinance) {
+									<div class="rc-price">{{ money(r.price) }} / ніч</div>
+								}
+								@switch (r.status) {
+									@case ('occupied') {
+										@if (showGuestAndFinance) {
+											<div class="rc-guest">{{ r.guest }}</div>
+										}
+										<div class="rc-sub">До: {{ r.checkout }}</div>
+									}
+									@case ('ready') {
+										<div class="rc-sub">{{ r.nextArrival ? 'Наступний заїзд: ' + r.nextArrival : 'Вільний зараз' }}</div>
+									}
+									@case ('needs-cleaning') {
+										<div class="rc-sub">Виїзд: {{ r.checkoutTime || '-' }}</div>
+										<div class="rc-sub">Призначено: {{ r.assigned || 'не призначено' }}</div>
+									}
+									@case ('cleaning') {
+										<div class="rc-sub">{{ r.assigned }} · з {{ r.startedAt }}</div>
+										@if (r.nextArrival) {
+											<div class="rc-warning">До заїзду о {{ r.nextArrival }}</div>
+										}
+									}
+									@case ('unavailable') {
+										<div class="rc-sub">{{ r.reason }}</div>
+										<div class="rc-sub">{{ r.blockStart }}–{{ r.blockEnd }}</div>
+									}
+								}
+								<div class="rc-actions">
+									@switch (r.status) {
+										@case ('ready') {
+											@if (showGuestAndFinance) {
+												<button (click)="quickBook(); $event.stopPropagation()">Створити бронювання</button>
+											}
+										}
+										@case ('needs-cleaning') {
+											<button class="primary" (click)="assignClean(r.number); $event.stopPropagation()">Призначити прибирання</button>
+										}
+										@case ('cleaning') {
+											<button (click)="openTask(); $event.stopPropagation()">Відкрити задачу</button>
+										}
+										@case ('unavailable') {
+											<button (click)="openDialog({ kind: 'block-room', number: r.number }); $event.stopPropagation()">Редагувати блокування</button>
+										}
+										@default {
+											@if (showGuestAndFinance) {
+												<button (click)="openBooking(); $event.stopPropagation()">Відкрити бронювання</button>
+											}
+										}
+									}
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	} @else {
+		<div class="table-card">
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>Номер</th>
+							<th>Тип</th>
+							<th>Місткість</th>
+							@if (showGuestAndFinance) {
+								<th>Ціна</th>
+								<th>Поточний гість</th>
+							}
+							<th>Наступний заїзд</th>
+							<th>Прибирання</th>
+							<th>Статус</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (r of filteredRooms(); track r.number) {
+							<tr (click)="openRoomPanel(r.number)">
+								<td class="num-cell">{{ r.number }}</td>
+								<td>{{ r.type }}</td>
+								<td>{{ r.capacity }} гості</td>
+								@if (showGuestAndFinance) {
+									<td><b>{{ money(r.price) }}</b></td>
+									<td>{{ r.status === 'occupied' ? r.guest : '-' }}</td>
+								}
+								<td>{{ r.status === 'ready' && r.nextArrival ? r.nextArrival : r.status === 'occupied' && r.nextGuest ? r.nextStart : '-' }}</td>
+								<td>{{ r.status === 'cleaning' ? 'Прибирається' : r.status === 'needs-cleaning' ? 'Потребує прибирання' : '-' }}</td>
+								<td><span class="status-tag" [class]="r.status">{{ statusLabel(r.status) }}</span></td>
+								<td class="row-menu-wrap">
+									<button aria-label="Дії" (click)="$event.stopPropagation(); openRoomPanel(r.number)">⋯</button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	}
+
+	<div class="workspace-footer"><span>Hotel OS · Номерний фонд</span><span>Демонстраційні дані · 17.09.2026</span></div>
+</app-shell>
+
+<div class="side-scrim" [hidden]="selectedRoomNumber() === null" (click)="closeSidePanel()"></div>
+<aside class="side-panel" [class.open]="selectedRoomNumber() !== null" aria-label="Деталі номера">
+	<div class="side-panel-head">
+		<span class="dialog-label">HOTEL OS <span>· НОМЕР</span></span>
+		<button class="icon-button" aria-label="Закрити" (click)="closeSidePanel()"><app-icon name="close" /></button>
+	</div>
+	<div class="side-panel-body">
+		@if (selectedRoom(); as r) {
+			<span class="status-tag" [class]="r.status">{{ statusLabel(r.status) }}</span>
+			<h2>Номер {{ r.number }}</h2>
+			<div class="dialog-actions">
+				<button class="button secondary" (click)="openDialog({ kind: 'edit-room', number: r.number })">Редагувати</button>
+				@if (showGuestAndFinance) {
+					<a class="button primary" href="/new-booking/">+ Нове бронювання</a>
+				}
+			</div>
+
+			<h5>Основна інформація</h5>
+			<div class="info-grid">
+				<dt>Тип</dt>
+				<dd>{{ r.type }}</dd>
+				<dt>Поверх</dt>
+				<dd>{{ r.floor }}</dd>
+				<dt>Місткість</dt>
+				<dd>{{ r.capacity }} гості</dd>
+				<dt>Площа</dt>
+				<dd>{{ r.area }} м²</dd>
+			</div>
+
+			<h5>Спальні місця</h5>
+			<p class="plain">{{ r.beds }}<br />Місткість: {{ r.capacity }} дорослих</p>
+
+			<h5>Зручності</h5>
+			<div class="tags">
+				@for (a of r.amenities; track a) {
+					<span>{{ a }}</span>
+				}
+			</div>
+
+			@if (showGuestAndFinance) {
+				<h5>Ціна</h5>
+				<div class="info-grid">
+					<dt>Базова ціна</dt>
+					<dd>{{ money(r.price) }} / ніч</dd>
+					<dt>Вихідні</dt>
+					<dd>{{ money(Math.round((r.price * 1.12) / 100) * 100) }}</dd>
+					<dt>Додатковий гість</dt>
+					<dd>+400 ₴</dd>
+				</div>
+
+				@if (r.status === 'occupied') {
+					<h5>Поточне проживання</h5>
+					<p class="plain"><b>{{ r.guest }}</b><br />{{ r.checkin }}–{{ r.checkout }} · {{ r.nights }} ночі<br />Оплата: <b>{{ r.payment }}</b></p>
+					<button class="text-action side-link" (click)="openBooking()">Відкрити бронювання →</button>
+				}
+				@if (r.nextGuest) {
+					<h5>Наступне бронювання</h5>
+					<p class="plain">{{ r.nextStart }}–{{ r.nextEnd }}<br /><b>{{ r.nextGuest }}</b> · Заїзд: {{ r.nextArrival }}</p>
+					<button class="text-action side-link" (click)="openBooking()">Відкрити бронювання →</button>
+				}
+			}
+
+			<h5>Найближчі дати</h5>
+			<div class="mini-timeline">
+				<span [class]="r.status === 'occupied' ? 'busy' : 'free'" style="flex: 2">17–20</span>
+				<span class="free" style="flex: 1">20–21</span>
+				<span class="busy" style="flex: 2">21–23</span>
+				<span class="free" style="flex: 3">23–27</span>
+			</div>
+			<button class="text-action side-link" (click)="openCalendar()">Відкрити в календарі →</button>
+
+			<h5>Прибирання</h5>
+			<p class="plain">
+				Статус: <b>{{ statusLabel(r.status === 'occupied' ? 'ready' : r.status) }}</b>
+				@if (r.lastCleaned) {
+					<br />Останнє прибирання: {{ r.lastCleaned }}<br />Виконав(ла): {{ r.cleanedBy }}
+				}
+			</p>
+			<button class="text-action side-link" (click)="openHousekeeping()">Відкрити прибирання →</button>
+
+			@if (r.maintenanceNotes.length) {
+				<h5>Технічні нотатки</h5>
+				@for (n of r.maintenanceNotes; track n.date) {
+					<div class="note-card">
+						<b>{{ n.date }}</b>
+						<p>{{ n.text }}</p>
+						<span class="pill ready">{{ n.status }}</span>
+					</div>
+				}
+			}
+
+			<h5>Дії</h5>
+			<div class="dialog-actions">
+				<button class="button secondary" (click)="openDialog({ kind: 'block-room', number: r.number })">Заблокувати номер</button>
+				<button class="button secondary" (click)="openDialog({ kind: 'change-status', number: r.number })">Змінити статус</button>
+			</div>
+		}
+	</div>
+</aside>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('add-room') {
+				<h2>Додати номер</h2>
+				<form
+					class="demo-form"
+					(ngSubmit)="submitAddRoom(numberInput.value, typeSelect.value, floorInput.valueAsNumber, capacityInput.valueAsNumber, priceInput.valueAsNumber)"
+				>
+					<label class="full">Номер / назва<input #numberInput name="number" required maxlength="8" placeholder="204" /></label>
+					<label>
+						Тип
+						<select #typeSelect name="type">
+							@for (t of TYPE_ORDER; track t) {
+								<option>{{ t }}</option>
+							}
+							<option>Інше</option>
+						</select>
+					</label>
+					<label>Поверх<input #floorInput name="floor" type="number" min="0" value="1" /></label>
+					<label>Місткість (дорослі)<input #capacityInput name="capacity" type="number" min="1" value="2" /></label>
+					<label class="full">Базова ціна, ₴<input #priceInput name="price" type="number" min="1" value="1600" /></label>
+					<button class="button primary full" type="submit">Додати номер</button>
+				</form>
+			}
+			@case ('room-types') {
+				<h2>Типи номерів</h2>
+				<div class="result-list">
+					<div class="result-item"><span><b>Стандарт</b><small>8 номерів · 2 гості</small></span><span>від 1 200 ₴</span></div>
+					<div class="result-item"><span><b>Покращений</b><small>4 номери · 3 гості</small></span><span>від 1 500 ₴</span></div>
+					<div class="result-item"><span><b>Люкс</b><small>6 номерів · 2–3 гості</small></span><span>від 1 600 ₴</span></div>
+					<div class="result-item"><span><b>Апартаменти</b><small>4 номери · 4 гості</small></span><span>від 2 200 ₴</span></div>
+				</div>
+				<button class="button secondary" (click)="openDialog({ kind: 'add-type' })">+ Додати тип</button>
+			}
+			@case ('add-type') {
+				<h2>Створити тип номера</h2>
+				<form class="demo-form" (ngSubmit)="submitAddType()">
+					<label class="full">Назва<input name="name" required placeholder="Люкс" /></label>
+					<label class="full">Опис<textarea name="desc" placeholder="Просторий номер для двох гостей."></textarea></label>
+					<label>Місткість за замовчуванням<input name="capacity" type="number" min="1" value="2" /></label>
+					<label>Базова ціна, ₴<input name="price" type="number" min="1" value="1600" /></label>
+					<button class="button primary full" type="submit">Створити тип</button>
+				</form>
+			}
+			@case ('block-room') {
+				<h2>Зробити номер недоступним</h2>
+				<form class="demo-form" (ngSubmit)="submitBlockRoom(view!.number, startInput.value, endInput.value, reasonSelect.value)">
+					<p class="full">Номер {{ view!.number }}</p>
+					<label>Початок<input #startInput name="start" type="date" value="2026-09-17" /></label>
+					<label>Кінець<input #endInput name="end" type="date" value="2026-09-19" /></label>
+					<label class="full">
+						Причина
+						<select #reasonSelect name="reason">
+							<option>Ремонт</option>
+							<option>Технічні роботи</option>
+							<option>Приватне використання</option>
+							<option>Інше</option>
+						</select>
+					</label>
+					<label class="full">Нотатка (необов'язково)<input name="note" maxlength="120" /></label>
+					<p class="full form-note">Номер буде недоступний для нових бронювань і позначений у Календарі.</p>
+					<button class="button primary full" type="submit">Заблокувати</button>
+				</form>
+			}
+			@case ('change-status') {
+				@let r = room(view!.number);
+				@if (r) {
+					<h2>Змінити статус</h2>
+					<form class="demo-form" (ngSubmit)="submitChangeStatus(view!.number, $any(statusSelect.value))">
+						<label class="full">
+							Статус
+							<select #statusSelect name="status">
+								<option value="ready" [selected]="r.status === 'ready'">Готовий</option>
+								<option value="needs-cleaning" [selected]="r.status === 'needs-cleaning'">Потребує прибирання</option>
+								<option value="cleaning" [selected]="r.status === 'cleaning'">Прибирається</option>
+								<option value="occupied" [selected]="r.status === 'occupied'">Зайнятий</option>
+								<option value="unavailable" [selected]="r.status === 'unavailable'">Недоступний</option>
+							</select>
+						</label>
+						<p class="full form-note">Статус «Зайнятий» встановлюється автоматично при заїзді гостя.</p>
+						<button class="button primary full" type="submit">Зберегти статус</button>
+					</form>
+				}
+			}
+			@case ('edit-room') {
+				@let r = room(view!.number);
+				@if (r) {
+					<h2>Редагувати номер</h2>
+					<form class="demo-form" (ngSubmit)="submitEditRoom(view!.number, typeSelect2.value, priceInput2.valueAsNumber)">
+						<label>
+							Тип
+							<select #typeSelect2 name="type">
+								@for (t of TYPE_ORDER; track t) {
+									<option [selected]="t === r.type">{{ t }}</option>
+								}
+							</select>
+						</label>
+						<label>Ціна, ₴<input #priceInput2 name="price" type="number" min="1" [value]="r.price" /></label>
+						<button class="button primary full" type="submit">Зберегти</button>
+					</form>
+				}
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

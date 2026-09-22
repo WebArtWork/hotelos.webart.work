@@ -1,0 +1,130 @@
+<app-shell activeNav="ai" greetingTitle="AI-помічник" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="ai-layout">
+		<button class="talks-overlay" aria-label="Закрити список чатів" [hidden]="!talksOpen()" (click)="closeTalks()"></button>
+		<aside class="talks-sidebar" [class.open]="talksOpen()" aria-label="Розмови з AI">
+			<button class="new-chat-btn" (click)="newChat()"><app-icon name="plus" />Новий чат</button>
+			<div class="talks-list">
+				@for (c of conversations(); track c.id) {
+					<button class="talk-item" [class.active]="c.id === activeId()" (click)="selectConversation(c.id)">
+						<b>{{ c.title }}</b>
+						@if (c.preview) {
+							<span class="talk-preview">{{ c.preview }}</span>
+						}
+						<small>{{ c.time }}</small>
+					</button>
+				}
+			</div>
+		</aside>
+
+		<div class="chat-panel">
+			<button class="clear-chat-btn" aria-label="Очистити чат" (click)="clearChat()"><app-icon name="close" />Очистити чат</button>
+	<div class="chat-scroll" #chatScrollEl>
+		@if (!hasMessages()) {
+			<div class="brief-card">
+				<b class="title"><app-icon name="spark" />Ранковий огляд</b>
+				<h2>Сьогодні у вас:</h2>
+				<ul>
+					<li>{{ KB.arrivals.length }} заїзди</li>
+					<li>{{ KB.departures }} виїзди</li>
+					<li>{{ KB.occupied }} з {{ KB.totalRooms }} номерів зайняті</li>
+					<li>{{ KB.needsCleaning }} номери потребують прибирання</li>
+					<li>{{ money(KB.unpaidTotal) }} неоплачених залишків</li>
+				</ul>
+				<div class="attn">Потребує уваги: номер 204 ще прибирається, а наступний гість очікується о 13:30. Бронювання #1847 має залишок 1 200 ₴.</div>
+				<button (click)="openUnderDevelopment()">Відкрити деталі</button>
+			</div>
+			<div class="welcome">
+				<span class="ai-label">HOTEL AI</span>
+				<h2>Що хочете дізнатися про ваш готель?</h2>
+				<p>Запитуйте звичайними словами. Hotel OS використає актуальні дані вашого готелю та покаже відповідь.</p>
+				<div class="suggest-grid">
+					@for (s of SUGGESTIONS; track s) {
+						<button (click)="askSuggestion(s)">{{ s }}</button>
+					}
+				</div>
+			</div>
+			<div class="insights-row">
+				@for (i of INSIGHTS; track i.title) {
+					<div class="insight-card">
+						<h4>{{ i.title }}</h4>
+						<p>{{ i.text }}</p>
+						<a class="text-action" [href]="i.href">{{ i.cta }} →</a>
+					</div>
+				}
+			</div>
+		}
+
+		<div class="messages">
+			@for (m of messages(); track $index; let i = $index) {
+				@if (m.role === 'user') {
+					<div class="msg-row user"><div class="bubble">{{ m.text }}</div></div>
+				} @else {
+					<div class="msg-row ai" [class.loading-row]="m.loading">
+						<div class="bubble" (click)="onMessageAreaClick($event, i)">
+							<div [innerHTML]="m.html"></div>
+							@if (m.source) {
+								<div class="ai-source">{{ m.source }}</div>
+							}
+							@if (!m.noFeedback) {
+								<div class="feedback-row">
+									<span>Це було корисно?</span>
+									<button [class.picked]="m.feedback === 'up'" (click)="giveFeedback(i, 'up')" aria-label="Корисно">👍</button>
+									<button [class.picked]="m.feedback === 'down'" (click)="giveFeedback(i, 'down')" aria-label="Некорисно">👎</button>
+									<div class="feedback-picked">
+										@if (m.feedback === 'up') {
+											<span style="color:var(--gold-ink)">Дякуємо за відгук!</span>
+										} @else if (m.feedback === 'down') {
+											<div class="feedback-reasons">
+												<button type="button">Неточні дані</button>
+												<button type="button">Не зрозумів запит</button>
+												<button type="button">Неповна відповідь</button>
+												<button type="button">Інше</button>
+											</div>
+										}
+									</div>
+								</div>
+							}
+						</div>
+					</div>
+				}
+			}
+		</div>
+	</div>
+
+	<div class="composer-area">
+		<div class="composer-row">
+			<button type="button" class="talks-toggle" aria-label="Список чатів" (click)="toggleTalks()"><app-icon name="menu" /></button>
+			<textarea
+				#composerEl
+				rows="1"
+				placeholder="Запитайте про ваш готель..."
+				[ngModel]="composerText()"
+				(input)="onComposerInput($event)"
+				(keydown)="onComposerKeydown($event)"
+			></textarea>
+			<button class="send-btn" aria-label="Надіслати" (click)="sendComposer()"><app-icon name="send" /></button>
+		</div>
+	</div>
+		</div>
+	</div>
+</app-shell>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('section') {
+				<h2>Розділ у розробці</h2>
+				<p>Цей розділ ще недоступний у демонстраційній версії.</p>
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

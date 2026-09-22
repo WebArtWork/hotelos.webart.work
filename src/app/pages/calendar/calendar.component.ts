@@ -2,6 +2,7 @@ import { Component, computed, ElementRef, effect, signal, viewChild } from '@ang
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { getStoredRole } from '../../shared/role';
 
 interface Room {
 	number: string;
@@ -25,6 +26,7 @@ interface Booking {
 	status: Status;
 	source: string;
 	notes: string;
+	lateCheckoutHour?: number;
 }
 
 interface Blocked {
@@ -40,9 +42,13 @@ type DialogView =
 	| { kind: 'confirm-move' }
 	| { kind: 'message'; bookingId: number }
 	| { kind: 'payment'; bookingId: number }
+	| { kind: 'extend-stay'; bookingId: number }
 	| null;
 
 const TODAY = '2026-09-17';
+const CHECKIN_HOUR = 14;
+const CHECKOUT_HOUR = 11;
+const LATE_CHECKOUT_OPTIONS = [12, 14, 16, 18];
 const MS = 86400000;
 
 const ROOMS: Room[] = [
@@ -114,6 +120,8 @@ const paymentLabel = (b: Booking) => (b.paid <= 0 ? 'Не оплачено' : b.
 	styleUrl: './calendar.component.scss',
 })
 export class CalendarComponent {
+	protected readonly showFinance = getStoredRole() !== 'sales';
+
 	protected readonly TODAY = TODAY;
 	protected readonly GROUP_ORDER = GROUP_ORDER;
 	protected readonly ROOMS = ROOMS;
@@ -178,15 +186,33 @@ export class CalendarComponent {
 				.map((r) => [r.room.number, r.row]),
 		);
 		const q = this.search().trim().toLocaleLowerCase('uk-UA');
-		const blocks: { booking: Booking; row: number; colStart: number; colEnd: number; match: boolean }[] = [];
+		const blocks: {
+			booking: Booking;
+			row: number;
+			colStart: number;
+			colEnd: number;
+			match: boolean;
+			insetLeft: number;
+			insetRight: number;
+		}[] = [];
 		for (const b of this.visibleBookings()) {
 			const row = rowsByRoom.get(b.room);
 			if (row === undefined) continue;
-			const s = Math.max(0, dayDiff(this.viewStart(), b.start));
-			const e = Math.min(dates.length, dayDiff(this.viewStart(), b.end));
+			const rawStart = dayDiff(this.viewStart(), b.start);
+			const rawEnd = dayDiff(this.viewStart(), b.end);
+			const s = Math.max(0, rawStart);
+			const e = Math.min(dates.length, rawEnd);
 			if (e <= 0 || s >= dates.length) continue;
 			const match = !!q && (b.name + ' ' + b.room + ' #' + b.id).toLocaleLowerCase('uk-UA').includes(q);
-			blocks.push({ booking: b, row, colStart: s + 2, colEnd: e + 2, match });
+			const showCheckinEdge = rawStart >= 0 && rawStart < dates.length;
+			const showCheckoutEdge = rawEnd >= 0 && rawEnd < dates.length;
+			const colStart = s + 2;
+			const colEnd = showCheckoutEdge ? e + 3 : e + 2;
+			const totalCols = colEnd - colStart;
+			const checkoutHour = b.lateCheckoutHour ?? CHECKOUT_HOUR;
+			const insetLeft = showCheckinEdge ? (CHECKIN_HOUR / 24 / totalCols) * 100 : 0;
+			const insetRight = showCheckoutEdge ? ((24 - checkoutHour) / 24 / totalCols) * 100 : 0;
+			blocks.push({ booking: b, row, colStart, colEnd, match, insetLeft, insetRight });
 		}
 		return blocks;
 	});
@@ -468,5 +494,36 @@ export class CalendarComponent {
 
 	protected requestRoomChange(): void {
 		this.toast('Оберіть новий номер перетягнувши бронювання в календарі · Демо');
+	}
+
+	protected readonly LATE_CHECKOUT_OPTIONS = LATE_CHECKOUT_OPTIONS;
+
+	protected checkoutHourOf(b: Booking): number {
+		return b.lateCheckoutHour ?? CHECKOUT_HOUR;
+	}
+
+	protected checkoutLabel(b: Booking): string {
+		const hour = this.checkoutHourOf(b);
+		return `${String(hour).padStart(2, '0')}:00`;
+	}
+
+	protected canExtendStay(b: Booking): boolean {
+		if (b.status === 'cancelled') return false;
+		const roomTakenAfter = this.bookings().some(
+			(x) => x.id !== b.id && x.room === b.room && x.status !== 'cancelled' && x.start === b.end,
+		);
+		const blockedAfter = BLOCKED.some((bl) => bl.room === b.room && bl.start === b.end);
+		return !roomTakenAfter && !blockedAfter;
+	}
+
+	protected openExtendStay(id: number): void {
+		this.dialogView.set({ kind: 'extend-stay', bookingId: id });
+	}
+
+	protected submitExtendStay(id: number, hour: number): void {
+		this.bookings.update((bs) => bs.map((b) => (b.id === id ? { ...b, lateCheckoutHour: hour } : b)));
+		this.closeDialog();
+		this.openSidePanel(id);
+		this.toast(`Пізній виїзд до ${String(hour).padStart(2, '0')}:00 підтверджено · Демо`);
 	}
 }

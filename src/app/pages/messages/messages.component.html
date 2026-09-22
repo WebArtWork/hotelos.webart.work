@@ -1,0 +1,311 @@
+<app-shell activeNav="messages" greetingTitle="Повідомлення" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="page-heading">
+		<div>
+			<h1>Повідомлення</h1>
+			<p>Спілкуйтеся з гостями та контролюйте всю історію комунікації.</p>
+		</div>
+		<div class="page-actions">
+			<button class="button secondary" (click)="openDialog({ kind: 'templates' })">Шаблони</button>
+			<button class="button primary" (click)="openDialog({ kind: 'new-message' })">+ Нове повідомлення</button>
+		</div>
+	</div>
+
+	<div class="inbox" [class.chat-open]="chatOpen()">
+		<div class="conv-list">
+			<div class="conv-list-head">
+				<h2>Розмови</h2>
+				<div class="conv-search">
+					<app-icon name="search" />
+					<input [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Знайти гостя або бронювання" />
+				</div>
+				<div class="conv-filters">
+					<button [class.active]="filter() === 'all'" (click)="setFilter('all')">Усі</button>
+					<button [class.active]="filter() === 'unread'" (click)="setFilter('unread')">Непрочитані</button>
+					<button [class.active]="filter() === 'today'" (click)="setFilter('today')">Сьогодні</button>
+					<button [class.active]="filter() === 'upcoming'" (click)="setFilter('upcoming')">Майбутні заїзди</button>
+					<button [class.active]="filter() === 'needsResponse'" (click)="setFilter('needsResponse')">Потребують відповіді</button>
+				</div>
+				<div class="conv-sort">
+					<select [ngModel]="sort()" (ngModelChange)="sort.set($event)">
+						<option value="activity">Остання активність</option>
+						<option value="unread">Непрочитані спочатку</option>
+						<option value="arrival">Найближчий заїзд</option>
+					</select>
+				</div>
+			</div>
+			<div class="conv-items">
+				@for (c of filteredConvos(); track c.id) {
+					<button class="conv-item" [class.unread]="c.unread > 0" [class.active]="c.id === activeId()" (click)="openConvo(c.id)">
+						<div class="ci-top"><span class="ci-name">{{ c.guest }}</span><span class="ci-time">{{ lastMessage(c).time }}</span></div>
+						<div class="ci-room">{{ c.room ? c.room + ' · ' : '' }}#{{ c.id }}</div>
+						<div class="ci-preview">{{ previewText(c) }}</div>
+						<div class="ci-bottom">
+							<span class="ci-context" [class.gold]="c.context === 'today'">{{ c.contextLabel }}</span>
+							@if (c.unread > 0) {
+								<span class="ci-unread-badge">{{ c.unread }}</span>
+							}
+						</div>
+					</button>
+				} @empty {
+					<div class="conv-empty">Розмов не знайдено.</div>
+				}
+			</div>
+		</div>
+
+		<div class="conv-active">
+			@let c = activeConvo();
+			@if (!c) {
+				<div class="chat-empty">Оберіть розмову зі списку.</div>
+			} @else {
+				<div class="conv-active-head">
+					<div><button class="icon-button mobile-back" aria-label="Назад" (click)="closeChat()"><app-icon name="left" /></button></div>
+					<div style="flex: 1">
+						<h2>{{ c.guest }}</h2>
+						<p>
+							{{ c.room ? c.room + ' · ' + c.roomType + ' · ' : '' }}{{ c.dates }}
+							· <span class="ci-context" [class.gold]="c.context === 'today'" style="margin-left: 4px">{{ c.contextLabel }}</span>
+						</p>
+					</div>
+					<div class="cah-actions">
+						<button aria-label="Подзвонити" (click)="callGuest()"><app-icon name="phone" /></button>
+						<a aria-label="Відкрити гостя" href="/guest/"><app-icon name="guests" /></a>
+						<a aria-label="Відкрити бронювання" href="/booking/"><app-icon name="booking" /></a>
+						<button aria-label="Ще" (click)="openDialog({ kind: 'convo-menu' })"><app-icon name="menu" /></button>
+					</div>
+				</div>
+				<div class="chat-body" #chatBody>
+					@let msgs = c.messages;
+					@for (m of msgs; track $index) {
+						@if ($index === 0 || msgs[$index - 1].date !== m.date) {
+							<div class="date-sep">{{ m.date }}</div>
+						}
+						@if (m.from === 'system') {
+							<div class="system-event">{{ m.text }}</div>
+						} @else if (m.status === 'failed') {
+							<div class="msg-row" [class]="m.from">
+								<div class="bubble failed">
+									{{ m.text }}
+									<div class="b-meta">{{ m.time }} · Не вдалося надіслати{{ m.failReason ? ' · ' + m.failReason : '' }}</div>
+									<div class="fail-actions">
+										<button (click)="retrySend()">Повторити</button>
+										<button (click)="changeFailedChannel()">Змінити канал</button>
+									</div>
+								</div>
+							</div>
+						} @else {
+							<div class="msg-row" [class]="m.from">
+								<div class="bubble">
+									<span class="bubble-text">{{ m.text }}</span>
+									<div class="b-meta">
+										<span>{{ m.time }}</span>
+										@if (m.status) {
+											<span>· {{ messageStatusLabel(m.status) }}</span>
+										}
+										@if (m.auto) {
+											<a class="auto-tag" [attr.title]="'Надіслано правилом: «' + (m.rule || '') + '»'" routerLink="/automations">Автоматично</a>
+										}
+									</div>
+								</div>
+							</div>
+						}
+					}
+					@if (c.scheduled; as sched) {
+						<div class="scheduled-card">
+							<b>{{ sched.date }} · {{ sched.time }}</b><br />Заплановано<br />{{ sched.text }}
+							<div class="sched-actions">
+								<button (click)="openDialog({ kind: 'edit-scheduled' })">Редагувати</button>
+								<button (click)="cancelScheduled()">Скасувати</button>
+							</div>
+						</div>
+					}
+				</div>
+				<div class="composer-wrap">
+					<div class="channel-row">
+						<span style="font-size: 10px; color: #9b9ca2">Канал</span>
+						<select [ngModel]="channel()" (ngModelChange)="channel.set($event)">
+							<option>Email</option>
+							<option>SMS</option>
+							<option>Instagram</option>
+							<option>Telegram</option>
+						</select>
+					</div>
+					<div class="template-chips">
+						@for (t of TEMPLATES; track t.id) {
+							<button (click)="insertTemplate(t.id)">{{ t.chip }}</button>
+						}
+					</div>
+					<div class="composer-row" style="position: relative">
+						<button class="composer-icon" aria-label="Додати вкладення" (click)="attachFile()"><app-icon name="attach" /></button>
+						<textarea
+							rows="1"
+							placeholder="Напишіть повідомлення..."
+							[ngModel]="composerText()"
+							(ngModelChange)="composerText.set($event)"
+							(keydown)="onComposerKeydown($event)"
+						></textarea>
+						<button class="composer-icon ai" aria-label="AI" (click)="toggleAiPopover()"><app-icon name="spark" /></button>
+						<button class="send-btn" aria-label="Надіслати" (click)="sendMessage()"><app-icon name="send" /></button>
+						@if (aiPopoverOpen()) {
+							<div class="ai-popover">
+								<button (click)="aiSuggest('reply')">Написати відповідь</button>
+								<button (click)="aiSuggest('shorter')">Зробити коротше</button>
+								<button (click)="aiSuggest('polite')">Зробити ввічливіше</button>
+								<button (click)="aiSuggest('translate')">Перекласти</button>
+								<button (click)="aiSuggest('payment')">Нагадати про оплату</button>
+								<button (click)="aiSuggest('arrival')">Дати інструкцію перед заїздом</button>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+
+		<div class="context-panel">
+			@let cp = activeConvo();
+			@if (cp) {
+				<h5>Гість</h5>
+				<p class="cp-name">{{ cp.guest }}</p>
+				<p class="cp-contact">{{ cp.phone }}@if (cp.email) {<br />{{ cp.email }}}</p>
+				<p class="cp-stays">{{ cp.stays }} проживання</p>
+				<a class="button secondary" href="/guest/" style="width: 100%">Відкрити профіль</a>
+
+				<h5>Бронювання</h5>
+				<div class="info-grid">
+					<dt>№</dt>
+					<dd>#{{ cp.id }}</dd>
+					<dt>Дати</dt>
+					<dd>{{ cp.dates }}</dd>
+					<dt>Номер</dt>
+					<dd>{{ cp.room || '-' }} · {{ cp.roomType || '' }}</dd>
+					<dt>Статус</dt>
+					<dd>{{ cp.status }}</dd>
+					<dt>Оплата</dt>
+					<dd>{{ cp.payment }}</dd>
+					<dt>Заїзд</dt>
+					<dd>{{ cp.arrival }}</dd>
+				</div>
+				<a class="button secondary" href="/booking/" style="width: 100%; margin-top: 10px">Відкрити бронювання</a>
+
+				<h5>Корисно знати</h5>
+				@if (cp.stays >= 2) {
+					<div class="useful-item"><b>Постійний гість</b>{{ cp.stays }} проживання</div>
+				}
+				@if (cp.pref) {
+					<div class="useful-item"><b>Побажання</b>{{ cp.pref }}</div>
+				}
+				@if (cp.arrival && cp.arrival !== '-') {
+					<div class="useful-item"><b>Очікуваний час прибуття</b>{{ cp.arrival }}</div>
+				}
+			}
+		</div>
+	</div>
+</app-shell>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('templates') {
+				<h2>Шаблони повідомлень</h2>
+				<p>Створіть повідомлення, які команда може використовувати повторно.</p>
+				<div class="template-list">
+					@for (t of TEMPLATES; track t.id) {
+						<div class="template-card">
+							<h4>{{ t.name }} <span class="pill">{{ t.channel }}</span></h4>
+							<p>{{ t.text }}</p>
+						</div>
+					}
+				</div>
+				<button class="button secondary" (click)="openDialog({ kind: 'new-template' })">+ Новий шаблон</button>
+			}
+			@case ('new-template') {
+				<h2>Новий шаблон</h2>
+				<form class="demo-form" (ngSubmit)="submitNewTemplate()">
+					<label>Назва<input name="name" required /></label>
+					<label>Категорія<input name="category" /></label>
+					<label class="full">
+						Канал
+						<select name="channel">
+							<option>Email</option>
+							<option>SMS</option>
+							<option>Instagram</option>
+							<option>Telegram</option>
+						</select>
+					</label>
+					<label class="full">
+						Повідомлення
+						<textarea name="message" required maxlength="800" [ngModel]="newTemplateText()" (ngModelChange)="newTemplateText.set($event)"></textarea>
+					</label>
+					<div class="full var-chips">
+						@for (v of VARIABLES; track v[1]) {
+							<button type="button" (click)="insertVariable(v[1])">{{ v[0] }}</button>
+						}
+					</div>
+					<button class="button primary full" type="submit">Зберегти шаблон</button>
+				</form>
+			}
+			@case ('new-message') {
+				<h2>Нове повідомлення</h2>
+				<form class="demo-form" (ngSubmit)="submitNewMessage()">
+					<label class="full">
+						Одержувач
+						<input [ngModel]="newMessageRecipient()" (ngModelChange)="newMessageRecipient.set($event)" name="recipient" placeholder="Ім’я, телефон або бронювання" list="nm-list" autocomplete="off" />
+					</label>
+					<datalist id="nm-list">
+						@for (c of conversations(); track c.id) {
+							<option [value]="c.guest"></option>
+						}
+					</datalist>
+					<label>
+						Канал
+						<select name="channel">
+							<option>Email</option>
+							<option>SMS</option>
+							<option>Instagram</option>
+							<option>Telegram</option>
+						</select>
+					</label>
+					<label>
+						Шаблон
+						<select [ngModel]="newMessageTemplate()" (ngModelChange)="onNewMessageTemplateChange($event)" name="template">
+							<option value="">Без шаблону</option>
+							@for (t of TEMPLATES; track t.id) {
+								<option [value]="t.id">{{ t.name }}</option>
+							}
+						</select>
+					</label>
+					<label class="full">
+						Повідомлення
+						<textarea name="message" required maxlength="800" [ngModel]="newMessageText()" (ngModelChange)="newMessageText.set($event)"></textarea>
+					</label>
+					<button class="button primary full" type="submit">Надіслати</button>
+				</form>
+			}
+			@case ('convo-menu') {
+				<h2>Розмова</h2>
+				<div class="dialog-actions">
+					<button class="button secondary" (click)="markUnread()">Позначити непрочитаним</button>
+					<button class="button secondary" (click)="archiveConvo()">Архівувати розмову</button>
+				</div>
+			}
+			@case ('edit-scheduled') {
+				@let sc = activeConvo()?.scheduled;
+				@if (sc) {
+					<h2>Редагувати заплановане повідомлення</h2>
+					<form class="demo-form" #schedForm="ngForm" (ngSubmit)="submitEditScheduled(schedText.value)">
+						<label class="full">Текст<textarea name="text" #schedText>{{ sc.text }}</textarea></label>
+						<button class="button primary full" type="submit">Зберегти</button>
+					</form>
+				}
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

@@ -1,40 +1,46 @@
-<div class="demo-bar">
-	<span>Демо: цю сторінку не підключено до реальної автентифікації · Стан:</span>
-	<select [ngModel]="screen()" (ngModelChange)="onDemoStateChange($event)">
-		<option value="login">Вхід</option>
-		<option value="forgot">Забули пароль</option>
-		<option value="checkEmail">Перевірте пошту</option>
-		<option value="newPassword">Новий пароль</option>
-		<option value="resetSuccess">Пароль змінено</option>
-		<option value="resetExpired">Посилання не діє</option>
-		<option value="invitation">Запрошення</option>
-		<option value="invitationExpired">Запрошення прострочене</option>
-		<option value="invitationUsed">Запрошення вже використано</option>
-		<option value="invitationCancelled">Запрошення скасовано</option>
-		<option value="createAccount">Створення доступу</option>
-		<option value="accountCreated">Акаунт створено</option>
-		<option value="welcome">Перший вхід (welcome)</option>
-		<option value="joinConfirm">Приєднатися до готелю?</option>
-		<option value="hotelSwitcher">Вибір готелю</option>
-		<option value="sessionExpired">Сесію завершено</option>
-		<option value="accountDisabled">Доступ деактивовано</option>
-		<option value="noHotelAccess">Немає доступу до готелів</option>
-		<option value="rateLimit">Забагато спроб</option>
-		<option value="genericError">Загальна помилка</option>
-	</select>
-	<span>Роль:</span>
-	<select [(ngModel)]="demoRole">
-		<option value="reception">Рецепція</option>
-		<option value="manager">Менеджер</option>
-		<option value="housekeeping">Прибирання</option>
-		<option value="owner">Власник</option>
-	</select>
-</div>
+@if (showDemoBar) {
+	<div class="demo-bar">
+		<span>Демо: цю сторінку не підключено до реальної автентифікації · Стан:</span>
+		<select [ngModel]="screen()" (ngModelChange)="onDemoStateChange($event)">
+			<option value="login">Вхід</option>
+			<option value="forgot">Забули пароль</option>
+			<option value="checkEmail">Перевірте пошту</option>
+			<option value="newPassword">Новий пароль</option>
+			<option value="resetSuccess">Пароль змінено</option>
+			<option value="resetExpired">Посилання не діє</option>
+			<option value="invitation">Запрошення</option>
+			<option value="invitationExpired">Запрошення прострочене</option>
+			<option value="invitationUsed">Запрошення вже використано</option>
+			<option value="invitationCancelled">Запрошення скасовано</option>
+			<option value="createAccount">Створення доступу</option>
+			<option value="accountCreated">Акаунт створено</option>
+			<option value="welcome">Перший вхід (welcome)</option>
+			<option value="joinConfirm">Приєднатися до готелю?</option>
+			<option value="hotelSwitcher">Вибір готелю</option>
+			<option value="sessionExpired">Сесію завершено</option>
+			<option value="accountDisabled">Доступ деактивовано</option>
+			<option value="noHotelAccess">Немає доступу до готелів</option>
+			<option value="rateLimit">Забагато спроб</option>
+			<option value="genericError">Загальна помилка</option>
+			<option value="testLogin">Тестовий вхід за роллю</option>
+		</select>
+		<span>Роль:</span>
+		<select [(ngModel)]="demoRole">
+			<option value="reception">Рецепція</option>
+			<option value="manager">Менеджер</option>
+			<option value="housekeeping">Прибирання</option>
+			<option value="owner">Власник</option>
+			<option value="sales">Продажі / Маркетинг</option>
+			<option value="accountant">Бухгалтер</option>
+			<option value="maintenance">Технічне обслуговування</option>
+		</select>
+	</div>
+}
 
 <div class="shell">
 	<div class="form-side">
 		<div class="form-wrap">
-			<a class="brand" href="/">
+			<a class="brand" routerLink="/">
 				<span class="mark">H</span>
 				<span>Hotel <b>OS</b><small>Система управління готелем</small></span>
 			</a>
@@ -87,10 +93,27 @@
 						</form>
 						<div class="link-row">
 							<button type="button" (click)="goto('forgot')">Забули пароль?</button>
+							<span class="link-sep">·</span>
+							<button type="button" (click)="goto('testLogin')">Тестовий вхід за роллю</button>
 						</div>
 						<p class="bottom-note">
 							Ще не використовуєте Hotel OS? <a href="/#pricing">Спробувати безкоштовно</a>
 						</p>
+					}
+
+					@case ('testLogin') {
+						<h1>Тестовий вхід</h1>
+						<p class="sub">Оберіть роль, щоб побачити Hotel OS з її погляду.</p>
+						<div class="role-pick-grid">
+							@for (r of testLoginRoles; track r) {
+								<button type="button" class="role-pick" (click)="testLoginAs(r)">
+									{{ roleLabel[r] }}
+								</button>
+							}
+						</div>
+						<div class="link-row">
+							<button type="button" (click)="goto('login')">Повернутися до входу</button>
+						</div>
 					}
 
 					@case ('forgot') {

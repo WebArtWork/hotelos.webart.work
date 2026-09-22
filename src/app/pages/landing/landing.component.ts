@@ -1,5 +1,23 @@
-import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser, NgTemplateOutlet } from '@angular/common';
+import {
+	AfterViewInit,
+	Component,
+	computed,
+	effect,
+	ElementRef,
+	inject,
+	NgZone,
+	OnDestroy,
+	PLATFORM_ID,
+	signal,
+	viewChild,
+} from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+interface ParallaxTarget {
+	el: HTMLElement;
+	factor: number;
+}
 
 type ModalKind = 'calendar' | 'guest' | 'contacts' | 'terms' | null;
 
@@ -35,16 +53,27 @@ const THEME_KEY = 'hotelos_theme';
 
 @Component({
 	selector: 'app-landing',
-	imports: [NgTemplateOutlet],
+	imports: [NgTemplateOutlet, RouterLink],
 	templateUrl: './landing.component.html',
 	styleUrl: './landing.component.scss',
 })
-export class LandingComponent {
+export class LandingComponent implements AfterViewInit, OnDestroy {
 	private readonly _document = inject(DOCUMENT);
+	private readonly _hostEl = inject(ElementRef<HTMLElement>);
+	private readonly _ngZone = inject(NgZone);
+	private readonly _isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
 	protected readonly dialogRef = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
 	protected readonly modalKind = signal<ModalKind>(null);
 	protected readonly guestName = signal('');
+
+	/** True once the page has scrolled past a small threshold — drives the header's scrolled state. */
+	protected readonly scrolled = signal(false);
+
+	private _parallaxTargets: ParallaxTarget[] = [];
+	private _scrollTicking = false;
+	private _lastScrolledState = false;
+	private readonly _onScroll = (): void => this._queueScrollFrame();
 
 	constructor() {
 		effect(() => {
@@ -56,6 +85,63 @@ export class LandingComponent {
 				dialog.close();
 			}
 		});
+	}
+
+	ngAfterViewInit(): void {
+		if (!this._isBrowser) return;
+
+		const host: HTMLElement = this._hostEl.nativeElement;
+		// Restrained, scroll-tracked parallax on decorative background layers only — never on text or controls.
+		const selectors: { selector: string; factor: number }[] = [
+			{ selector: '.hero', factor: 0.18 },
+			{ selector: '.ai-section', factor: 0.22 },
+			{ selector: '.philosophy', factor: 0.15 },
+		];
+		const targets: ParallaxTarget[] = [];
+		for (const { selector, factor } of selectors) {
+			const el = host.querySelector(selector);
+			if (el instanceof HTMLElement) targets.push({ el, factor });
+		}
+		this._parallaxTargets = targets;
+
+		this._ngZone.runOutsideAngular(() => {
+			window.addEventListener('scroll', this._onScroll, { passive: true });
+		});
+		this._queueScrollFrame();
+	}
+
+	ngOnDestroy(): void {
+		if (!this._isBrowser) return;
+		window.removeEventListener('scroll', this._onScroll);
+	}
+
+	private _queueScrollFrame(): void {
+		if (this._scrollTicking) return;
+		this._scrollTicking = true;
+		requestAnimationFrame(() => {
+			this._scrollTicking = false;
+			this._onScrollFrame();
+		});
+	}
+
+	private _onScrollFrame(): void {
+		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		if (!reducedMotion) {
+			for (const target of this._parallaxTargets) {
+				const rect = target.el.getBoundingClientRect();
+				// Track scroll 1:1 via the element's own viewport offset (no easing/lag), clamped to stay restrained.
+				const raw = rect.top * target.factor;
+				const clamped = Math.max(-48, Math.min(48, raw));
+				target.el.style.setProperty('--parallax-y', `${clamped.toFixed(2)}px`);
+			}
+		}
+
+		const isScrolled = window.scrollY > 8;
+		if (isScrolled !== this._lastScrolledState) {
+			this._lastScrolledState = isScrolled;
+			this._ngZone.run(() => this.scrolled.set(isScrolled));
+		}
 	}
 
 	protected onDialogClick(event: MouseEvent): void {

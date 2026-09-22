@@ -1,5 +1,7 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { ROLE_LABEL, setStoredRole, type Role } from '../../shared/role';
 
 type Screen =
 	| 'login'
@@ -21,9 +23,8 @@ type Screen =
 	| 'accountDisabled'
 	| 'noHotelAccess'
 	| 'rateLimit'
-	| 'genericError';
-
-type Role = 'reception' | 'manager' | 'housekeeping' | 'owner';
+	| 'genericError'
+	| 'testLogin';
 
 interface RoleCapabilities {
 	can: string[];
@@ -39,13 +40,6 @@ const INVITE = {
 	email: 'iryna@example.com',
 	first: 'Ірина',
 	last: 'Петренко',
-};
-
-const ROLE_LABEL: Record<Role, string> = {
-	owner: 'Власник',
-	manager: 'Менеджер',
-	reception: 'Рецепція',
-	housekeeping: 'Прибирання',
 };
 
 const ROLE_CAPS: Record<Role, RoleCapabilities> = {
@@ -85,6 +79,24 @@ const ROLE_CAPS: Record<Role, RoleCapabilities> = {
 		cta: 'Відкрити Dashboard',
 		href: '/dashboard/',
 	},
+	sales: {
+		can: ['аналітику продажів та джерел бронювань', 'кампанії та канали', 'бачити календар та бронювання'],
+		cannot: ['фінансові налаштування', 'управління командою', 'прибирання'],
+		cta: 'Відкрити продажі',
+		href: '/sales/',
+	},
+	accountant: {
+		can: ['оплати, рахунки та депозити', 'повернення коштів', 'фінансову аналітику'],
+		cannot: ['календар та бронювання', 'управління командою', 'прибирання'],
+		cta: 'Відкрити оплати',
+		href: '/payments/',
+	},
+	maintenance: {
+		can: ['бачити номери з несправностями', 'відмічати ремонт виконаним', 'повідомляти про проблеми'],
+		cannot: ['гостьові дані та оплати', 'фінансову інформацію', 'налаштування готелю'],
+		cta: 'Відкрити прибирання',
+		href: '/housekeeping/',
+	},
 };
 
 function passwordChecks(pw: string) {
@@ -99,15 +111,20 @@ function passwordStrength(pw: string): 'weak' | 'normal' | 'strong' {
 
 @Component({
 	selector: 'app-login',
-	imports: [FormsModule],
+	imports: [FormsModule, RouterLink],
 	templateUrl: './login.component.html',
 	styleUrl: './login.component.scss',
 })
 export class LoginComponent {
+	private readonly _router = inject(Router);
+
 	protected readonly invite = INVITE;
 	protected readonly roleLabel = ROLE_LABEL;
 
-	protected readonly screen = signal<Screen>('login');
+	/** Demo state/role switcher bar — hidden for client-facing demos, kept for internal use. */
+	protected readonly showDemoBar = false;
+
+	protected readonly screen = signal<Screen>('testLogin');
 	protected readonly demoRole = signal<Role>('reception');
 
 	protected readonly loginEmail = signal('');
@@ -144,8 +161,19 @@ export class LoginComponent {
 	protected readonly toastMessage = signal('');
 	private _toastTimer?: ReturnType<typeof setTimeout>;
 
+	protected readonly testLoginRoles: Role[] = ['owner', 'manager', 'reception', 'housekeeping', 'sales', 'accountant', 'maintenance'];
+
 	protected goto(screen: Screen): void {
 		this.screen.set(screen);
+	}
+
+	protected testLoginAs(role: Role): void {
+		setStoredRole(role);
+		this._navigate(ROLE_CAPS[role].href);
+	}
+
+	private _navigate(url: string): void {
+		this._router.navigateByUrl(url.replace(/\/$/, '') || '/');
 	}
 
 	protected onDemoStateChange(value: string): void {
@@ -189,7 +217,8 @@ export class LoginComponent {
 				this.loginError.set('Не вдалося увійти. Email або пароль неправильні.');
 				return;
 			}
-			window.location.href = '/dashboard/';
+			setStoredRole(this.demoRole());
+			this._navigate('/dashboard');
 		}, 700);
 	}
 
@@ -236,7 +265,8 @@ export class LoginComponent {
 	}
 
 	protected selectHotel(href: string): void {
-		window.location.href = href;
+		setStoredRole(this.demoRole());
+		this._navigate(href);
 	}
 
 	protected addHotel(): void {
@@ -244,7 +274,8 @@ export class LoginComponent {
 	}
 
 	protected openWelcomeCta(): void {
-		window.location.href = this.welcomeCaps().href;
+		setStoredRole(this.demoRole());
+		this._navigate(this.welcomeCaps().href);
 	}
 
 	private showToast(text: string): void {

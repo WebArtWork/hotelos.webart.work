@@ -15,6 +15,9 @@
 	--line: var(--border);
 	--surface: #f5f5f6;
 	--surface-hover: #ececee;
+	--text-strong: #3a3a3c;
+	--icon-muted: #8b8c92;
+	--text-faint: #9b9ca2;
 
 	display: block;
 	color: var(--ink);
@@ -35,6 +38,11 @@
 	--surface-hover: #26272d;
 	--green: #82b199;
 	--green-bg: #16241d;
+	--danger: #e0836c;
+	--danger-bg: #2c1a17;
+	--text-strong: #d6d6d9;
+	--icon-muted: #a3a4ab;
+	--text-faint: #7d7e85;
 }
 
 :host * {
@@ -108,12 +116,12 @@ svg {
 	}
 
 	span {
-		color: #8b8c92;
+		color: var(--icon-muted);
 	}
 }
 
 .shell {
-	min-height: calc(100dvh - 34px);
+	min-height: 100dvh;
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 }
@@ -187,7 +195,7 @@ svg {
 	background: var(--white);
 	border-radius: 12px;
 	padding: 18px;
-	color: #161616;
+	color: var(--ink);
 	max-width: 360px;
 	box-shadow: 0 30px 60px #00000040;
 
@@ -200,7 +208,7 @@ svg {
 	display: flex;
 	justify-content: space-between;
 	font-size: 10.5px;
-	color: #707174;
+	color: var(--muted);
 	margin-top: 10px;
 	border-top: 1px solid var(--line);
 	padding-top: 8px;
@@ -239,7 +247,7 @@ h1 {
 		display: block;
 		font-size: 11.5px;
 		font-weight: 700;
-		color: #3a3a3c;
+		color: var(--text-strong);
 		margin-bottom: 6px;
 	}
 
@@ -284,7 +292,7 @@ h1 {
 	width: 30px;
 	height: 30px;
 	border-radius: 6px;
-	color: #8b8c92;
+	color: var(--icon-muted);
 
 	&:hover {
 		background: var(--silver);
@@ -296,7 +304,7 @@ h1 {
 	align-items: center;
 	gap: 8px;
 	font-size: 12.5px;
-	color: #3a3a3c;
+	color: var(--text-strong);
 	margin-bottom: 20px;
 }
 
@@ -305,7 +313,7 @@ h1 {
 	flex-direction: column;
 	gap: 4px;
 	font-size: 11.5px;
-	color: #9b9ca2;
+	color: var(--text-faint);
 	margin: -6px 0 18px;
 
 	span.ok {
@@ -373,7 +381,7 @@ h1 {
 
 	&.secondary {
 		border: 1px solid var(--border);
-		color: #3a3a3c;
+		color: var(--text-strong);
 		background: var(--white);
 
 		&:hover {
@@ -398,6 +406,35 @@ h1 {
 		color: var(--gold-ink);
 		font-weight: 700;
 	}
+}
+
+.link-sep {
+	margin: 0 8px;
+	color: var(--line);
+}
+
+.role-pick-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+	margin-top: 8px;
+}
+
+.role-pick {
+	border: 1px solid var(--line);
+	background: var(--surface);
+	border-radius: 10px;
+	padding: 14px 16px;
+	font-size: 13px;
+	font-weight: 700;
+	text-align: left;
+	transition: border-color 0.15s, background 0.15s;
+}
+
+.role-pick:hover {
+	border-color: var(--gold);
+	background: var(--gold-light);
+	color: var(--gold-ink);
 }
 
 .bottom-note {
@@ -485,10 +522,10 @@ h1 {
 		}
 
 		&.cannot {
-			color: #9b9ca2;
+			color: var(--text-faint);
 
 			&:before {
-				content: '—';
+				content: '-';
 				color: #c6c7c9;
 			}
 		}

@@ -762,7 +762,7 @@ tbody tr {
 	}
 
 	&.today .occupancy-track span {
-		background: #c5a15a;
+		background: var(--gold);
 	}
 }
 
@@ -829,7 +829,7 @@ tbody tr {
 
 	span {
 		height: 100%;
-		background: #c6c7c9;
+		background: var(--silver);
 		display: block;
 		border-radius: 3px;
 	}

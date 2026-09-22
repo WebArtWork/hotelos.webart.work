@@ -1,0 +1,352 @@
+<app-shell activeNav="team" greetingTitle="Команда" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="page-heading">
+		<div>
+			<h1>Команда</h1>
+			<p>Додавайте працівників, призначайте ролі та керуйте доступом до Hotel OS.</p>
+		</div>
+		<div class="page-actions">
+			<button class="button secondary" (click)="openRoleMatrix()">Ролі та доступ</button>
+			<button class="button primary" (click)="openAddEmployee()">+ Додати працівника</button>
+		</div>
+	</div>
+
+	<div class="kpis">
+		<div class="kpi"><small>Працівників</small><b>{{ counts().total }}</b></div>
+		<div class="kpi"><small>Активні</small><b>{{ counts().active }}</b></div>
+		<div class="kpi gold">
+			<small>Запрошення</small><b>{{ counts().invited }}</b>
+			<span>{{ counts().invited ? 'очікує підтвердження' : 'немає очікуючих' }}</span>
+		</div>
+		<div class="kpi"><small>Зараз у системі</small><b>{{ counts().online }}</b></div>
+	</div>
+
+	<div class="toolbar-row">
+		<div class="search-wrap">
+			<app-icon name="search" />
+			<input [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Знайти працівника" />
+		</div>
+		<div class="segments">
+			<button [class.active]="segment() === 'all'" (click)="setSegment('all')">Усі</button>
+			<button [class.active]="segment() === 'owner'" (click)="setSegment('owner')">Власники</button>
+			<button [class.active]="segment() === 'manager'" (click)="setSegment('manager')">Менеджери</button>
+			<button [class.active]="segment() === 'reception'" (click)="setSegment('reception')">Рецепція</button>
+			<button [class.active]="segment() === 'housekeeping'" (click)="setSegment('housekeeping')">Прибирання</button>
+			<button [class.active]="segment() === 'inactive'" (click)="setSegment('inactive')">Неактивні</button>
+		</div>
+	</div>
+
+	@if (filtered().length) {
+		<div class="table-card">
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>Працівник</th>
+							<th>Роль</th>
+							<th>Контакти</th>
+							<th>Статус</th>
+							<th>Остання активність</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (e of filtered(); track e.id) {
+							<tr (click)="openProfile(e.id)">
+								<td class="name-cell">
+									<span class="avatar">{{ initials(fullName(e)) }}@if (e.online) {<span class="online-dot"></span>}</span>
+									<span>
+										<b>{{ fullName(e) }}</b>
+										<small>{{ e.status === 'invited' ? 'Запрошення надіслано ' + e.invitedOn : e.email }}</small>
+									</span>
+								</td>
+								<td><span class="role-chip" [class]="e.role">{{ ROLES[e.role].label }}</span></td>
+								<td>{{ e.email || '-' }}@if (e.phone) {<br />{{ e.phone }} }</td>
+								<td><span class="status-tag" [class]="e.status">{{ statusLabel(e.status) }}</span></td>
+								<td>{{ e.lastActivity }}</td>
+								<td><button class="text-action" (click)="openProfile(e.id); $event.stopPropagation()">Відкрити →</button></td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="emp-cards">
+			@for (e of filtered(); track e.id) {
+				<div class="emp-card" (click)="openProfile(e.id)">
+					<span class="avatar">{{ initials(fullName(e)) }}@if (e.online) {<span class="online-dot"></span>}</span>
+					<div class="ec-body">
+						<b>{{ fullName(e) }}</b>
+						<span class="ec-role">{{ ROLES[e.role].label }}</span>
+						<div class="ec-activity">{{ statusLabel(e.status) }} · {{ e.lastActivity }}</div>
+					</div>
+				</div>
+			}
+		</div>
+	} @else {
+		<div class="empty-state">
+			<h2>Нікого не знайдено</h2>
+			<p>Спробуйте змінити пошук або фільтр.</p>
+		</div>
+	}
+</app-shell>
+
+<div class="side-scrim" [class.open]="selectedId() !== null" [hidden]="selectedId() === null" (click)="closeSidePanel()"></div>
+<aside class="side-panel" [class.open]="selectedId() !== null" aria-label="Профіль працівника">
+	<div class="side-panel-head">
+		<span class="dialog-label">HOTEL OS <span>· ПРАЦІВНИК</span></span>
+		<button class="icon-button" aria-label="Закрити" (click)="closeSidePanel()"><app-icon name="close" /></button>
+	</div>
+	<div class="side-panel-body">
+		@let e = selectedEmployee();
+		@if (e) {
+			<div class="profile-top">
+				<span class="avatar-lg">{{ initials(fullName(e)) }}</span>
+				<div>
+					<h2 style="font-size: 19px; margin: 0 0 4px">{{ fullName(e) }}</h2>
+					<span class="role-chip" [class]="e.role">{{ ROLES[e.role].label }}</span>
+					<span class="status-tag" [class]="e.status">{{ statusLabel(e.status) }}</span>
+				</div>
+			</div>
+
+			@if (e.status === 'invited') {
+				<div class="notice">Запрошення надіслано {{ e.invitedOn }}. Обліковий запис ще не активовано.</div>
+				<div class="dialog-actions">
+					<button class="button secondary" (click)="resendInvite()">Надіслати повторно</button>
+					<button class="button secondary destructive" (click)="cancelInvite(e.id)">Скасувати запрошення</button>
+				</div>
+			}
+
+			@if (e.status !== 'invited') {
+				<h5>Контакти</h5>
+				<p style="margin: 0; font-size: 12px">{{ e.email || '-' }}@if (e.phone) {<br />{{ e.phone }} }</p>
+
+				<h5>Профіль</h5>
+				<div class="info-grid">
+					<dt>Роль</dt>
+					<dd>{{ ROLES[e.role].label }}</dd>
+					<dt>Приєднався(лась)</dt>
+					<dd>{{ e.joined }}</dd>
+					<dt>Остання активність</dt>
+					<dd>{{ e.lastActivity }}</dd>
+					@if (e.shift) {
+						<dt>Зміна</dt>
+						<dd>{{ e.shift }}</dd>
+					}
+				</div>
+
+				@if (e.role === 'housekeeping' && e.tasks) {
+					<h5>Задачі сьогодні</h5>
+					<div class="stat-trio">
+						<div><b>{{ e.tasks.done }}</b><span>Завершено</span></div>
+						<div><b>{{ e.tasks.inProgress }}</b><span>У процесі</span></div>
+						<div><b>{{ e.tasks.remaining }}</b><span>Залишилось</span></div>
+					</div>
+					<a class="button secondary" style="width: 100%; margin-top: 10px; display: flex" routerLink="/housekeeping">Відкрити задачі</a>
+				}
+				@if (e.role === 'manager' && e.todayStats) {
+					<h5>Сьогодні</h5>
+					<div class="stat-trio">
+						<div><b>{{ e.todayStats.bookings }}</b><span>Бронювань</span></div>
+						<div><b>{{ e.todayStats.checkins }}</b><span>Заїздів</span></div>
+						<div><b>{{ e.todayStats.payments }}</b><span>Оплат</span></div>
+					</div>
+				}
+
+				<h5>Дії</h5>
+				<div class="dialog-actions">
+					<button class="button secondary" (click)="openEdit(e.id)">Редагувати</button>
+					<button class="button secondary" (click)="openChangeRole(e.id)">Змінити роль</button>
+					@if (e.status === 'active') {
+						<button
+							class="button secondary destructive"
+							[disabled]="isLastOwner(e)"
+							[title]="isLastOwner(e) ? 'Готель повинен мати щонайменше одного власника' : ''"
+							(click)="openDeactivate(e.id)"
+						>
+							Деактивувати доступ
+						</button>
+					} @else {
+						<button class="button primary" (click)="reactivate(e.id)">Відновити доступ</button>
+					}
+				</div>
+
+				@if (e.role !== 'owner' && permsFor(e).length) {
+					<h5>Дозволи</h5>
+					@for (p of permsFor(e); track p[0]) {
+						<div class="toggle-row">
+							<b>{{ p[1] }}</b>
+							<span class="switch" [class.on]="e.perms[p[0]]" (click)="togglePerm(e.id, p[0])"></span>
+						</div>
+					}
+				}
+
+				<h5>Сповіщення</h5>
+				@for (n of NOTIF_OPTS; track n[0]) {
+					<div class="toggle-row">
+						<b>{{ n[1] }}</b>
+						<span class="switch" [class.on]="notifFor(e)[n[0]]" (click)="toggleNotif(e.id, n[0])"></span>
+					</div>
+				}
+
+				<h5>Остання активність</h5>
+				@for (a of e.activity ?? []; track a.time) {
+					<div class="activity-item"><b>{{ a.time }}</b><p>{{ a.text }}</p></div>
+				} @empty {
+					<p class="form-note">Активності ще немає.</p>
+				}
+
+				<h5>Безпека</h5>
+				<p style="margin: 0; font-size: 12px">Останній вхід: {{ e.lastActivity }}</p>
+				<button class="button secondary" style="margin-top: 10px" (click)="endSessions()">Завершити всі сесії</button>
+			}
+		}
+	</div>
+</aside>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('add-employee') {
+				<h2>Додати працівника</h2>
+				<form
+					class="demo-form"
+					(ngSubmit)="submitAddForm(firstInput.value, lastInput.value, emailInput.value, phoneInput.value, $any(roleSelect.value))"
+				>
+					<label>Ім'я *<input #firstInput name="first" required /></label>
+					<label>Прізвище<input #lastInput name="last" /></label>
+					<label>Email *<input #emailInput name="email" type="email" required /></label>
+					<label>Телефон<input #phoneInput name="phone" /></label>
+					<label class="full">
+						Роль
+						<select #roleSelect name="role">
+							<option value="manager">Менеджер</option>
+							<option value="reception">Рецепція</option>
+							<option value="housekeeping">Прибирання</option>
+						</select>
+					</label>
+					<p class="full form-note">Роль «Власник» не призначається через цю форму.</p>
+					<button class="button primary full" type="submit">Далі</button>
+				</form>
+			}
+			@case ('invite-preview') {
+				<h2>Запросити працівника</h2>
+				<p>{{ view!.data.first }} {{ view!.data.last }}<br />{{ view!.data.email }}</p>
+				<p>Роль: <b>{{ ROLES[view!.data.role].label }}</b></p>
+				<div class="role-access-list">
+					@for (a of ROLES[view!.data.role].access; track a) {
+						<span>{{ a }}</span>
+					}
+				</div>
+				<p class="form-note">Працівник отримає посилання для створення доступу до Hotel OS.</p>
+				<div class="dialog-actions">
+					<button class="button primary" (click)="sendInvite(view!.data)">Надіслати запрошення</button>
+					<button class="button secondary" (click)="closeDialog()">Скасувати</button>
+				</div>
+			}
+			@case ('invite-sent') {
+				<h2>Запрошення надіслано</h2>
+				<p>{{ view!.data.first }} {{ view!.data.last }}<br />{{ view!.data.email }}</p>
+				<span class="status-tag invited">Очікує активації</span>
+				<div class="dialog-actions">
+					<button class="button secondary" (click)="copyInviteLink()">Скопіювати посилання</button>
+					<button class="button primary" (click)="closeDialog()">Закрити</button>
+				</div>
+			}
+			@case ('role-matrix') {
+				<h2>Ролі та доступ</h2>
+				<table class="matrix-table">
+					<thead>
+						<tr>
+							<th>Функція</th>
+							<th>Власник</th>
+							<th>Менеджер</th>
+							<th>Рецепція</th>
+							<th>Прибирання</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (row of MATRIX; track row[0]) {
+							<tr>
+								<td>{{ row[0] }}</td>
+								@for (r of MATRIX_ROLES; track r) {
+									<td>{{ matrixCell(row[1], r) }}</td>
+								}
+							</tr>
+						}
+					</tbody>
+				</table>
+				<p class="form-note" style="margin-top: 14px">
+					Release A використовує заздалегідь визначені ролі з кількома опціональними дозволами, без складного редактора політик.
+				</p>
+			}
+			@case ('change-role') {
+				@let emp = employee(view!.id);
+				@if (emp) {
+					<h2>Змінити роль</h2>
+					<form class="demo-form" (ngSubmit)="submitChangeRole(emp.id, $any(newRoleSelect.value))">
+						<label class="full">Поточна роль<input [value]="ROLES[emp.role].label" disabled /></label>
+						<label class="full">
+							Нова роль
+							<select #newRoleSelect name="role">
+								@for (r of ASSIGNABLE_ROLES; track r) {
+									<option [value]="r" [selected]="emp.role === r">{{ ROLES[r].label }}</option>
+								}
+							</select>
+						</label>
+						<p class="full form-note">{{ newRoleSelect.value === 'manager' ? 'Працівник отримає доступ до фінансової та операційної інформації.' : '' }}</p>
+						<button class="button primary full" type="submit">Змінити роль</button>
+					</form>
+				}
+			}
+			@case ('edit') {
+				@let emp = employee(view!.id);
+				@if (emp) {
+					<h2>Редагувати працівника</h2>
+					<form
+						class="demo-form"
+						(ngSubmit)="submitEdit(emp.id, editFirst.value, editLast.value, editEmail.value, editPhone.value)"
+					>
+						<label>Ім'я<input #editFirst name="first" [value]="emp.first" required /></label>
+						<label>Прізвище<input #editLast name="last" [value]="emp.last" /></label>
+						<label>Email<input #editEmail name="email" type="email" [value]="emp.email" /></label>
+						<label>Телефон<input #editPhone name="phone" [value]="emp.phone" /></label>
+						<button class="button primary full" type="submit">Зберегти</button>
+					</form>
+				}
+			}
+			@case ('deactivate') {
+				@let emp = employee(view!.id);
+				@if (emp) {
+					<h2>Деактивувати працівника?</h2>
+					<p>{{ fullName(emp) }} більше не зможе входити в Hotel OS.</p>
+					<p>Її/його попередні дії та історія залишаться в системі під її/його іменем, деактивація не переписує авторство минулих дій.</p>
+					@if (emp.role === 'housekeeping') {
+						<p class="form-note">
+							<b>Задачі прибирання, призначені на неї/нього, лишаться призначеними.</b> Перепризначте їх вручну на сторінці
+							Прибирання або переведіть у чергу непризначених задач, деактивація доступу сама по собі цього не робить.
+						</p>
+					}
+					@if (emp.role === 'reception') {
+						<p class="form-note">
+							<b>Бронювання та діалоги, які вона/він вів(ла), не переприв'язуються автоматично.</b> Перевірте незавершені діалоги в
+							Повідомленнях і передайте їх колегам.
+						</p>
+					}
+					<div class="dialog-actions">
+						<button class="button primary destructive" (click)="confirmDeactivate(emp.id)">Деактивувати</button>
+						<button class="button secondary" (click)="closeDialog()">Скасувати</button>
+					</div>
+				}
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

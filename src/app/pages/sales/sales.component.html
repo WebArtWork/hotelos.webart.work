@@ -1,0 +1,441 @@
+<app-shell activeNav="sales" greetingTitle="Продажі" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="page-heading">
+		<div>
+			<div class="breadcrumb">Робочий простір <span>/</span> Продажі</div>
+			<h1>Продажі</h1>
+			<p>Дивіться, звідки приходять гості та які канали приносять найбільше бронювань.</p>
+		</div>
+		<div class="page-actions">
+			<select class="plain" [ngModel]="period()" (ngModelChange)="setPeriod($event)">
+				<option value="today">Сьогодні</option>
+				<option value="week">Цей тиждень</option>
+				<option value="month">Цей місяць</option>
+				<option value="lastmonth">Минулий місяць</option>
+				<option value="year">Цей рік</option>
+				<option value="custom">Власний період</option>
+			</select>
+			<div class="compare-toggle">
+				<span>Порівняти з попереднім періодом</span>
+				<span
+					class="switch"
+					[class.on]="compare()"
+					role="switch"
+					tabindex="0"
+					[attr.aria-checked]="compare()"
+					(click)="toggleCompare()"
+					(keydown.enter)="toggleCompare()"
+					(keydown.space)="toggleCompare(); $event.preventDefault()"
+				></span>
+			</div>
+			<button class="button secondary" (click)="exportData()">Експорт</button>
+		</div>
+	</div>
+
+	<div class="kpis">
+		<div class="kpi">
+			<small>Бронювань</small>
+			<b>{{ totalBookings }}</b>
+			<span>+12% до минулого місяця</span>
+			@if (compare()) {
+				<span class="cmp">Минулий місяць: 78</span>
+			}
+		</div>
+		<div class="kpi">
+			<small>Отримано оплат</small>
+			<b>{{ money(totalRevenue) }}</b>
+			<span>валові надходження, без вирахування повернень</span>
+			@if (compare()) {
+				<span class="cmp">Минулий місяць: 391 200 ₴</span>
+			}
+		</div>
+		<div class="kpi">
+			<small>Середній чек</small>
+			<b>{{ money(avgTicket) }}</b>
+			<span>&nbsp;</span>
+			@if (compare()) {
+				<span class="cmp">Минулий місяць: 4 620 ₴</span>
+			}
+		</div>
+		<div class="kpi gold">
+			<small>Прямі бронювання</small>
+			<b>34%</b>
+			<span>29 бронювань</span>
+			@if (compare()) {
+				<span class="cmp">Минулий місяць: 31%</span>
+			}
+		</div>
+	</div>
+
+	<div class="unknown-banner">
+		<span>ℹ</span>
+		<span
+			><b>18 бронювань</b> мають невідоме джерело виявлення (як гість дізнався про готель), це необов'язкове поле, не
+			помилка. Канал бронювання (як забронював) вказано для всіх.</span
+		>
+		<button class="text-action" (click)="viewBookingsPlaceholder()">Переглянути →</button>
+	</div>
+
+	<div class="top-cards">
+		<div class="top-card"><small>НАЙБІЛЬШЕ БРОНЮВАНЬ</small><h3>Пряме бронювання</h3><span>29 бронювань</span></div>
+		<div class="top-card"><small>НАЙБІЛЬШИЙ ДОХІД</small><h3>Пряме бронювання</h3><span>142 000 ₴</span></div>
+	</div>
+
+	<div class="ai-card">
+		<b class="ai-title"><app-icon name="spark" />Hotel AI</b>
+		<h2>Що змінилося у продажах</h2>
+		<p>Цього місяця частка прямих бронювань зросла з 31% до 34%.</p>
+		<p>Instagram приніс 15 бронювань на 76 200 ₴.</p>
+		<p>18 гостей цього місяця вже проживали у вас раніше.</p>
+		<div class="ai-quick">
+			<button (click)="askAi('topSource')">Звідки найбільше бронювань?</button>
+			<button (click)="askAi('instagram')">Скільки ми отримали з Instagram?</button>
+			<button (click)="askAi('directShare')">Яка частка прямих бронювань?</button>
+			<button (click)="askAi('returning')">Скільки повторних гостей?</button>
+			<button (click)="askAi('growth')">Які джерела зросли цього місяця?</button>
+		</div>
+		@if (aiAnswerHtml()) {
+			<div class="ai-answer-box">
+				<div [innerHTML]="aiAnswerHtml()"></div>
+				<div class="dialog-actions" style="margin-top: 0">
+					<button class="button secondary" style="margin-top: 8px" (click)="viewBookingsPlaceholder()">Переглянути бронювання</button>
+				</div>
+			</div>
+		}
+	</div>
+
+	<div class="card">
+		<h2>Звідки приходять гості</h2>
+		<p class="card-sub">
+			Два окремі виміри, не додавайте їхні частки один до одного: кожне бронювання має рівно один канал, і окремо
+			(необов'язково) джерело виявлення.
+		</p>
+		<div class="grid2">
+			<div>
+				<h3 style="font-size: 12px; margin-bottom: 8px">
+					Канали бронювання <span style="font-weight: 400; color: var(--muted)">· 100% від усіх бронювань</span>
+				</h3>
+				<div class="source-bars">
+					@for (s of channelSources(); track s.name) {
+						<div class="source-bar-row" (click)="openSourcePanel(s.name)">
+							<div class="sbr-top"><span>{{ s.name }}</span><b>{{ barPct(s.count, channelTotal()) }}%</b></div>
+							<div class="sbr-track">
+								<span [class.direct]="s.category === 'Direct'" [style.width.%]="barPct(s.count, channelTotal())"></span>
+							</div>
+							<div class="sbr-facts">{{ s.count }} бронювань · {{ money(s.revenue) }}</div>
+						</div>
+					}
+				</div>
+			</div>
+			<div>
+				<h3 style="font-size: 12px; margin-bottom: 8px">
+					Джерела виявлення <span style="font-weight: 400; color: var(--muted)">· 100% від бронювань з відомим джерелом</span>
+				</h3>
+				<div class="source-bars">
+					@for (s of discoverySources(); track s.name) {
+						<div class="source-bar-row" (click)="openSourcePanel(s.name)">
+							<div class="sbr-top"><span>{{ s.name }}</span><b>{{ barPct(s.count, discoveryTotal()) }}%</b></div>
+							<div class="sbr-track">
+								<span [class.direct]="s.category === 'Direct'" [style.width.%]="barPct(s.count, discoveryTotal())"></span>
+							</div>
+							<div class="sbr-facts">{{ s.count }} бронювань · {{ money(s.revenue) }}</div>
+						</div>
+					}
+					<div class="source-bar-row">
+						<div class="sbr-top"><span>Невідомо</span><b>-</b></div>
+						<div class="sbr-facts">18 бронювань без вказаного джерела виявлення</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<h2 style="font-size: 13px; margin-top: 20px">Дохід за каналами</h2>
+		<div class="source-bars">
+			@for (s of channelSources(); track s.name) {
+				<div class="source-bar-row" (click)="openSourcePanel(s.name)">
+					<div class="sbr-top"><span>{{ s.name }}</span><b>{{ money(s.revenue) }}</b></div>
+					<div class="sbr-track">
+						<span [class.direct]="s.category === 'Direct'" [style.width.%]="(s.revenue / revenueMax()) * 100"></span>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+
+	<div class="card">
+		<h2>Джерела бронювань</h2>
+		<div class="table-card">
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>Джерело</th>
+							<th>Бронювання</th>
+							<th>Ночі</th>
+							<th>Дохід</th>
+							<th>Середній чек</th>
+							<th>Частка</th>
+							<th>Повторні гості</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (s of SOURCES; track s.name) {
+							<tr (click)="openSourcePanel(s.name)">
+								<td class="name-cell">{{ s.name }}</td>
+								<td><b>{{ s.count }}</b></td>
+								<td>{{ s.nights }} ночей</td>
+								<td><b>{{ money(s.revenue) }}</b></td>
+								<td>{{ money(round(s.revenue / s.count)) }}</td>
+								<td>{{ s.pct }}%</td>
+								<td>{{ s.repeat }} повторних</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<button class="button secondary" style="margin-top: 16px" (click)="openManageSources()">Керувати джерелами</button>
+	</div>
+
+	<div class="card">
+		<h2>Прямі та сторонні бронювання</h2>
+		<div class="direct-cards">
+			<div class="direct-card direct">
+				<h3>Прямі</h3>
+				<b class="big">{{ directSource.pct }}%</b>
+				<div class="facts">{{ directSource.count }} бронювань · {{ money(directSource.revenue) }}</div>
+				<ul>
+					<li>Сайт</li>
+					<li>Direct booking page</li>
+					<li>Телефон</li>
+					<li>Instagram</li>
+					<li>Google</li>
+					<li>Walk-in</li>
+				</ul>
+			</div>
+			<div class="direct-card">
+				<h3>Сторонні платформи</h3>
+				<b class="big">{{ otaSource.pct }}%</b>
+				<div class="facts">{{ otaSource.count }} бронювання · {{ money(otaSource.revenue) }}</div>
+				<ul>
+					<li>Booking.com</li>
+					<li style="color: #c6c7c9">Airbnb (незабаром)</li>
+					<li style="color: #c6c7c9">Expedia (незабаром)</li>
+				</ul>
+			</div>
+		</div>
+		<p class="direct-note">Чим більше прямих бронювань, тим більше контролю залишається у готелю.</p>
+	</div>
+
+	<div class="card">
+		<h2>Частка прямих бронювань</h2>
+		<p class="card-sub">+13% за останні 6 місяців</p>
+		<div class="trend-chart">
+			@for (d of DIRECT_TREND; track d[0]; let last = $last) {
+				<div class="tc-col">
+					<b>{{ d[1] }}%</b>
+					<div class="tc-bar" [class.now]="last" [style.height.%]="(d[1] / directTrendMax()) * 100"></div>
+					<span>{{ d[0].slice(0, 3) }}</span>
+				</div>
+			}
+		</div>
+	</div>
+
+	<div class="card">
+		<h2>Бронювання протягом місяця</h2>
+		<p class="card-sub">1–30 вересня</p>
+		<div class="chart-toggle">
+			<button [class.active]="monthMetric() === 'bookings'" (click)="setMonthMetric('bookings')">Бронювання</button>
+			<button [class.active]="monthMetric() === 'revenue'" (click)="setMonthMetric('revenue')">Дохід</button>
+		</div>
+		<div class="bar-chart2">
+			@for (v of monthChartData(); track $index; let i = $index) {
+				<span [style.height.%]="max(3, (v / monthChartMax()) * 100)" [attr.title]="i + 1 + ' вересня'"></span>
+			}
+		</div>
+	</div>
+
+	<div class="grid2">
+		<div class="card">
+			<h2>Середній чек</h2>
+			<b style="font-size: 26px; display: block">4 984 ₴</b>
+			<p class="card-sub" style="margin: 6px 0 0">Минулий місяць: 4 620 ₴ · <b style="color: #5e7865">+7,9%</b></p>
+			<p class="card-sub">
+				Отримана оплата / 86 завершених та підтверджених бронювань, той самий набір, що й у блоці «Середня тривалість».
+				Не є середньою вартістю бронювання.
+			</p>
+		</div>
+		<div class="card">
+			<h2>Середня тривалість</h2>
+			<b style="font-size: 26px; display: block">2.8 ночі</b>
+			<p class="card-sub" style="margin: 6px 0 16px">86 бронювань</p>
+			<div class="stay-breakdown">
+				@for (s of SOURCES.slice(0, 3); track s.name) {
+					<div><span>{{ s.name }}</span><b>{{ s.avgStay }} ночі</b></div>
+				}
+			</div>
+		</div>
+	</div>
+
+	<div class="grid2">
+		<div class="card">
+			<h2>Вартість бронювань</h2>
+			<div class="info-grid" style="font-size: 12px">
+				<dt>Первинна вартість бронювань</dt>
+				<dd>461 200 ₴</dd>
+				<dt>Коригування вартості (не оплата й не повернення)</dt>
+				<dd>−14 000 ₴</dd>
+				<dt>Скоригована вартість</dt>
+				<dd>447 200 ₴</dd>
+				<dt>Отримано (чисто, після повернень)</dt>
+				<dd>428 600 ₴</dd>
+				<dt>Очікується оплата</dt>
+				<dd>18 600 ₴</dd>
+			</div>
+			<p class="card-sub" style="margin-top: 12px">
+				Скоригована вартість = Отримано + Очікується (447 200 = 428 600 + 18 600). Коригування: це зміни в тому,
+				скільки гість винен (скасування, скорочення проживання, знижки), а не рух готівки. Окремо: фактичні
+				повернення готівки цього місяця, 2 400 ₴, вони вже враховані у сумі «Отримано». Усі цифри за завершеними
+				та підтвердженими бронюваннями цього місяця.
+			</p>
+		</div>
+		<div class="card">
+			<h2>Нові та повторні гості</h2>
+			<div class="stat-pair">
+				<div><b>68</b><span>Нові · 79%</span></div>
+				<div><b>18</b><span>Повторні · 21%</span></div>
+			</div>
+			<p class="card-sub" style="margin-top: 12px">Повторний гість = гість, який мав хоча б одне завершене проживання раніше.</p>
+		</div>
+	</div>
+
+	<div class="card">
+		<h2>Як повертаються постійні гості</h2>
+		<p class="card-sub">Джерело останнього бронювання постійних гостей.</p>
+		<div>
+			@for (r of RETURN_SOURCES; track r[0]) {
+				<div class="return-source-row"><span>{{ r[0] }}</span><b>{{ r[1] }}%</b></div>
+			}
+		</div>
+	</div>
+
+	<div class="card">
+		<h2>Перше джерело vs останнє джерело</h2>
+		<p class="card-sub">Гість може вперше прийти через OTA, а наступного разу забронювати напряму.</p>
+		<div class="transition-card">
+			<div><small>Перше джерело</small><b>Booking.com</b></div>
+			<span class="transition-arrow">→</span>
+			<div><small>Останнє джерело</small><b>Пряме бронювання</b></div>
+		</div>
+	</div>
+
+	<div class="card">
+		<h2>Кампанії</h2>
+		<p class="card-sub">Джерела бронювань з міткою кампанії.</p>
+		<div class="campaign-cards">
+			@for (c of CAMPAIGNS; track c.name) {
+				<div class="campaign-card">
+					<h4>{{ c.name }}</h4>
+					<b>{{ c.count }} бронювань</b>
+					<span>{{ money(c.revenue) }}</span>
+				</div>
+			}
+		</div>
+	</div>
+</app-shell>
+
+<div class="side-scrim" [hidden]="panelView() === null" (click)="closeSourcePanel()"></div>
+<aside class="side-panel" [class.open]="panelView() !== null" aria-label="Деталі джерела">
+	<div class="side-panel-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЖЕРЕЛО</span></span>
+		<button class="icon-button" aria-label="Закрити" (click)="closeSourcePanel()"><app-icon name="close" /></button>
+	</div>
+	<div class="side-panel-body">
+		@if (panelSource(); as s) {
+			<h2 style="font-size: 20px; margin: 0 0 4px">{{ s.name }}</h2>
+			<p style="font-size: 11px; color: #9b9ca2; margin: 0 0 16px">1–30 вересня</p>
+			<div class="info-grid">
+				<dt>Бронювань</dt>
+				<dd>{{ s.count }}</dd>
+				<dt>Дохід</dt>
+				<dd>{{ money(s.revenue) }}</dd>
+				<dt>Середній чек</dt>
+				<dd>{{ money(round(s.revenue / s.count)) }}</dd>
+				<dt>Ночей</dt>
+				<dd>{{ s.nights }}</dd>
+				<dt>Повторних гостей</dt>
+				<dd>{{ s.repeat }}</dd>
+			</div>
+			<h5>Бронювання</h5>
+			<div class="result-list">
+				@if (panelBookings().length) {
+					@for (b of panelBookings(); track b.guest) {
+						<div class="result-item">
+							<span><b>{{ b.guest }}</b><small>{{ b.dates }} · {{ b.room }}</small></span>
+							<span>{{ money(b.total) }}</span>
+						</div>
+					}
+				} @else {
+					<p class="form-note">Немає прикладів бронювань для показу.</p>
+				}
+			</div>
+			<button class="button secondary" style="width: 100%; margin-top: 14px" (click)="viewBookingsPlaceholder()">
+				Переглянути всі бронювання
+			</button>
+		}
+	</div>
+</aside>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('manage-sources') {
+				<h2>Керувати джерелами</h2>
+				<div>
+					@for (s of sourceConfig(); track s.name; let i = $index) {
+						<div class="source-manage-row">
+							<span>{{ s.name }} <span class="pill">{{ s.category }}</span></span>
+							<span class="switch" [class.on]="s.active" (click)="toggleSourceActive(i)"></span>
+						</div>
+					}
+				</div>
+				<button class="button secondary" style="width: 100%; margin-top: 16px" (click)="openAddSource()">+ Нове джерело</button>
+			}
+			@case ('add-source') {
+				<h2>Нове джерело</h2>
+				<form
+					class="demo-form"
+					(ngSubmit)="submitAddSource(nameInput.value, categorySelect.value)"
+				>
+					<label class="full">Назва<input #nameInput name="name" required placeholder="Туристична агенція" /></label>
+					<label class="full">
+						Категорія
+						<select #categorySelect name="category">
+							<option>Direct</option>
+							<option>OTA</option>
+							<option>Social</option>
+							<option>Partner</option>
+							<option>Offline</option>
+							<option>Other</option>
+						</select>
+					</label>
+					@if (addSourceError()) {
+						<p class="full form-note" role="alert">{{ addSourceError() }}</p>
+					}
+					<button class="button primary full" type="submit">Додати</button>
+				</form>
+			}
+			@case ('placeholder') {
+				<h2>{{ view!.title }}</h2>
+				<p>Цей розділ ще недоступний у демонстраційній версії.</p>
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

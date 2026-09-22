@@ -1,0 +1,606 @@
+<app-shell activeNav="settings" greetingTitle="Налаштування" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="page-heading">
+		<div>
+			<h1>Налаштування</h1>
+			<p>Керуйте інформацією про готель, правилами та поведінкою Hotel OS.</p>
+		</div>
+		<div class="page-actions">
+			<select class="role-select" aria-label="Роль для демонстрації" [ngModel]="role()" (ngModelChange)="onRoleChange($event)">
+				<option value="owner">Owner</option>
+				<option value="manager">Manager</option>
+				<option value="reception">Reception</option>
+				<option value="housekeeping">Housekeeping</option>
+			</select>
+			<span class="save-status" [class.dirty]="dirty()">{{ dirty() ? 'Є незбережені зміни' : 'Зміни збережено' }}</span>
+			<button class="button primary" [disabled]="!dirty()" (click)="saveChanges()">Зберегти</button>
+		</div>
+	</div>
+
+	<div class="onboard-card">
+		<h2>Налаштуйте готель</h2>
+		<div class="onboard-progress">{{ onboardDone() }} з {{ ONBOARDING.length }} готово</div>
+		<div class="onboard-list">
+			@for (o of ONBOARDING; track o.label) {
+				<span [class.done]="o.done">{{ o.label }}</span>
+			}
+		</div>
+	</div>
+
+	<div class="settings-mobile-nav">
+		<select aria-label="Розділ налаштувань" [ngModel]="section()" (ngModelChange)="goToSection($any($event))">
+			@for (s of SECTIONS; track s.id) {
+				<option [value]="s.id">{{ s.label }}</option>
+			}
+		</select>
+	</div>
+
+	<div class="settings-layout">
+		<div class="settings-nav">
+			@for (s of SECTIONS; track s.id) {
+				<button [class.active]="section() === s.id" (click)="goToSection(s.id)">
+					{{ s.label }}{{ isLocked(s.id) ? ' 🔒' : '' }}
+				</button>
+			}
+		</div>
+
+		<div>
+			@if (isLocked(section())) {
+				<div class="readonly-note">
+					{{ isReadonly() ? 'У вашої ролі немає доступу до редагування цього розділу.' : 'Цей розділ доступний лише для Owner.' }}
+				</div>
+			}
+
+			@switch (section()) {
+				@case ('general') {
+					<div class="settings-card">
+						<h2>Оформлення</h2>
+						<p class="card-sub">Тема інтерфейсу Hotel OS застосовується одразу і запам'ятовується в цьому браузері.</p>
+						<div class="toggle-row" style="border-top:0">
+							<div><b>Темна тема</b><span>За замовчуванням Hotel OS відкривається в темній темі</span></div>
+							<span class="text-action">Перемикається кнопкою теми внизу сторінки</span>
+						</div>
+					</div>
+					<div class="settings-card">
+						<h2>Загальна інформація</h2>
+						<p class="card-sub">Основна інформація, яка використовується всередині Hotel OS та на публічних сторінках.</p>
+						<div class="field-grid">
+							<div class="field">
+								<label>Назва готелю *</label>
+								<input [disabled]="isLocked(section())" [ngModel]="get('name')" (ngModelChange)="setField('name', $event)" />
+							</div>
+							<div class="field">
+								<label>Коротка назва<small class="help"> · для компактного UI</small></label>
+								<input [disabled]="isLocked(section())" [ngModel]="get('shortName')" (ngModelChange)="setField('shortName', $event)" />
+							</div>
+							<div class="field">
+								<label>Тип об'єкта</label>
+								<select [disabled]="isLocked(section())" [ngModel]="get('type')" (ngModelChange)="setField('type', $event)">
+									<option>Готель</option>
+									<option>Бутик-готель</option>
+									<option>Апарт-готель</option>
+									<option>Гостьовий будинок</option>
+									<option>Вілла</option>
+									<option>Апартаменти</option>
+									<option>Інше</option>
+								</select>
+							</div>
+							<div class="field">
+								<label>Валюта</label>
+								<select [disabled]="isLocked(section())" [ngModel]="get('currency')" (ngModelChange)="setField('currency', $event)">
+									<option>UAH · ₴</option>
+									<option disabled>EUR (незабаром)</option>
+									<option disabled>USD (незабаром)</option>
+								</select>
+							</div>
+							<div class="field">
+								<label>Мова<small class="help"> · Release A, лише українська</small></label>
+								<select [disabled]="isLocked(section())" [ngModel]="get('language')" (ngModelChange)="setField('language', $event)">
+									<option>Українська</option>
+								</select>
+							</div>
+							<div class="field">
+								<label>Часовий пояс<small class="help"> · використовується для бронювань, повідомлень та автоматизацій</small></label>
+								<select [disabled]="isLocked(section())" [ngModel]="get('timezone')" (ngModelChange)="setField('timezone', $event)">
+									<option>Europe/Kyiv</option>
+								</select>
+							</div>
+							<div class="field full">
+								<label>Опис<small class="help"> · показується на Booking Page</small></label>
+								<textarea [disabled]="isLocked(section())" [ngModel]="get('description')" (ngModelChange)="setField('description', $event)"></textarea>
+							</div>
+						</div>
+						<div class="subhead">Логотип та фото</div>
+						<div class="field-grid">
+							<div class="field">
+								<label>Логотип</label>
+								<div style="display:flex;gap:8px">
+									<button class="button secondary" [disabled]="isLocked(section())" (click)="uploadDemoFile()">Завантажити логотип</button>
+									<button class="text-action" [disabled]="isLocked(section())" (click)="uploadDemoFile()">Видалити</button>
+								</div>
+							</div>
+							<div class="field">
+								<label>Головне фото</label>
+								<small class="help" style="display:block;margin-bottom:6px">Використовується на Booking Page · рекомендовано 16:9</small>
+								<button class="button secondary" [disabled]="isLocked(section())" (click)="uploadDemoFile()">Завантажити фото</button>
+							</div>
+						</div>
+					</div>
+				}
+				@case ('contacts') {
+					<div class="settings-card">
+						<h2>Контакти</h2>
+						<div class="field-grid">
+							<div class="field"><label>Телефон</label><input [disabled]="isLocked(section())" [ngModel]="get('phone')" (ngModelChange)="setField('phone', $event)" /></div>
+							<div class="field"><label>Email</label><input type="email" [disabled]="isLocked(section())" [ngModel]="get('email')" (ngModelChange)="setField('email', $event)" /></div>
+							<div class="field"><label>Додатковий телефон</label><input [disabled]="isLocked(section())" [ngModel]="get('altPhone')" (ngModelChange)="setField('altPhone', $event)" /></div>
+							<div class="field"><label>Website</label><input [disabled]="isLocked(section())" [ngModel]="get('website')" (ngModelChange)="setField('website', $event)" /></div>
+							<div class="field"><label>Instagram</label><input [disabled]="isLocked(section())" [ngModel]="get('instagram')" (ngModelChange)="setField('instagram', $event)" /></div>
+							<div class="field"><label>Facebook</label><input [disabled]="isLocked(section())" [ngModel]="get('facebook')" (ngModelChange)="setField('facebook', $event)" /></div>
+						</div>
+					</div>
+					<div class="settings-card">
+						<h2>Адреса</h2>
+						<div class="field-grid">
+							<div class="field"><label>Країна</label><input [disabled]="isLocked(section())" [ngModel]="get('country')" (ngModelChange)="setField('country', $event)" /></div>
+							<div class="field"><label>Місто</label><input [disabled]="isLocked(section())" [ngModel]="get('city')" (ngModelChange)="setField('city', $event)" /></div>
+							<div class="field"><label>Вулиця</label><input [disabled]="isLocked(section())" [ngModel]="get('street')" (ngModelChange)="setField('street', $event)" /></div>
+							<div class="field"><label>Будинок</label><input [disabled]="isLocked(section())" [ngModel]="get('building')" (ngModelChange)="setField('building', $event)" /></div>
+							<div class="field"><label>Поштовий індекс</label><input [disabled]="isLocked(section())" [ngModel]="get('zip')" (ngModelChange)="setField('zip', $event)" /></div>
+						</div>
+						<button class="button secondary" style="margin-top:14px" [disabled]="isLocked(section())" (click)="checkOnMap()">Перевірити на карті</button>
+						<div class="subhead">Як знайти готель</div>
+						<div class="field full">
+							<label>Інструкція для гостей<small class="help"> · показується на Booking Confirmation</small></label>
+							<textarea [disabled]="isLocked(section())" [ngModel]="get('arrivalInstructions')" (ngModelChange)="setField('arrivalInstructions', $event)"></textarea>
+						</div>
+					</div>
+				}
+				@case ('stay') {
+					<div class="settings-card">
+						<h2>Заселення та виїзд</h2>
+						<div class="field-grid">
+							<div class="field"><label>Check-in</label><input type="time" [disabled]="isLocked(section())" [ngModel]="get('checkIn')" (ngModelChange)="setField('checkIn', $event)" /></div>
+							<div class="field"><label>Check-out</label><input type="time" [disabled]="isLocked(section())" [ngModel]="get('checkOut')" (ngModelChange)="setField('checkOut', $event)" /></div>
+							<div class="field"><label>Рецепція з</label><input type="time" [disabled]="isLocked(section())" [ngModel]="get('receptionFrom')" (ngModelChange)="setField('receptionFrom', $event)" /></div>
+							<div class="field"><label>Рецепція до</label><input type="time" [disabled]="isLocked(section())" [ngModel]="get('receptionTo')" (ngModelChange)="setField('receptionTo', $event)" /></div>
+						</div>
+						<div class="subhead">Пізнє заселення</div>
+						<div class="toggle-row" style="border-top:0">
+							<div><b>Дозволено</b></div>
+							<span class="switch" [class.on]="get('lateCheckin')" [class.disabled]="isLocked(section())" (click)="toggleSetting('lateCheckin')"></span>
+						</div>
+						@if (get('lateCheckin')) {
+							<div class="field full">
+								<label>Інструкція</label>
+								<textarea [disabled]="isLocked(section())" [ngModel]="get('lateCheckinNote')" (ngModelChange)="setField('lateCheckinNote', $event)"></textarea>
+							</div>
+						}
+						<div class="subhead">Ранній заїзд</div>
+						<div class="field full">
+							<select [disabled]="isLocked(section())" [ngModel]="get('earlyCheckin')" (ngModelChange)="setField('earlyCheckin', $event)">
+								<option value="none">Не гарантується</option>
+								<option value="available">Доступний за наявності</option>
+								<option value="paid">Дозволено за доплату</option>
+							</select>
+						</div>
+						<div class="subhead">Пізній виїзд</div>
+						<div class="field full">
+							<select [disabled]="isLocked(section())" [ngModel]="get('lateCheckout')" (ngModelChange)="setField('lateCheckout', $event)">
+								<option value="none">Не гарантується</option>
+								<option value="available">Доступний за наявності</option>
+								<option value="paid">Дозволено за доплату</option>
+							</select>
+						</div>
+					</div>
+				}
+				@case ('booking') {
+					<div class="settings-card">
+						<h2>Правила бронювання</h2>
+						<div class="field-grid">
+							<div class="field"><label>Мінімальна кількість ночей</label><input type="number" min="1" [disabled]="isLocked(section())" [ngModel]="get('minNights')" (ngModelChange)="setField('minNights', $event)" /></div>
+							<div class="field"><label>Максимальна кількість ночей<small class="help"> · необов'язково</small></label><input type="number" min="1" [disabled]="isLocked(section())" [ngModel]="get('maxNights')" (ngModelChange)="setField('maxNights', $event)" /></div>
+							<div class="field"><label>Максимальний період бронювання наперед<small class="help"> · днів</small></label><input type="number" min="1" [disabled]="isLocked(section())" [ngModel]="get('futureDays')" (ngModelChange)="setField('futureDays', $event)" /></div>
+						</div>
+						<div class="subhead">Бронювання на сьогодні</div>
+						<div class="toggle-row" style="border-top:0">
+							<div><b>Дозволити</b></div>
+							<span class="switch" [class.on]="get('sameDayBooking')" [class.disabled]="isLocked(section())" (click)="toggleSetting('sameDayBooking')"></span>
+						</div>
+						@if (get('sameDayBooking')) {
+							<div class="field full">
+								<label>Приймати бронювання на сьогодні до</label>
+								<input type="time" [disabled]="isLocked(section())" [ngModel]="get('sameDayCutoff')" (ngModelChange)="setField('sameDayCutoff', $event)" />
+							</div>
+						}
+					</div>
+					<div class="settings-card">
+						<h2>Нове бронювання</h2>
+						<div class="option-cards">
+							<div class="opt-card" [class.selected]="get('bookingStatus') === 'auto'" (click)="pick('bookingStatus', 'auto')">
+								<b>Підтверджувати автоматично</b><span>Рекомендовано для прямого бронювання, якщо availability та оплата задоволені.</span>
+							</div>
+							<div class="opt-card" [class.selected]="get('bookingStatus') === 'pending'" (click)="pick('bookingStatus', 'pending')">
+								<b>Створювати як «Очікує підтвердження»</b><span>Персонал підтверджує вручну.</span>
+							</div>
+						</div>
+					</div>
+					<div class="settings-card">
+						<h2>Призначення номера</h2>
+						<div class="option-cards">
+							<div class="opt-card" [class.selected]="get('roomAssignment') === 'auto'" (click)="pick('roomAssignment', 'auto')">
+								<b>Автоматично</b><span>Hotel OS обирає конкретний вільний номер потрібного типу.</span>
+							</div>
+							<div class="opt-card" [class.selected]="get('roomAssignment') === 'manual'" (click)="pick('roomAssignment', 'manual')">
+								<b>Менеджер призначає пізніше</b><span>Гість бронює лише тип номера. Рекомендовано.</span>
+							</div>
+						</div>
+					</div>
+				}
+				@case ('payments') {
+					<div class="settings-card">
+						<h2>Правила оплати</h2>
+						<p class="card-sub">Визначте, що гість повинен оплатити під час прямого бронювання.</p>
+						<div class="option-cards">
+							<div class="opt-card" [class.selected]="get('paymentRule') === 'none'" (click)="pick('paymentRule', 'none')">
+								<b>Оплата не потрібна</b><span>Повна оплата при заселенні.</span>
+							</div>
+							<div class="opt-card" [class.selected]="get('paymentRule') === 'fixed'" (click)="pick('paymentRule', 'fixed')">
+								<b>Фіксована передоплата</b><span>Наприклад, 1 500 ₴.</span>
+								@if (get('paymentRule') === 'fixed') {
+									<input type="number" [disabled]="isLocked(section())" [ngModel]="get('fixedDeposit')" (ngModelChange)="setField('fixedDeposit', $event)" (click)="$event.stopPropagation()" />
+								}
+							</div>
+							<div class="opt-card" [class.selected]="get('paymentRule') === 'percent'" (click)="pick('paymentRule', 'percent')">
+								<b>Передоплата у відсотках</b><span>Наприклад, 30%.</span>
+								@if (get('paymentRule') === 'percent') {
+									<input type="number" min="0" max="100" [disabled]="isLocked(section())" [ngModel]="get('percentDeposit')" (ngModelChange)="setField('percentDeposit', $event)" (click)="$event.stopPropagation()" />
+								}
+							</div>
+							<div class="opt-card" [class.selected]="get('paymentRule') === 'full'" (click)="pick('paymentRule', 'full')">
+								<b>Повна оплата</b><span>100% під час бронювання.</span>
+							</div>
+						</div>
+						<div class="preview-box">
+							Бронювання: <b>{{ money(paymentPreview().total) }}</b> · Потрібно зараз: <b>{{ money(paymentPreview().required) }}</b> · Залишок: <b>{{ money(paymentPreview().remaining) }}</b>
+						</div>
+					</div>
+					<div class="settings-card">
+						<h2>Способи оплати</h2>
+						<div class="toggle-row" style="border-top:0">
+							<div><b>Готівка</b></div>
+							<span class="switch" [class.on]="get('methodCash')" [class.disabled]="isLocked(section())" (click)="toggleSetting('methodCash')"></span>
+						</div>
+						<div class="toggle-row">
+							<div><b>Банківський переказ</b></div>
+							<span class="switch" [class.on]="get('methodBank')" [class.disabled]="isLocked(section())" (click)="toggleSetting('methodBank')"></span>
+						</div>
+						<div class="toggle-row">
+							<div><b>Карта на місці</b></div>
+							<span class="switch" [class.on]="get('methodCard')" [class.disabled]="isLocked(section())" (click)="toggleSetting('methodCard')"></span>
+						</div>
+						<div class="subhead">Онлайн-оплата</div>
+						<div class="toggle-row" style="border-top:0">
+							<div><b>Провайдер</b><span>{{ get('onlineProvider') ? 'Підключено · ' + get('onlineProvider') : 'monobank, LiqPay, WayForPay' }}</span></div>
+							<button class="button secondary" [disabled]="isLocked(section())" (click)="connectOnlinePayment()">{{ get('onlineProvider') ? 'Керувати' : 'Підключити онлайн-оплату' }}</button>
+						</div>
+						<div class="toggle-row">
+							<div><b>Фіскальний чек (ПРРО)</b><span>Автоматичний чек через Checkbox після кожної оплати</span></div>
+							<span class="pill">у розробці</span>
+						</div>
+						@if (get('methodBank')) {
+							<div class="subhead">Банківські реквізити</div>
+							<div class="field full">
+								<label><small class="help">показується гостю лише якщо обрано банківський переказ</small></label>
+								<textarea placeholder="IBAN, отримувач, банк..." [disabled]="isLocked(section())" [ngModel]="get('bankDetails')" (ngModelChange)="setField('bankDetails', $event)"></textarea>
+							</div>
+						}
+					</div>
+				}
+				@case ('rules') {
+					<div class="settings-card">
+						<h2>Політика скасування</h2>
+						<div class="option-cards">
+							<div class="opt-card" [class.selected]="get('cancellationType') === 'flexible'" (click)="pick('cancellationType', 'flexible')">
+								<b>Гнучка</b><span>Безкоштовне скасування до X годин до заїзду.</span>
+								@if (get('cancellationType') === 'flexible') {
+									<input type="number" [disabled]="isLocked(section())" [ngModel]="get('cancellationHours')" (ngModelChange)="setField('cancellationHours', $event)" (click)="$event.stopPropagation()" />
+								}
+							</div>
+							<div class="opt-card" [class.selected]="get('cancellationType') === 'nonrefundable'" (click)="pick('cancellationType', 'nonrefundable')">
+								<b>Передоплата не повертається</b>
+							</div>
+							<div class="opt-card" [class.selected]="get('cancellationType') === 'custom'" (click)="pick('cancellationType', 'custom')">
+								<b>Власне правило</b>
+								@if (get('cancellationType') === 'custom') {
+									<textarea style="margin-top:8px" [disabled]="isLocked(section())" [ngModel]="get('cancellationCustom')" (ngModelChange)="setField('cancellationCustom', $event)" (click)="$event.stopPropagation()"></textarea>
+								}
+							</div>
+						</div>
+						<div class="subhead">Як це бачить гість</div>
+						<div class="preview-box">{{ cancellationPreview() }}</div>
+					</div>
+					<div class="settings-card">
+						<h2>Правила проживання</h2>
+						<div class="field-grid">
+							<div class="field">
+								<label>Куріння</label>
+								<select [disabled]="isLocked(section())" [ngModel]="get('smoking')" (ngModelChange)="setField('smoking', $event)">
+									<option>Заборонено</option>
+									<option>Дозволено у визначених місцях</option>
+								</select>
+							</div>
+							<div class="field">
+								<label>Домашні тварини</label>
+								<select [disabled]="isLocked(section())" [ngModel]="get('pets')" (ngModelChange)="setField('pets', $event)">
+									<option>Не дозволені</option>
+									<option>Дозволені</option>
+									<option>За попереднім погодженням</option>
+								</select>
+							</div>
+							<div class="field"><label>Тиша з</label><input type="time" [disabled]="isLocked(section())" [ngModel]="get('quietFrom')" (ngModelChange)="setField('quietFrom', $event)" /></div>
+							<div class="field"><label>Тиша до</label><input type="time" [disabled]="isLocked(section())" [ngModel]="get('quietTo')" (ngModelChange)="setField('quietTo', $event)" /></div>
+							<div class="field full"><label>Діти</label><input [disabled]="isLocked(section())" [ngModel]="get('children')" (ngModelChange)="setField('children', $event)" /></div>
+							<div class="field full"><label>Додаткові гості</label><input [disabled]="isLocked(section())" [ngModel]="get('extraGuests')" (ngModelChange)="setField('extraGuests', $event)" /></div>
+						</div>
+						<div class="subhead">Додаткові правила</div>
+						<div class="field full">
+							<label><small class="help">з'являється на Booking Page, Booking Confirmation та в умовах</small></label>
+							<textarea [disabled]="isLocked(section())" [ngModel]="get('customRules')" (ngModelChange)="setField('customRules', $event)"></textarea>
+						</div>
+					</div>
+				}
+				@case ('bookingpage') {
+					<div class="settings-card">
+						<h2>Сторінка прямого бронювання <span class="pill" [class.ready]="get('bookingPageActive')" style="margin-left:8px">{{ get('bookingPageActive') ? 'Активна' : 'Вимкнена' }}</span></h2>
+						<div class="toggle-row" style="border-top:0">
+							<div><b>Booking Page</b></div>
+							<span class="switch" [class.on]="get('bookingPageActive')" [class.disabled]="isLocked(section())" (click)="toggleSetting('bookingPageActive')"></span>
+						</div>
+						<div class="subhead">Посилання для бронювання</div>
+						<div class="link-row">
+							<code>hotelos.app/{{ get('slug') }}</code>
+							<button class="text-action" (click)="copyLink()">Копіювати</button>
+							<a class="text-action" href="/book/" target="_blank">Відкрити</a>
+						</div>
+						<div class="field" style="margin-top:12px">
+							<label>Slug</label>
+							<div class="slug-field">
+								<span>hotelos.app/</span>
+								<input [disabled]="isLocked(section())" [ngModel]="get('slug')" (ngModelChange)="setField('slug', $event)" />
+							</div>
+							<small class="help">Зміна посилання може призвести до того, що старе посилання перестане працювати.</small>
+						</div>
+					</div>
+					<div class="settings-card">
+						<h2>Вміст сторінки</h2>
+						<div class="field-grid">
+							<div class="field full"><label>Заголовок</label><input [disabled]="isLocked(section())" [ngModel]="get('bpTitle')" (ngModelChange)="setField('bpTitle', $event)" /></div>
+							<div class="field full"><label>Короткий опис</label><textarea [disabled]="isLocked(section())" [ngModel]="get('bpDesc')" (ngModelChange)="setField('bpDesc', $event)"></textarea></div>
+						</div>
+						<div class="subhead">Що показувати</div>
+						<div class="toggle-row" style="border-top:0"><div><b>Опис готелю</b></div><span class="switch" [class.on]="get('bpShowDescription')" [class.disabled]="isLocked(section())" (click)="toggleSetting('bpShowDescription')"></span></div>
+						<div class="toggle-row"><div><b>Зручності</b></div><span class="switch" [class.on]="get('bpShowAmenities')" [class.disabled]="isLocked(section())" (click)="toggleSetting('bpShowAmenities')"></span></div>
+						<div class="toggle-row"><div><b>Фото номерів</b></div><span class="switch" [class.on]="get('bpShowPhotos')" [class.disabled]="isLocked(section())" (click)="toggleSetting('bpShowPhotos')"></span></div>
+						<div class="toggle-row"><div><b>Розташування</b></div><span class="switch" [class.on]="get('bpShowLocation')" [class.disabled]="isLocked(section())" (click)="toggleSetting('bpShowLocation')"></span></div>
+						<div class="toggle-row"><div><b>Правила скасування</b></div><span class="switch" [class.on]="get('bpShowCancellation')" [class.disabled]="isLocked(section())" (click)="toggleSetting('bpShowCancellation')"></span></div>
+						<div class="toggle-row"><div><b>Телефон</b></div><span class="switch" [class.on]="get('bpShowPhone')" [class.disabled]="isLocked(section())" (click)="toggleSetting('bpShowPhone')"></span></div>
+						<div class="toggle-row"><div><b>Email</b></div><span class="switch" [class.on]="get('bpShowEmail')" [class.disabled]="isLocked(section())" (click)="toggleSetting('bpShowEmail')"></span></div>
+						<div class="toggle-row"><div><b>Instagram</b></div><span class="switch" [class.on]="get('bpShowInstagram')" [class.disabled]="isLocked(section())" (click)="toggleSetting('bpShowInstagram')"></span></div>
+						<a class="button secondary" href="/book/" target="_blank" style="margin-top:16px">Переглянути Booking Page</a>
+					</div>
+				}
+				@case ('messages') {
+					<div class="settings-card">
+						<h2>Комунікація з гостями</h2>
+						<div class="field-grid">
+							<div class="field"><label>Відправник Email</label><input [disabled]="isLocked(section())" [ngModel]="get('emailSenderName')" (ngModelChange)="setField('emailSenderName', $event)" /></div>
+							<div class="field"><label>Reply-to</label><input [disabled]="isLocked(section())" [ngModel]="get('replyTo')" (ngModelChange)="setField('replyTo', $event)" /></div>
+							<div class="field"><label>SMS відправник<small class="help"> · залежить від провайдера</small></label><input value="Не налаштовано" disabled /></div>
+							<div class="field">
+								<label>Основний канал</label>
+								<select [disabled]="isLocked(section())" [ngModel]="get('defaultChannel')" (ngModelChange)="setField('defaultChannel', $event)">
+									<option value="email">Email, а якщо немає, SMS</option>
+									<option value="sms">SMS</option>
+								</select>
+							</div>
+						</div>
+					</div>
+					<div class="settings-card">
+						<h2>Тихі години для повідомлень</h2>
+						<div class="toggle-row" style="border-top:0">
+							<div><b>Не надсилати автоматичні повідомлення вночі</b></div>
+							<span class="switch" [class.on]="get('quietHoursOn')" [class.disabled]="isLocked(section())" (click)="toggleSetting('quietHoursOn')"></span>
+						</div>
+						@if (get('quietHoursOn')) {
+							<div class="field-grid" style="margin-top:12px">
+								<div class="field"><label>Від</label><input type="time" [disabled]="isLocked(section())" [ngModel]="get('quietHoursFrom')" (ngModelChange)="setField('quietHoursFrom', $event)" /></div>
+								<div class="field"><label>До</label><input type="time" [disabled]="isLocked(section())" [ngModel]="get('quietHoursTo')" (ngModelChange)="setField('quietHoursTo', $event)" /></div>
+							</div>
+							<p class="card-sub" style="margin-top:10px">Автоматизації, заплановані в цей період, надсилаються одразу після його завершення.</p>
+						}
+					</div>
+				}
+				@case ('automations') {
+					<div class="settings-card">
+						<h2>Автоматизації</h2>
+						<p class="card-sub">6 активних · підтвердження, перед заїздом, час прибуття, оплата, check-out, після проживання.</p>
+						<a class="button secondary" routerLink="/automations">Керувати автоматизаціями →</a>
+					</div>
+				}
+				@case ('notifications') {
+					<div class="settings-card">
+						<h2>Сповіщення</h2>
+						<div class="toggle-row" style="border-top:0"><div><b>Нове бронювання</b></div><span class="switch" [class.on]="get('notifyNewBooking')" [class.disabled]="isLocked(section())" (click)="toggleSetting('notifyNewBooking')"></span></div>
+						<div class="toggle-row"><div><b>Скасування</b></div><span class="switch" [class.on]="get('notifyCancellation')" [class.disabled]="isLocked(section())" (click)="toggleSetting('notifyCancellation')"></span></div>
+						<div class="toggle-row"><div><b>Оплата</b></div><span class="switch" [class.on]="get('notifyPayment')" [class.disabled]="isLocked(section())" (click)="toggleSetting('notifyPayment')"></span></div>
+						<div class="toggle-row"><div><b>Нове повідомлення гостя</b></div><span class="switch" [class.on]="get('notifyMessage')" [class.disabled]="isLocked(section())" (click)="toggleSetting('notifyMessage')"></span></div>
+						<div class="toggle-row"><div><b>Номер не готовий перед заїздом</b></div><span class="switch" [class.on]="get('notifyRoomNotReady')" [class.disabled]="isLocked(section())" (click)="toggleSetting('notifyRoomNotReady')"></span></div>
+						<div class="toggle-row"><div><b>Housekeeping issue</b></div><span class="switch" [class.on]="get('notifyHousekeeping')" [class.disabled]="isLocked(section())" (click)="toggleSetting('notifyHousekeeping')"></span></div>
+						<div class="toggle-row"><div><b>Помилка автоматизації</b></div><span class="switch" [class.on]="get('notifyAutomationError')" [class.disabled]="isLocked(section())" (click)="toggleSetting('notifyAutomationError')"></span></div>
+						<div class="subhead">Канал сповіщень (для вас)</div>
+						<div class="field full">
+							<select [disabled]="isLocked(section())" [ngModel]="get('notifyChannel')" (ngModelChange)="setField('notifyChannel', $event)">
+								<option value="inapp">In-app</option>
+								<option value="email">Email</option>
+							</select>
+						</div>
+					</div>
+				}
+				@case ('sources') {
+					<div class="settings-card">
+						<h2>Джерела бронювань</h2>
+						<div>
+							@for (s of sources(); track s.name; let i = $index) {
+								<div class="source-row">
+									<span>{{ s.name }}</span>
+									<span class="switch" [class.on]="s.active" [class.disabled]="isLocked(section())" (click)="toggleSource(i)"></span>
+								</div>
+							}
+						</div>
+						<button class="button secondary" style="margin-top:16px" [disabled]="isLocked(section())" (click)="openAddSource()">+ Додати джерело</button>
+					</div>
+				}
+				@case ('ai') {
+					<div class="settings-card">
+						<h2>Hotel AI</h2>
+						<p class="card-sub">Визначте, як AI-помічник може працювати з даними готелю.</p>
+						<div class="toggle-row" style="border-top:0">
+							<div><b>Увімкнути AI-помічника</b></div>
+							<span class="switch" [class.on]="get('aiEnabled')" [class.disabled]="isLocked(section())" (click)="toggleSetting('aiEnabled')"></span>
+						</div>
+						<div class="subhead">Можливості AI</div>
+						<div class="toggle-row" style="border-top:0"><div><b>Відповіді про бронювання</b></div><span class="switch" [class.on]="get('aiBookings')" [class.disabled]="isLocked(section()) || !get('aiEnabled')" (click)="toggleSetting('aiBookings')"></span></div>
+						<div class="toggle-row"><div><b>Відповіді про гостей</b></div><span class="switch" [class.on]="get('aiGuests')" [class.disabled]="isLocked(section()) || !get('aiEnabled')" (click)="toggleSetting('aiGuests')"></span></div>
+						<div class="toggle-row"><div><b>Фінансова інформація</b></div><span class="switch" [class.on]="get('aiFinance')" [class.disabled]="isLocked(section()) || !get('aiEnabled')" (click)="toggleSetting('aiFinance')"></span></div>
+						<div class="toggle-row"><div><b>Sales insights</b></div><span class="switch" [class.on]="get('aiSales')" [class.disabled]="isLocked(section()) || !get('aiEnabled')" (click)="toggleSetting('aiSales')"></span></div>
+						<div class="toggle-row"><div><b>Допомога з повідомленнями</b></div><span class="switch" [class.on]="get('aiMessages')" [class.disabled]="isLocked(section()) || !get('aiEnabled')" (click)="toggleSetting('aiMessages')"></span></div>
+						<div class="ai-limits">
+							AI може: підготувати повідомлення, відкрити потрібний запис, заповнити форму, запропонувати дію.<br /><br />
+							AI <span class="cannot">не може</span> без підтвердження: скасовувати бронювання, повертати гроші, видаляти дані, надсилати повідомлення, змінювати фінансові записи.
+						</div>
+					</div>
+					<div class="settings-card">
+						<h2>База знань AI</h2>
+						<p class="card-sub">Завантажте документи готелю: AI відповідатиме гостям правилами саме вашого об'єкта, без вигаданих фактів.</p>
+						<div class="kb-drop">
+							<app-icon name="spark" />
+							<b>Перетягніть PDF або оберіть файл</b>
+							<span>Правила проживання, прайс, FAQ · до 20 МБ</span>
+							<input type="file" id="kb-file" accept="application/pdf" class="sr-only" [disabled]="isLocked(section())" (change)="onKbFileSelected($event)" />
+							<label class="button secondary" for="kb-file">Обрати файл</label>
+						</div>
+						<div class="kb-files">
+							@for (f of kbFiles(); track f.id) {
+								<div class="kb-file">
+									<app-icon name="spark" />
+									<div><b>{{ f.name }}</b><small>{{ f.updated }}</small></div>
+									<span class="pill" [class.ready]="f.status === 'ready'" [class.gold]="f.status === 'processing'">{{ f.status === 'ready' ? 'Індексовано' : 'Обробка' }}</span>
+								</div>
+							}
+						</div>
+					</div>
+				}
+				@case ('security') {
+					<div class="settings-card">
+						<h2>Нумерація бронювань</h2>
+						<div class="field-grid">
+							<div class="field"><label>Префікс<small class="help"> · необов'язково</small></label><input [disabled]="isLocked(section())" [ngModel]="get('prefix')" (ngModelChange)="setField('prefix', $event)" /></div>
+							<div class="field"><label>Наступний номер</label><input [value]="get('prefix') + get('nextNumber')" disabled /></div>
+						</div>
+					</div>
+					<div class="settings-card">
+						<h2>Дані компанії</h2>
+						@if (get('legalOpen')) {
+							<div class="field-grid">
+								<div class="field"><label>Назва компанії / ФОП</label><input [disabled]="isLocked(section())" [ngModel]="get('legalName')" (ngModelChange)="setField('legalName', $event)" /></div>
+								<div class="field"><label>ЄДРПОУ / ІПН</label><input [disabled]="isLocked(section())" [ngModel]="get('legalId')" (ngModelChange)="setField('legalId', $event)" /></div>
+								<div class="field full"><label>Юридична адреса</label><input [disabled]="isLocked(section())" [ngModel]="get('legalAddress')" (ngModelChange)="setField('legalAddress', $event)" /></div>
+							</div>
+						} @else {
+							<button class="button secondary" [disabled]="isLocked(section())" (click)="addLegalDetails()">Додати юридичні дані</button>
+						}
+					</div>
+					<div class="settings-card">
+						<h2>Дані готелю</h2>
+						<p class="card-sub">Доступно лише Owner.</p>
+						<div style="display:flex;gap:10px;flex-wrap:wrap">
+							<button class="button secondary" [disabled]="isLocked(section())" (click)="exportData()">Експортувати гостей</button>
+							<button class="button secondary" [disabled]="isLocked(section())" (click)="exportData()">Експортувати бронювання</button>
+							<button class="button secondary" [disabled]="isLocked(section())" (click)="exportData()">Експортувати оплати</button>
+						</div>
+					</div>
+					<div class="settings-card">
+						<h2>Історія змін</h2>
+						@for (h of HISTORY; track h.date) {
+							<div class="history-item">
+								<b>{{ h.date }}</b>
+								<p>{{ h.by }} {{ h.text }}</p>
+							</div>
+						}
+					</div>
+					<div class="settings-card danger-zone">
+						<h2>Небезпечна зона</h2>
+						<div class="danger-row">
+							<div><b>Деактивувати Booking Page</b><span>Публічне бронювання стане недоступним. CRM та дані не видаляються.</span></div>
+							<button class="button secondary destructive" [disabled]="isLocked(section())" (click)="openDeactivateBp()">Деактивувати</button>
+						</div>
+						<div class="danger-row">
+							<div><b>Деактивувати готель</b><span>Доступно лише Owner.</span></div>
+							<button class="button secondary destructive" [disabled]="isLocked(section())" (click)="openDeactivateHotel()">Деактивувати</button>
+						</div>
+					</div>
+				}
+			}
+		</div>
+	</div>
+</app-shell>
+
+<dialog #dialogEl (click)="onDialogClick($event)">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@if (dialogView(); as view) {
+			@switch (view.kind) {
+				@case ('unsaved') {
+					<h2>Є незбережені зміни</h2>
+					<div class="dialog-actions">
+						<button class="button primary" (click)="saveAndGo()">Зберегти</button>
+						<button class="button secondary destructive" (click)="discardAndGo()">Вийти без збереження</button>
+						<button class="button secondary" (click)="closeDialog()">Залишитися</button>
+					</div>
+				}
+				@case ('add-source') {
+					<h2>Нове джерело</h2>
+					<form class="demo-form" (submit)="$event.preventDefault(); submitAddSource()">
+						<label class="full">
+							Назва
+							<input required placeholder="Туристична агенція" [ngModel]="newSourceName()" (ngModelChange)="newSourceName.set($event)" name="sourceName" />
+						</label>
+						<button class="button primary full" type="submit">Додати</button>
+					</form>
+				}
+				@case ('deactivate-bp') {
+					<h2>Деактивувати Booking Page?</h2>
+					<p>Публічне бронювання стане недоступним. Дані CRM залишаться без змін.</p>
+					<div class="dialog-actions">
+						<button class="button primary destructive" (click)="confirmDeactivateBp()">Деактивувати</button>
+						<button class="button secondary" (click)="closeDialog()">Скасувати</button>
+					</div>
+				}
+				@case ('deactivate-hotel') {
+					<h2>Деактивувати готель?</h2>
+					<p>Ця дія доступна лише Owner і вимагає підтвердження з підтримкою Hotel OS.</p>
+					<div class="dialog-actions">
+						<button class="button secondary" (click)="closeDialog()">Зрозуміло</button>
+					</div>
+				}
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

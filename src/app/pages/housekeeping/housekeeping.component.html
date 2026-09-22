@@ -1,0 +1,469 @@
+<app-shell activeNav="housekeeping" greetingTitle="Прибирання" [housekeepingBadge]="counts().needs">
+	<div class="page-heading">
+		<div>
+			<h1>Прибирання</h1>
+			<p>Контролюйте готовність номерів і роботу команди.</p>
+		</div>
+		<div class="page-actions">
+			@if (showTeamLink) {
+				<a class="button secondary" routerLink="/team">Команда</a>
+			}
+			<button class="button primary" (click)="openAddTask()">+ Додати задачу</button>
+		</div>
+	</div>
+
+	<div class="kpis">
+		<div class="kpi gold">
+			<small>Потребують прибирання</small>
+			<b>{{ counts().needs }}</b>
+			<span>{{ urgentCount() ? urgentCount() + ' має заїзд менше ніж через 2 години' : 'усе під контролем' }}</span>
+		</div>
+		<div class="kpi"><small>Прибираються</small><b>{{ counts().cleaning }}</b></div>
+		<div class="kpi"><small>Готові</small><b>{{ counts().ready }}</b></div>
+		<div class="kpi"><small>Зайняті</small><b>{{ counts().occupied }}</b></div>
+	</div>
+
+	<div class="ai-strip">
+		<b><app-icon name="spark" />Запитати AI про прибирання</b>
+		<button class="ai-q" (click)="askAi('notReady')">Які номери ще не готові?</button>
+		<button class="ai-q" (click)="askAi('firstPriority')">Що потрібно прибрати в першу чергу?</button>
+		<button class="ai-q" (click)="askAi('whoCleaning')">Хто зараз прибирає номер 204?</button>
+		<button class="ai-q" (click)="askAi('soonArrivals')">Які номери мають заїзд у найближчі 2 години?</button>
+		<button class="ai-q" (click)="askAi('unassigned')">Чи є непризначені задачі?</button>
+	</div>
+	@if (aiAnswerHtml(); as answer) {
+		<div class="ai-answer-box" [innerHTML]="answer"></div>
+	}
+
+	<div class="alerts-strip">
+		@for (alert of alerts(); track $index) {
+			@switch (alert.kind) {
+				@case ('not-ready') {
+					<div class="alert-row">
+						<span>⚠</span>
+						<span><b>Номер ще не готовий</b> · {{ alert.room.number }} · {{ alert.room.type }} · Заїзд через {{ alert.countdown }}.</span>
+						<button class="text-action" (click)="openRoomPanel(alert.room.number)">Відкрити →</button>
+					</div>
+				}
+				@case ('unassigned-task') {
+					<div class="alert-row">
+						<span>⚠</span>
+						<span><b>Задачу не призначено</b> · {{ alert.room.number }} · Заїзд о {{ alert.room.nextArrivalTime || '-' }}.</span>
+						<button class="text-action" (click)="openAssign(alert.room.number)">Призначити →</button>
+					</div>
+				}
+				@case ('long-clean') {
+					<div class="alert-row warn">
+						<span>⏱</span>
+						<span>Прибирання триває довше звичайного · Номер {{ alert.room.number }} · Розпочато {{ alert.minutes }} хв тому.</span>
+					</div>
+				}
+				@case ('unassigned-count') {
+					<div class="alert-row warn">
+						<span>⚠</span>
+						<span><b>Є непризначені задачі</b> · {{ alert.count }} номер{{ alert.count === 1 ? '' : 'и' }} потребують прибирання.</span>
+						<button class="text-action" (click)="openDistribute()">Розподілити →</button>
+					</div>
+				}
+			}
+		}
+	</div>
+
+	<div class="toolbar-row">
+		<div class="day-tabs">
+			<button [class.active]="dayFilter() === 'today'" (click)="setDayFilter('today')">Сьогодні</button>
+			<button [class.active]="dayFilter() === 'tomorrow'" (click)="setDayFilter('tomorrow')">Завтра</button>
+			<button [class.active]="dayFilter() === 'all'" (click)="setDayFilter('all')">Усі активні</button>
+		</div>
+		<div class="view-switch">
+			<button [class.active]="viewMode() === 'board'" (click)="setViewMode('board')">Дошка</button>
+			<button [class.active]="viewMode() === 'list'" (click)="setViewMode('list')">Список</button>
+		</div>
+		<select class="plain" [ngModel]="sort()" (ngModelChange)="setSort($any($event))">
+			<option value="arrival">Найближчий заїзд</option>
+			<option value="room">Номер</option>
+			<option value="checkout">Час виїзду</option>
+			<option value="staff">Працівник</option>
+		</select>
+		<div class="filters-wrap">
+			<button class="button secondary" (click)="toggleFilters()">Фільтри</button>
+			@if (filtersOpen()) {
+				<div class="filters-panel">
+					<section>
+						<h4>Працівник</h4>
+						@for (s of STAFF_LIST.concat(['Не призначено']); track s) {
+							<label>
+								<input type="checkbox" [checked]="staffFilter().has(s)" (change)="toggleStaffFilter(s, $any($event.target).checked)" />{{ s }}
+							</label>
+						}
+					</section>
+					<section>
+						<h4>Пріоритет</h4>
+						@for (p of [['critical', 'Критично'], ['high', 'Високий'], ['normal', 'Звичайний'], ['low', 'Низький']]; track p[0]) {
+							<label>
+								<input
+									type="checkbox"
+									[checked]="priorityFilter().has($any(p[0]))"
+									(change)="togglePriorityFilter($any(p[0]), $any($event.target).checked)"
+								/>{{ p[1] }}
+							</label>
+						}
+					</section>
+					<div class="filters-actions">
+						<button class="text-action" (click)="clearFilters()">Очистити</button>
+						<button class="button primary" (click)="applyFilters()">Застосувати</button>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+
+	@if (isEmpty()) {
+		<div class="empty-state">
+			<div>✓</div>
+			<h2>Усі номери готові</h2>
+			<p>На цей момент немає активних задач з прибирання.</p>
+		</div>
+	} @else {
+		@if (viewMode() === 'board') {
+			<div class="board">
+				@for (col of boardColumns(); track col.status) {
+					<div class="board-col" [class]="col.cls">
+						<h2>{{ col.label }} <span class="count">{{ col.list.length }}</span></h2>
+						<div class="board-col-body">
+							@for (r of col.list; track r.number) {
+								<ng-container [ngTemplateOutlet]="taskCard" [ngTemplateOutletContext]="{ $implicit: r }" />
+							} @empty {
+								<p class="form-note">Немає номерів у цій колонці.</p>
+							}
+						</div>
+					</div>
+				}
+			</div>
+		} @else {
+			<div class="list-table">
+				<table>
+					<thead>
+						<tr>
+							<th>Номер</th>
+							<th>Статус</th>
+							<th>Виїзд</th>
+							<th>Наступний заїзд</th>
+							<th>Працівник</th>
+							<th>Пріоритет</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (row of listRows(); track row.room.number) {
+							<tr (click)="openRoomPanel(row.room.number)">
+								<td class="num-cell">{{ row.room.number }}</td>
+								<td>{{ STATUS_LABEL[row.room.status] }}</td>
+								<td>{{ row.room.checkoutTime || '-' }}</td>
+								<td>{{ nextArrivalLabel(row.room) }}</td>
+								<td>{{ row.room.assigned || row.room.cleanedBy || '-' }}</td>
+								<td>
+									@if (row.priority) {
+										<span class="priority-tag" [class]="row.priority">{{ priorityLabel(row.priority) }}</span>
+									} @else {
+										-
+									}
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	}
+
+	<div class="mobile-tabs">
+		<button [class.active]="mobileTab() === 'needs-cleaning'" (click)="setMobileTab('needs-cleaning')">Прибрати</button>
+		<button [class.active]="mobileTab() === 'cleaning'" (click)="setMobileTab('cleaning')">Прибирається</button>
+		<button [class.active]="mobileTab() === 'ready'" (click)="setMobileTab('ready')">Готові</button>
+		<button [class.active]="mobileTab() === 'occupied'" (click)="setMobileTab('occupied')">Зайняті</button>
+	</div>
+	<div class="mobile-cards">
+		@for (r of mobileCards(); track r.number) {
+			<ng-container [ngTemplateOutlet]="taskCard" [ngTemplateOutletContext]="{ $implicit: r }" />
+		} @empty {
+			<p class="form-note" style="text-align: center; padding: 20px 0">Немає номерів у цій категорії.</p>
+		}
+	</div>
+
+	<div class="team-row">
+		<h2 style="grid-column: 1 / -1; font-size: 15px; font-weight: 800; width: 100%">Команда сьогодні</h2>
+		@for (t of TEAM_TODAY; track t[0]) {
+			<div class="team-card">
+				<b>{{ t[0] }}</b>
+				<span class="tm-num">{{ t[1] }}</span>
+				<span>Завершено сьогодні</span>
+				<span class="tm-num" style="margin-top: 6px">{{ t[2] }}</span>
+				<span>У процесі</span>
+			</div>
+		}
+	</div>
+	<div class="workspace-footer">
+		<span>Hotel OS · Прибирання</span>
+		<span>Демонстраційні дані · 17.09.2026</span>
+	</div>
+</app-shell>
+
+<ng-template #taskCard let-r>
+	@if (r.status === 'needs-cleaning') {
+		<div class="task-card" [class]="'priority-' + priorityOf(r)" (click)="openRoomPanel(r.number)">
+			<div class="tc-top">
+				<div>
+					<div class="tc-num">{{ r.number }} · {{ r.type }}</div>
+				</div>
+				@if (priorityOf(r); as p) {
+					<span class="priority-tag" [class]="p">{{ priorityLabel(p) }}</span>
+				}
+			</div>
+			<div class="tc-facts">Гість виїхав: <b>{{ r.checkoutTime }}</b></div>
+			<div class="tc-facts">Наступний заїзд: <b>{{ nextArrivalLabel(r) }}</b></div>
+			@if (r.nextArrivalDate) {
+				<div class="tc-countdown">До заїзду: {{ countdown(r) }}</div>
+			}
+			<div class="tc-facts">Призначено: <b>{{ r.assigned || 'Не призначено' }}</b></div>
+			<div class="tc-actions">
+				<button class="primary" (click)="$event.stopPropagation(); openAssign(r.number)">Призначити</button>
+			</div>
+		</div>
+	} @else if (r.status === 'cleaning') {
+		<div class="task-card" (click)="openRoomPanel(r.number)">
+			<div class="tc-top">
+				<div class="tc-num">{{ r.number }} · {{ r.type }}</div>
+			</div>
+			<div class="tc-facts">Працівник: <b>{{ r.assigned }}</b></div>
+			<div class="tc-facts">Початок: {{ r.startedAt }} · Тривалість: {{ cleaningDuration(r) }} хв</div>
+			@if (r.nextArrivalDate) {
+				<div class="tc-facts">Наступний заїзд: {{ nextArrivalLabel(r) }}</div>
+			}
+			<div class="tc-actions">
+				<button (click)="$event.stopPropagation(); openRoomPanel(r.number)">Відкрити</button>
+				<button class="primary" (click)="$event.stopPropagation(); openComplete(r.number)">Позначити готовим</button>
+			</div>
+		</div>
+	} @else if (r.status === 'ready') {
+		<div class="task-card" (click)="openRoomPanel(r.number)">
+			<div class="tc-top">
+				<div class="tc-num">{{ r.number }} · {{ r.type }}</div>
+				<span class="pill ready">Готовий</span>
+			</div>
+			<div class="tc-facts">Прибрано: {{ r.cleanedAt }} · {{ r.cleanedBy }}</div>
+			<div class="tc-facts">Наступний заїзд: {{ nextArrivalLabel(r) }}</div>
+		</div>
+	} @else {
+		<div class="task-card" (click)="openRoomPanel(r.number)">
+			<div class="tc-top">
+				<div class="tc-num">{{ r.number }} · {{ r.type }}</div>
+				<span class="pill dark">Зайнятий</span>
+			</div>
+			<div class="tc-facts">Гість: <b>{{ r.guest }}</b></div>
+			<div class="tc-facts">Виїзд: {{ r.checkoutDate }} · до 11:00</div>
+			@if (r.doNotDisturb) {
+				<div class="tc-facts">🔕 Не турбувати</div>
+			}
+		</div>
+	}
+</ng-template>
+
+<div class="side-scrim" [hidden]="selectedRoom() === null" (click)="closeSidePanel()"></div>
+<aside class="side-panel" [class.open]="selectedRoom() !== null" aria-label="Деталі задачі">
+	<div class="side-panel-head">
+		<span class="dialog-label">HOTEL OS <span>· ПРИБИРАННЯ</span></span>
+		<button class="icon-button" aria-label="Закрити" (click)="closeSidePanel()"><app-icon name="close" /></button>
+	</div>
+	<div class="side-panel-body">
+		@if (selectedRoom(); as num) {
+			@let r = room(num);
+			@if (r) {
+				<h5>Номер {{ r.number }}</h5>
+				<div class="info-grid">
+					<dt>Тип</dt>
+					<dd>{{ r.type }}</dd>
+					@if (r.checkoutTime) {
+						<dt>Виїзд</dt>
+						<dd>{{ r.checkoutTime }}</dd>
+					}
+					@if (r.nextArrivalDate) {
+						<dt>Наступний заїзд</dt>
+						<dd>{{ nextArrivalLabel(r) }}</dd>
+						<dt>Гостей</dt>
+						<dd>{{ r.nextGuests || '-' }}</dd>
+					}
+					@if (priorityOf(r); as p) {
+						<dt>Пріоритет</dt>
+						<dd>{{ priorityLabel(p) }}</dd>
+					}
+				</div>
+
+				@if (r.prep && r.prep.length) {
+					<div class="prep-block" style="margin-top: 18px">
+						<h5>Для наступного гостя</h5>
+						<ul>
+							@for (x of r.prep; track x) {
+								<li>{{ x }}</li>
+							}
+						</ul>
+					</div>
+				}
+				@if (r.internalNote) {
+					<h5>Внутрішня нотатка</h5>
+					<p style="margin: 0; font-size: 12px">{{ r.internalNote }}</p>
+				}
+
+				<h5>Дії</h5>
+				<div class="dialog-actions">
+					@if (r.status === 'needs-cleaning') {
+						<button class="button primary" (click)="startCleaning(r.number)">Почати прибирання</button>
+						<button class="button secondary" (click)="openAssign(r.number)">Призначити</button>
+					}
+					@if (r.status === 'cleaning') {
+						<button class="button primary" (click)="openComplete(r.number)">Номер готовий</button>
+					}
+					<button class="button secondary" (click)="openIssue(r.number)">Повідомити про проблему</button>
+				</div>
+
+				@if (r.status === 'cleaning') {
+					<h5>Чек-лист</h5>
+					<div class="checklist">
+						@for (c of CHECKLIST; track c) {
+							<label><input type="checkbox" />{{ c }}</label>
+						}
+					</div>
+				}
+
+				<h5>Історія прибирання</h5>
+				@for (h of r.history; track h.date + h.range) {
+					<div class="history-item">
+						<b>{{ h.date }}</b>
+						<p>Прибрала: {{ h.by }}<br />{{ h.range }} · {{ h.dur }} · {{ h.status }}</p>
+					</div>
+				}
+			}
+		}
+	</div>
+</aside>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('assign') {
+				@let r = room(view!.room);
+				<h2>Призначити</h2>
+				<form class="demo-form" (ngSubmit)="submitAssign(view!.room, staffSelect.value)">
+					<label class="full">
+						Працівник
+						<select #staffSelect name="staff">
+							<option value="">Не призначено</option>
+							@for (s of STAFF_LIST; track s) {
+								<option [selected]="r?.assigned === s">{{ s }}</option>
+							}
+						</select>
+					</label>
+					<button class="button primary full" type="submit">Зберегти</button>
+				</form>
+			}
+			@case ('add-task') {
+				<h2>Нова задача</h2>
+				<form class="demo-form" (ngSubmit)="submitAddTask()">
+					<label class="full">
+						Номер
+						<select name="room">
+							@for (r of rooms(); track r.number) {
+								<option [value]="r.number">{{ r.number }} · {{ r.type }}</option>
+							}
+						</select>
+					</label>
+					<label>
+						Тип
+						<select name="type">
+							@for (t of TASK_TYPES; track t) {
+								<option>{{ t }}</option>
+							}
+						</select>
+					</label>
+					<label>
+						Призначити
+						<select name="staff">
+							<option value="">Не призначено</option>
+							@for (s of STAFF_LIST; track s) {
+								<option>{{ s }}</option>
+							}
+						</select>
+					</label>
+					<label>Дедлайн (необов’язково)<input name="deadline" type="time" /></label>
+					<label class="full">Нотатка (необов’язково)<textarea name="note" maxlength="200"></textarea></label>
+					<button class="button primary full" type="submit">Створити задачу</button>
+				</form>
+			}
+			@case ('issue') {
+				<h2>Повідомити про проблему</h2>
+				<form class="demo-form" (ngSubmit)="submitIssue(view!.room, prioritySelect.value)">
+					<p class="full">Номер {{ view!.room }}</p>
+					<label>
+						Тип проблеми
+						<select name="type">
+							@for (t of ISSUE_TYPES; track t) {
+								<option>{{ t }}</option>
+							}
+						</select>
+					</label>
+					<label>
+						Пріоритет
+						<select #prioritySelect name="priority">
+							<option>Звичайна</option>
+							<option>Термінова</option>
+						</select>
+					</label>
+					<label class="full">Опис<textarea name="desc" required maxlength="300"></textarea></label>
+					<button type="button" class="button secondary full" (click)="addPhoto()">Додати фото</button>
+					<button class="button primary full" type="submit">Надіслати</button>
+				</form>
+			}
+			@case ('block-followup') {
+				<h2>Позначити номер недоступним?</h2>
+				<p>Номер {{ view!.room }} буде позначений недоступним і заблокований у Календарі. Дія доступна лише Manager / Owner.</p>
+				<div class="dialog-actions">
+					<button class="button primary destructive" (click)="confirmBlock(view!.room)">Позначити недоступним</button>
+					<button class="button secondary" (click)="closeDialog()">Не зараз</button>
+				</div>
+			}
+			@case ('complete') {
+				<h2>Позначити номер готовим?</h2>
+				<p>Номер {{ view!.room }}</p>
+				<div class="dialog-actions">
+					<button class="button primary" (click)="confirmComplete(view!.room)">Готово</button>
+					<button class="button secondary" (click)="closeDialog()">Скасувати</button>
+				</div>
+			}
+			@case ('distribute') {
+				<h2>Розподілити задачі</h2>
+				<div class="demo-form" style="grid-template-columns: 1fr">
+					@for (r of unassignedRooms(); track r.number) {
+						<label class="full">
+							{{ r.number }} · {{ r.type }}
+							<select (change)="setDistribution(r.number, $any($event.target).value)">
+								<option value="">Не призначено</option>
+								@for (s of STAFF_LIST; track s) {
+									<option>{{ s }}</option>
+								}
+							</select>
+						</label>
+					}
+				</div>
+				<button class="button primary full" style="margin-top: 14px" (click)="saveDistribution()">Зберегти призначення</button>
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

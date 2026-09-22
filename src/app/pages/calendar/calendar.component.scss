@@ -13,6 +13,9 @@
 	--radius: 10px;
 	--surface: #fafafa;
 	--surface-hover: #eeeef0;
+	--status-checkedin: #2b2c30;
+	--focus-ring: #b28d42;
+	--text-strong: #3a3b40;
 
 	display: block;
 	color: var(--ink);
@@ -34,6 +37,9 @@
 	--silver: #3a3b41;
 	--green: #82b199;
 	--green-bg: #16241d;
+	--status-checkedin: #45464c;
+	--focus-ring: #c9a361;
+	--text-strong: #d4d5d9;
 }
 
 * {
@@ -64,7 +70,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-	outline: 3px solid #b28d42;
+	outline: 3px solid var(--focus-ring);
 	outline-offset: 3px;
 }
 
@@ -183,8 +189,8 @@ h1 {
 	}
 
 	&.gold {
-		background: #f5eedf;
-		color: #9b7838;
+		background: var(--gold-bg);
+		color: var(--gold-ink);
 	}
 }
 
@@ -326,7 +332,7 @@ dialog {
 	}
 
 	p {
-		color: #8b8c92;
+		color: var(--muted);
 		font-size: 13px;
 	}
 }
@@ -532,7 +538,7 @@ dialog {
 	}
 
 	.lg-checkedin {
-		background: #2b2c30;
+		background: var(--status-checkedin);
 	}
 
 	.lg-pending {
@@ -673,7 +679,7 @@ dialog {
 	position: relative;
 	z-index: 3;
 	background: var(--white);
-	color: #3a3b40;
+	color: var(--text-strong);
 	border: 1px solid var(--line);
 
 	b {
@@ -695,9 +701,9 @@ dialog {
 	}
 
 	&.status-checkedin {
-		background: #2b2c30;
+		background: var(--status-checkedin);
 		color: var(--white);
-		border-color: #2b2c30;
+		border-color: var(--status-checkedin);
 
 		.bb-meta {
 			color: #c9cacd;
@@ -732,7 +738,7 @@ dialog {
 	}
 
 	&.match {
-		outline: 2px solid #b28d42;
+		outline: 2px solid var(--focus-ring);
 		outline-offset: 1px;
 	}
 
@@ -772,12 +778,12 @@ dialog {
 	p {
 		margin: 2px 0;
 		font-size: 11px;
-		color: #8b8c92;
+		color: var(--muted);
 	}
 
 	.hc-amount {
 		font-weight: 800;
-		color: #3a3b40;
+		color: var(--text-strong);
 		font-size: 13px;
 		margin-top: 6px;
 	}
@@ -914,7 +920,7 @@ dialog {
 	p {
 		margin: 2px 0;
 		font-size: 11px;
-		color: #8b8c92;
+		color: var(--muted);
 	}
 
 	.button {

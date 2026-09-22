@@ -1,0 +1,349 @@
+<app-shell activeNav="guests" greetingTitle="Гості" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="page-heading">
+		<div>
+			<h1>Гості</h1>
+			<p>Усі гості та історія їхніх проживань в одному місці.</p>
+		</div>
+		<div class="page-actions">
+			<button class="button secondary" (click)="exportGuests()">Експорт</button>
+			<button class="button primary" (click)="openAddGuest()">+ Додати гостя</button>
+		</div>
+	</div>
+
+	<div class="kpis">
+		<div class="kpi"><small>Усього гостей</small><b>{{ '1 284' }}</b><span>за весь час</span></div>
+		<div class="kpi"><small>Нових цього місяця</small><b>86</b><span>+14% до минулого місяця</span></div>
+		<div class="kpi"><small>Повторних гостей</small><b>214</b><span>17% бази</span></div>
+		<div class="kpi"><small>Повернулися цього місяця</small><b>42</b><span>гості з попередньою історією</span></div>
+	</div>
+
+	<div class="ai-strip">
+		<b><app-icon name="spark" />Запитати AI про гостей</b>
+		<button class="ai-q" (click)="aiAnswer('returning')">Хто найчастіше повертається?</button>
+		<button class="ai-q" (click)="aiAnswer('topspend')">Хто витратив найбільше цього року?</button>
+		<button class="ai-q" (click)="aiAnswer('away')">Хто не був у нас понад 6 місяців?</button>
+		<button class="ai-q" (click)="aiAnswer('week')">Хто має бронювання цього тижня?</button>
+		<button class="ai-q" (click)="aiAnswer('newcount')">Скільки нових гостей цього місяця?</button>
+	</div>
+	@if (aiAnswerHtml()) {
+		<div class="ai-answer-box" [innerHTML]="aiAnswerHtml()"></div>
+	}
+
+	<div class="segments">
+		<button [class.active]="segment() === 'all'" (click)="setSegment('all')">Усі</button>
+		<button [class.active]="segment() === 'staying'" title="Гість зараз проживає в готелі" (click)="setSegment('staying')">Зараз у готелі</button>
+		<button [class.active]="segment() === 'upcoming'" title="Є заплановане майбутнє бронювання" (click)="setSegment('upcoming')">Мають бронювання</button>
+		<button [class.active]="segment() === 'regular'" title="2 і більше завершених проживань" (click)="setSegment('regular')">Постійні</button>
+		<button
+			[class.active]="segment() === 'new'"
+			title="Ще 0 завершених проживань, включно з тими, хто щойно забронював перший приїзд"
+			(click)="setSegment('new')"
+		>
+			Нові
+		</button>
+		<button
+			[class.active]="segment() === 'away'"
+			title="2+ проживань, останній візит понад 180 днів тому, і немає майбутнього бронювання"
+			(click)="setSegment('away')"
+		>
+			Давно не були
+		</button>
+	</div>
+
+	<div class="toolbar-row">
+		<div class="search-wrap">
+			<app-icon name="search" />
+			<input [ngModel]="search()" (ngModelChange)="onSearch($event)" placeholder="Ім’я, телефон або email" />
+		</div>
+		<select class="plain" [ngModel]="sort()" (ngModelChange)="setSort($event)">
+			<option value="activity">Остання активність</option>
+			<option value="name">Ім’я</option>
+			<option value="stays">Найбільше проживань</option>
+			<option value="spent">Найбільші витрати</option>
+			<option value="visit">Останній візит</option>
+		</select>
+		<div class="filters-wrap">
+			<button class="button secondary" (click)="toggleFilters()">Фільтри</button>
+			@if (filtersOpen()) {
+				<div class="filters-panel">
+					<section>
+						<h4>Кількість проживань</h4>
+						@for (b of STAYS_BUCKETS; track b) {
+							<label>
+								<input type="checkbox" [checked]="staysFilter().has(b)" (change)="toggleStaysFilter(b, $any($event.target).checked)" />
+								{{ b === '0' ? '0 (ще не проживали)' : b }}
+							</label>
+						}
+					</section>
+					<section>
+						<h4>Теги</h4>
+						@for (t of TAGS; track t) {
+							<label>
+								<input type="checkbox" [checked]="tagsFilter().has(t)" (change)="toggleTagFilter(t, $any($event.target).checked)" />{{ t }}
+							</label>
+						}
+					</section>
+					<div class="filters-actions">
+						<button class="text-action" (click)="clearFilters()">Очистити</button>
+						<button class="button primary" (click)="applyFilters()">Застосувати</button>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+
+	@if (selected().size > 0) {
+		<div class="bulk-bar show">
+			<b>{{ selected().size }} вибрано</b>
+			<span class="bulk-scope-note">Вибір зберігається при зміні фільтрів</span>
+			<button (click)="openBulkTag()">Додати тег</button>
+			<button (click)="openBulkMessage()">Надіслати повідомлення</button>
+			<button (click)="bulkExport()">Експорт</button>
+		</div>
+	}
+
+	@if (guests().length === 0) {
+		<div id="empty-state">
+			<div class="empty-state">
+				<h2>Гостей поки немає</h2>
+				<p>Гості автоматично з’являтимуться тут після створення бронювань.</p>
+				<div class="empty-actions">
+					<a class="button primary" href="/new-booking/">Створити бронювання</a>
+					<button class="button secondary" (click)="openAddGuest()">+ Додати гостя</button>
+				</div>
+			</div>
+		</div>
+	} @else if (filteredGuests().length === 0) {
+		<div id="empty-state">
+			<div class="empty-state">
+				<h2>Гостя не знайдено</h2>
+				<p>Перевірте ім’я або номер телефону.</p>
+				<div class="empty-actions">
+					<button class="button primary" (click)="openAddGuest()">+ Створити нового гостя</button>
+				</div>
+			</div>
+		</div>
+	} @else {
+		<div class="table-card" (click)="closeRowMenu()">
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th><input type="checkbox" [checked]="allSelectedOnPage()" (change)="toggleSelectAll($any($event.target).checked)" /></th>
+							<th>Гість</th>
+							<th>Контакти</th>
+							<th>Проживань</th>
+							<th>Ночей</th>
+							<th>Витрачено</th>
+							<th>Останній візит</th>
+							<th>Наступне бронювання</th>
+							<th>Статус</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (g of filteredGuests(); track g.id) {
+							<tr (click)="openPreview(g)">
+								<td (click)="$event.stopPropagation()">
+									<input type="checkbox" [checked]="selected().has(g.id)" (change)="toggleSelectGuest(g.id, $any($event.target).checked)" />
+								</td>
+								<td class="name-cell">{{ g.name }}@if (g.tags.length) {<small>{{ g.tags.join(' · ') }}</small>}</td>
+								<td class="contacts-cell"><span>{{ g.phone }}</span>@if (g.email) {<span>{{ g.email }}</span>}</td>
+								<td><b>{{ g.stays }}</b></td>
+								<td><b>{{ g.nights }}</b></td>
+								<td><b>{{ money(g.spent) }}</b></td>
+								<td>{{ g.lastVisit ? fmt(g.lastVisit) : 'Ще не проживав' }}</td>
+								<td>{{ g.nextBooking ? fmt(g.nextBooking) : '-' }}</td>
+								<td><span class="status-tag" [class]="statusOf(g).key">{{ statusOf(g).label }}</span></td>
+								<td class="row-actions" (click)="$event.stopPropagation()">
+									<button aria-label="Дії" (click)="toggleRowMenu(g.id, $event)">⋯</button>
+									@if (openRowMenuId() === g.id) {
+										<div class="row-menu">
+											<button (click)="closeRowMenu(); openProfile(g.id)">Відкрити профіль</button>
+											<a href="/new-booking/">Створити бронювання</a>
+											<button (click)="closeRowMenu(); openMessage(g.id)">Надіслати повідомлення</button>
+											<button (click)="closeRowMenu(); openNote(g.id)">Додати нотатку</button>
+											<button (click)="closeRowMenu(); openEdit(g.id)">Редагувати</button>
+											<button (click)="closeRowMenu(); openMerge(g.id)">Об’єднати дублікати</button>
+											<button class="destructive" (click)="closeRowMenu(); openDelete(g.id)">Видалити</button>
+										</div>
+									}
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="guest-cards">
+			@for (g of filteredGuests(); track g.id) {
+				<div class="guest-card">
+					<div class="gc-top">
+						<div>
+							<h3>{{ g.name }}</h3>
+							<div class="gc-contact">{{ g.phone }}</div>
+						</div>
+						<span class="status-tag" [class]="statusOf(g).key">{{ statusOf(g).label }}</span>
+					</div>
+					<div class="gc-stats">{{ g.stays }} проживання · {{ g.nights }} ночей</div>
+					<div class="gc-spent">{{ money(g.spent) }}</div>
+					<div class="gc-visit">Останній візит: {{ g.lastVisit ? fmt(g.lastVisit) : 'Ще не проживав' }}</div>
+					<button class="button secondary" (click)="openPreview(g)">Відкрити</button>
+				</div>
+			}
+		</div>
+	}
+</app-shell>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('preview') {
+				@let g = guest(view!.id);
+				@if (g) {
+					<h2>{{ g.name }}</h2>
+					<p>{{ g.stays }} проживання · {{ money(g.spent) }} витрачено</p>
+					<h5 class="detail-label">Контакти</h5>
+					<p class="detail-text">{{ g.phone }}@if (g.email) {<br />{{ g.email }}}</p>
+					<h5 class="detail-label">Останнє проживання</h5>
+					<p class="detail-text">{{ g.room && g.lastVisit ? g.room + ' · ' + fmt(g.lastVisit) : 'Ще не проживав' }}</p>
+					<h5 class="detail-label">Наступне бронювання</h5>
+					<p class="detail-text">{{ g.nextBooking ? (g.room || '') + ' · ' + fmt(g.nextBooking) : 'Немає' }}</p>
+					@if (g.prefs.length) {
+						<h5 class="detail-label">Побажання</h5>
+						<div class="detail-grid detail-grid-single">
+							@for (p of g.prefs; track p) {
+								<div>{{ p }}</div>
+							}
+						</div>
+					}
+					<div class="dialog-actions">
+						<button class="button primary" (click)="openProfile(g.id)">Відкрити профіль</button>
+						<a class="button secondary" href="/new-booking/">Створити бронювання</a>
+					</div>
+				}
+			}
+			@case ('add-guest') {
+				<h2>Новий гість</h2>
+				<form
+					class="demo-form"
+					(ngSubmit)="submitAddGuest(firstInput.value, lastInput.value, phoneInput.value, emailInput.value, noteInput.value)"
+				>
+					<label class="full">Ім’я *<input #firstInput name="first" required maxlength="40" /></label>
+					<label class="full">Прізвище<input #lastInput name="last" maxlength="40" /></label>
+					<label>
+						Телефон *
+						<input
+							#phoneInput
+							name="phone"
+							required
+							maxlength="20"
+							[ngModel]="addGuestPhone()"
+							(ngModelChange)="addGuestPhone.set($event)"
+							[ngModelOptions]="{ standalone: true }"
+						/>
+					</label>
+					<label>Email<input #emailInput name="email" type="email" /></label>
+					<label class="full">Нотатка<textarea #noteInput name="note" maxlength="300"></textarea></label>
+					<div class="full">
+						@if (duplicateGuest(); as dup) {
+							<div class="notice">
+								Схоже, цей гість уже є в CRM<br /><b>{{ dup.name }}</b> · {{ dup.stays }} проживання
+								<div class="dialog-actions">
+									<button type="button" class="button secondary" (click)="useExisting(dup.id)">Відкрити існуючого</button>
+									<button type="button" class="button secondary" (click)="createAnyway()">Все одно створити нового</button>
+								</div>
+							</div>
+						}
+					</div>
+					<button class="button primary full" type="submit">Додати гостя</button>
+				</form>
+			}
+			@case ('edit') {
+				@let g = guest(view!.id);
+				@if (g) {
+					<h2>Редагувати гостя</h2>
+					<form class="demo-form" (ngSubmit)="submitEdit(g.id, nameInput.value, phoneEditInput.value, emailEditInput.value)">
+						<label class="full">Ім’я<input #nameInput name="name" [value]="g.name" required /></label>
+						<label>Телефон<input #phoneEditInput name="phone" [value]="g.phone" /></label>
+						<label>Email<input #emailEditInput name="email" [value]="g.email" /></label>
+						<button class="button primary full" type="submit">Зберегти</button>
+					</form>
+				}
+			}
+			@case ('message') {
+				@let g = guest(view!.id);
+				@if (g) {
+					<h2>Повідомлення гостю</h2>
+					<p>Отримувач: {{ g.name }}</p>
+					<form class="demo-form" (ngSubmit)="submitMessage()">
+						<label class="full">Текст повідомлення<textarea name="message" required maxlength="500">Добрий день, {{ g.name.split(' ')[0] }}!</textarea></label>
+						<button class="button primary full" type="submit">Надіслати</button>
+					</form>
+				}
+			}
+			@case ('note') {
+				@let g = guest(view!.id);
+				@if (g) {
+					<h2>Додати нотатку</h2>
+					<p>{{ g.name }}</p>
+					<form class="demo-form" (ngSubmit)="submitNote()">
+						<label class="full">Нотатка<textarea name="text" required maxlength="300"></textarea></label>
+						<button class="button primary full" type="submit">Зберегти</button>
+					</form>
+				}
+			}
+			@case ('merge') {
+				<h2>Об’єднати дублікати</h2>
+				<p class="form-note">Дублікатів для цього гостя не знайдено.</p>
+			}
+			@case ('delete') {
+				@let g = guest(view!.id);
+				@if (g) {
+					<h2>Видалити гостя?</h2>
+					@if (g.stays > 0) {
+						<div class="notice">Профіль має історію бронювань ({{ g.stays }}). Рекомендуємо архівувати замість видалення.</div>
+						<div class="dialog-actions">
+							<button class="button primary" (click)="archiveGuest()">Архівувати гостя</button>
+							<button class="button secondary destructive" (click)="forceDelete(g.id)">Все одно видалити</button>
+						</div>
+					} @else {
+						<div class="dialog-actions">
+							<button class="button primary destructive" (click)="forceDelete(g.id)">Видалити</button>
+							<button class="button secondary" (click)="closeDialog()">Скасувати</button>
+						</div>
+					}
+				}
+			}
+			@case ('bulk-tag') {
+				<h2>Додати тег кільком гостям</h2>
+				<p>{{ selected().size }} гостей буде позначено тегом.</p>
+				<form class="demo-form" (ngSubmit)="submitBulkTag(tagSelect.value)">
+					<label class="full">
+						Тег
+						<select #tagSelect name="tag">
+							<option>VIP</option>
+							<option>Постійний гість</option>
+							<option>Бізнес</option>
+							<option>Сім’я</option>
+						</select>
+					</label>
+					<button class="button primary full" type="submit">Застосувати</button>
+				</form>
+			}
+			@case ('bulk-message') {
+				<h2>Масова розсилка</h2>
+				<p class="form-note">Масова розсилка повідомлень буде доступна незабаром.</p>
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}
