@@ -1,9 +1,0 @@
-{
-  "name": "hotelos-webart-work",
-  "version": "1.0.0",
-  "private": false,
-  "description": "Hotel OS — static product demo for an all-in-one hotel PMS/CRM (plain HTML/CSS/JS, no build step).",
-  "license": "MIT",
-  "author": "Honchar Denys",
-  "homepage": "https://hotelos.webart.work"
-}
