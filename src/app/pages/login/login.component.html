@@ -1,0 +1,416 @@
+<div class="demo-bar">
+	<span>Демо: цю сторінку не підключено до реальної автентифікації · Стан:</span>
+	<select [ngModel]="screen()" (ngModelChange)="onDemoStateChange($event)">
+		<option value="login">Вхід</option>
+		<option value="forgot">Забули пароль</option>
+		<option value="checkEmail">Перевірте пошту</option>
+		<option value="newPassword">Новий пароль</option>
+		<option value="resetSuccess">Пароль змінено</option>
+		<option value="resetExpired">Посилання не діє</option>
+		<option value="invitation">Запрошення</option>
+		<option value="invitationExpired">Запрошення прострочене</option>
+		<option value="invitationUsed">Запрошення вже використано</option>
+		<option value="invitationCancelled">Запрошення скасовано</option>
+		<option value="createAccount">Створення доступу</option>
+		<option value="accountCreated">Акаунт створено</option>
+		<option value="welcome">Перший вхід (welcome)</option>
+		<option value="joinConfirm">Приєднатися до готелю?</option>
+		<option value="hotelSwitcher">Вибір готелю</option>
+		<option value="sessionExpired">Сесію завершено</option>
+		<option value="accountDisabled">Доступ деактивовано</option>
+		<option value="noHotelAccess">Немає доступу до готелів</option>
+		<option value="rateLimit">Забагато спроб</option>
+		<option value="genericError">Загальна помилка</option>
+	</select>
+	<span>Роль:</span>
+	<select [(ngModel)]="demoRole">
+		<option value="reception">Рецепція</option>
+		<option value="manager">Менеджер</option>
+		<option value="housekeeping">Прибирання</option>
+		<option value="owner">Власник</option>
+	</select>
+</div>
+
+<div class="shell">
+	<div class="form-side">
+		<div class="form-wrap">
+			<a class="brand" href="/">
+				<span class="mark">H</span>
+				<span>Hotel <b>OS</b><small>Система управління готелем</small></span>
+			</a>
+
+			<div id="auth-main">
+				@switch (screen()) {
+					@case ('login') {
+						<h1>Вхід до Hotel OS</h1>
+						<p class="sub">Увійдіть, щоб продовжити роботу з вашим готелем.</p>
+						<form (submit)="$event.preventDefault(); submitLogin()">
+							<div class="field">
+								<label>Email</label>
+								<input
+									type="email"
+									placeholder="name@example.com"
+									[class.invalid]="loginEmailInvalid()"
+									[(ngModel)]="loginEmail"
+									name="loginEmail"
+								/>
+								<div class="field-error" [class.show]="loginEmailInvalid()">
+									Введіть правильну email-адресу.
+								</div>
+							</div>
+							<div class="field">
+								<label>Пароль</label>
+								<div class="pw-wrap">
+									<input
+										[type]="loginPasswordVisible() ? 'text' : 'password'"
+										placeholder="Ваш пароль"
+										[class.invalid]="loginPasswordInvalid()"
+										[(ngModel)]="loginPassword"
+										name="loginPassword"
+									/>
+									<button type="button" class="pw-toggle" (click)="togglePasswordVisibility('login')">
+										{{ loginPasswordVisible() ? '🙈' : '👁' }}
+									</button>
+								</div>
+								<div class="field-error" [class.show]="loginPasswordInvalid()">Введіть пароль.</div>
+							</div>
+							<label class="check-row">
+								<input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" />
+								Запам'ятати мене
+							</label>
+							@if (loginError()) {
+								<div class="notice">{{ loginError() }}</div>
+							}
+							<button class="btn primary" type="submit" [disabled]="loginBusy()">
+								{{ loginBusy() ? 'Входимо...' : 'Увійти' }}
+							</button>
+						</form>
+						<div class="link-row">
+							<button type="button" (click)="goto('forgot')">Забули пароль?</button>
+						</div>
+						<p class="bottom-note">
+							Ще не використовуєте Hotel OS? <a href="/#pricing">Спробувати безкоштовно</a>
+						</p>
+					}
+
+					@case ('forgot') {
+						<h1>Відновлення пароля</h1>
+						<p class="sub">Введіть email, який використовується для входу в Hotel OS.</p>
+						<form (submit)="$event.preventDefault(); submitForgot()">
+							<div class="field">
+								<label>Email</label>
+								<input type="email" placeholder="name@example.com" [(ngModel)]="forgotEmail" name="forgotEmail" />
+							</div>
+							<button class="btn primary" type="submit">Надіслати посилання</button>
+						</form>
+						<div class="link-row">
+							<button type="button" (click)="goto('login')">Повернутися до входу</button>
+						</div>
+					}
+
+					@case ('checkEmail') {
+						<div class="status-icon">✓</div>
+						<h1>Перевірте пошту</h1>
+						<p class="sub">
+							Якщо акаунт з такою email-адресою існує, ми надіслали посилання для відновлення пароля.<br />
+							Посилання діє обмежений час.
+						</p>
+						<button class="btn secondary" type="button" (click)="goto('login')">Повернутися до входу</button>
+						<p class="link-row">
+							<button type="button" (click)="goto('newPassword')">Демо: перейти за посиланням із листа →</button>
+						</p>
+					}
+
+					@case ('newPassword') {
+						<h1>Створіть новий пароль</h1>
+						<p class="sub">Використайте новий пароль для входу в Hotel OS.</p>
+						<form (submit)="$event.preventDefault(); submitNewPassword()">
+							<div class="field">
+								<label>Новий пароль</label>
+								<div class="pw-wrap">
+									<input
+										[type]="newPassword1Visible() ? 'text' : 'password'"
+										[(ngModel)]="newPassword1"
+										name="newPassword1"
+									/>
+									<button
+										type="button"
+										class="pw-toggle"
+										(click)="togglePasswordVisibility('newPassword')"
+									>
+										{{ newPassword1Visible() ? '🙈' : '👁' }}
+									</button>
+								</div>
+							</div>
+							<div class="strength" [class]="newPasswordStrength()"><span></span></div>
+							<div class="pw-reqs">
+								<span [class.ok]="newPasswordChecks().len">Мінімум 8 символів</span>
+								<span [class.ok]="newPasswordChecks().letter">Літера</span>
+								<span [class.ok]="newPasswordChecks().digit">Цифра</span>
+							</div>
+							<div class="field">
+								<label>Повторіть пароль</label>
+								<input type="password" [(ngModel)]="newPassword2" name="newPassword2" />
+								<div class="field-error" [class.show]="newPasswordMatchError()">Паролі не збігаються.</div>
+							</div>
+							<button class="btn primary" type="submit">Зберегти пароль</button>
+						</form>
+					}
+
+					@case ('resetSuccess') {
+						<div class="status-icon">✓</div>
+						<h1>Пароль змінено</h1>
+						<p class="sub">Тепер ви можете увійти з новим паролем.</p>
+						<button class="btn primary" type="button" (click)="goto('login')">Увійти</button>
+					}
+
+					@case ('resetExpired') {
+						<div class="status-icon danger">✕</div>
+						<h1>Посилання більше не діє</h1>
+						<p class="sub">Посилання для відновлення пароля прострочене або вже було використане.</p>
+						<button class="btn primary" type="button" (click)="goto('forgot')">Надіслати нове посилання</button>
+						<div class="link-row">
+							<button type="button" (click)="goto('login')">Повернутися до входу</button>
+						</div>
+					}
+
+					@case ('invitation') {
+						<h1>Вас запросили до {{ invite.hotel }}</h1>
+						<p class="sub">{{ invite.inviter }} запросив(ла) вас приєднатися до команди Hotel OS.</p>
+						<div class="invite-card">
+							<div class="ic-row"><span>Готель</span><b>{{ invite.hotel }}</b></div>
+							<div class="ic-row"><span>Роль</span><b>{{ roleLabel[invite.role] }}</b></div>
+							<div class="ic-row"><span>Email</span><b>{{ invite.email }}</b></div>
+						</div>
+						<button class="btn primary" type="button" (click)="goto('createAccount')">Продовжити</button>
+						<div class="link-row">
+							<button type="button" (click)="goto('invitationCancelled')">Відхилити запрошення</button>
+						</div>
+					}
+
+					@case ('invitationExpired') {
+						<div class="status-icon danger">✕</div>
+						<h1>Запрошення більше не діє</h1>
+						<p class="sub">Попросіть власника або менеджера надіслати нове запрошення.</p>
+						<button class="btn primary" type="button" (click)="goto('login')">Перейти до входу</button>
+					}
+
+					@case ('invitationUsed') {
+						<div class="status-icon gold">i</div>
+						<h1>Запрошення вже використано</h1>
+						<p class="sub">Цей доступ уже активований.</p>
+						<button class="btn primary" type="button" (click)="goto('login')">Увійти</button>
+					}
+
+					@case ('invitationCancelled') {
+						<div class="status-icon danger">✕</div>
+						<h1>Запрошення скасовано</h1>
+						<p class="sub">
+							Доступ до цього готелю більше не активний.<br />
+							Зверніться до адміністратора {{ invite.hotel }}.
+						</p>
+						<button class="btn secondary" type="button" (click)="goto('login')">Повернутися до входу</button>
+					}
+
+					@case ('createAccount') {
+						<h1>Створіть доступ</h1>
+						<p class="sub">Створіть пароль для входу в Hotel OS.</p>
+						<form (submit)="$event.preventDefault(); submitCreateAccount()">
+							<div class="field">
+								<label>Ім'я</label>
+								<input [(ngModel)]="caFirst" name="caFirst" />
+							</div>
+							<div class="field">
+								<label>Прізвище</label>
+								<input [(ngModel)]="caLast" name="caLast" />
+							</div>
+							<div class="field">
+								<label>Email</label>
+								<input [value]="invite.email" disabled />
+							</div>
+							<div class="field">
+								<label>Пароль</label>
+								<div class="pw-wrap">
+									<input
+										[type]="caPassword1Visible() ? 'text' : 'password'"
+										[(ngModel)]="caPassword1"
+										name="caPassword1"
+									/>
+									<button
+										type="button"
+										class="pw-toggle"
+										(click)="togglePasswordVisibility('createAccount')"
+									>
+										{{ caPassword1Visible() ? '🙈' : '👁' }}
+									</button>
+								</div>
+							</div>
+							<div class="pw-reqs">
+								<span [class.ok]="caPasswordChecks().len">Мінімум 8 символів</span>
+								<span [class.ok]="caPasswordChecks().letter">Літера</span>
+								<span [class.ok]="caPasswordChecks().digit">Цифра</span>
+							</div>
+							<div class="field">
+								<label>Повторіть пароль</label>
+								<input type="password" [(ngModel)]="caPassword2" name="caPassword2" />
+							</div>
+							<label class="check-row">
+								<input type="checkbox" [(ngModel)]="caTerms" name="caTerms" />
+								Я погоджуюся з умовами використання та політикою конфіденційності
+							</label>
+							<button class="btn primary" type="submit">Створити акаунт</button>
+						</form>
+					}
+
+					@case ('accountCreated') {
+						<div class="status-icon">✓</div>
+						<h1>Готово</h1>
+						<p class="sub">Ваш доступ до {{ invite.hotel }} активовано.</p>
+						<span class="role-badge">{{ roleLabel[invite.role] }}</span>
+						<button class="btn primary" type="button" (click)="goto('welcome')">Відкрити Hotel OS</button>
+					}
+
+					@case ('welcome') {
+						<h1>
+							Вітаємо в Hotel OS{{ demoRole() === invite.role ? ', ' + welcomeName() : '' }}
+						</h1>
+						<p class="sub">Ви приєдналися до команди {{ invite.hotel }}.</p>
+						<span class="role-badge">{{ roleLabel[demoRole()] }}</span>
+						<p style="font-size: 12.5px; font-weight: 700; color: #3a3a3c; margin-bottom: 6px">
+							Ви можете:
+						</p>
+						<div class="capability-list">
+							@for (item of welcomeCaps().can; track item) {
+								<div class="can">{{ item }}</div>
+							}
+							@if (welcomeCaps().cannot.length) {
+								<p style="font-size: 11px; color: #9b9ca2; margin: 10px 0 2px">Недоступно:</p>
+								@for (item of welcomeCaps().cannot; track item) {
+									<div class="cannot">{{ item }}</div>
+								}
+							}
+						</div>
+						<button class="btn primary" type="button" (click)="openWelcomeCta()">
+							{{ welcomeCaps().cta }}
+						</button>
+					}
+
+					@case ('joinConfirm') {
+						<h1>Приєднатися до {{ invite.hotel }}?</h1>
+						<p class="sub">У вас уже є акаунт Hotel OS. Підтвердіть приєднання до нового готелю.</p>
+						<div class="invite-card">
+							<div class="ic-row"><span>Готель</span><b>{{ invite.hotel }}</b></div>
+							<div class="ic-row"><span>Роль</span><b>{{ roleLabel[invite.role] }}</b></div>
+							<div class="ic-row"><span>Email</span><b>{{ invite.email }}</b></div>
+						</div>
+						<button class="btn primary" type="button" (click)="goto('welcome')">Приєднатися</button>
+						<div class="link-row">
+							<button type="button" (click)="goto('login')">Скасувати</button>
+						</div>
+					}
+
+					@case ('hotelSwitcher') {
+						<h1>Оберіть готель</h1>
+						<p class="sub">Ваш акаунт має доступ до кількох готелів.</p>
+						<div class="hotel-pick" (click)="selectHotel('/dashboard/')">
+							<div><b>Grand Hotel</b><span>Роль: Менеджер</span></div>
+							<span>→</span>
+						</div>
+						<div class="hotel-pick" (click)="selectHotel('/dashboard/')">
+							<div><b>Old Town Hotel</b><span>Роль: Власник</span></div>
+							<span>→</span>
+						</div>
+						<button class="add-hotel" (click)="addHotel()">+ Додати готель</button>
+					}
+
+					@case ('sessionExpired') {
+						<h1>Сесію завершено</h1>
+						<p class="sub">Для безпеки увійдіть ще раз.</p>
+						<form (submit)="$event.preventDefault(); submitLogin()">
+							<div class="field">
+								<label>Email</label>
+								<input
+									type="email"
+									[class.invalid]="loginEmailInvalid()"
+									[(ngModel)]="loginEmail"
+									name="loginEmailSession"
+								/>
+								<div class="field-error" [class.show]="loginEmailInvalid()">
+									Введіть правильну email-адресу.
+								</div>
+							</div>
+							<div class="field">
+								<label>Пароль</label>
+								<div class="pw-wrap">
+									<input
+										[type]="loginPasswordVisible() ? 'text' : 'password'"
+										placeholder="Ваш пароль"
+										[class.invalid]="loginPasswordInvalid()"
+										[(ngModel)]="loginPassword"
+										name="loginPasswordSession"
+									/>
+									<button type="button" class="pw-toggle" (click)="togglePasswordVisibility('login')">
+										{{ loginPasswordVisible() ? '🙈' : '👁' }}
+									</button>
+								</div>
+								<div class="field-error" [class.show]="loginPasswordInvalid()">Введіть пароль.</div>
+							</div>
+							@if (loginError()) {
+								<div class="notice">{{ loginError() }}</div>
+							}
+							<button class="btn primary" type="submit" [disabled]="loginBusy()">
+								{{ loginBusy() ? 'Входимо...' : 'Увійти' }}
+							</button>
+						</form>
+					}
+
+					@case ('accountDisabled') {
+						<div class="status-icon danger">✕</div>
+						<h1>Доступ деактивовано</h1>
+						<p class="sub">Ваш доступ до {{ invite.hotel }} був вимкнений адміністратором.</p>
+						<button class="btn secondary" type="button" (click)="goto('login')">Вийти</button>
+					}
+
+					@case ('noHotelAccess') {
+						<h1>Немає активних готелів</h1>
+						<p class="sub">Ваш акаунт активний, але наразі ви не маєте доступу до жодного готелю.</p>
+						<a class="btn primary" href="/#pricing">Створити готель</a>
+					}
+
+					@case ('rateLimit') {
+						<div class="status-icon gold">!</div>
+						<h1>Забагато спроб входу</h1>
+						<p class="sub">Зачекайте трохи та спробуйте ще раз або відновіть пароль.</p>
+						<button class="btn primary" type="button" (click)="goto('forgot')">Відновити пароль</button>
+					}
+
+					@case ('genericError') {
+						<div class="status-icon danger">✕</div>
+						<h1>Щось пішло не так</h1>
+						<p class="sub">Не вдалося завершити операцію.</p>
+						<button class="btn primary" type="button" (click)="goto('login')">Спробувати ще раз</button>
+						<div class="link-row">
+							<button type="button" (click)="goto('login')">Повернутися до входу</button>
+						</div>
+					}
+				}
+			</div>
+		</div>
+	</div>
+
+	<div class="visual-side">
+		<h2>Менше рутини.<br />Більше контролю над готелем.</h2>
+		<p>Бронювання, гості, оплати, прибирання та комунікація в одному місці.</p>
+		<div class="mock-card">
+			<b>Сьогодні в Grand Hotel</b>
+			<div class="mock-row"><span>Заїздів сьогодні</span><b>7</b></div>
+			<div class="mock-row"><span>Номерів зайнято</span><b>22 / 28</b></div>
+			<div class="mock-row"><span>Дохід сьогодні</span><b>38 400 ₴</b></div>
+			<div class="mock-row"><span>Hotel AI</span><span class="mock-pill">Готово допомогти</span></div>
+		</div>
+	</div>
+</div>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

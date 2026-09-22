@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hotel OS — Увесь готель в одній простій системі</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      try {
+        const storedTheme = localStorage.getItem('hotelos_theme');
+        const theme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch {}
+    </script>
+
+    <meta
+      name="description"
+      content="Hotel OS — бронювання, гості, оплати, прибирання та комунікація в одній простій системі для незалежних готелів."
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#17181c" media="(prefers-color-scheme: dark)" />
+
+    <meta itemprop="name" content="Hotel OS" />
+    <meta
+      itemprop="description"
+      content="Hotel OS — бронювання, гості, оплати, прибирання та комунікація в одній простій системі для незалежних готелів."
+    />
+    <meta itemprop="image" content="https://hotelos.webart.work/logo.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Hotel OS" />
+    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:url" content="https://hotelos.webart.work/" />
+    <meta property="og:title" content="Hotel OS — Увесь готель в одній простій системі" />
+    <meta
+      property="og:description"
+      content="Hotel OS — бронювання, гості, оплати, прибирання та комунікація в одній простій системі для незалежних готелів."
+    />
+    <meta property="og:image" content="https://hotelos.webart.work/logo.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Hotel OS — Увесь готель в одній простій системі" />
+    <meta
+      name="twitter:description"
+      content="Hotel OS — бронювання, гості, оплати, прибирання та комунікація в одній простій системі для незалежних готелів."
+    />
+    <meta name="twitter:image" content="https://hotelos.webart.work/logo.png" />
+    <meta name="twitter:image:src" content="https://hotelos.webart.work/logo.png" />
+
+    <link rel="canonical" href="https://hotelos.webart.work/" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Hotel OS",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "url": "https://hotelos.webart.work/",
+        "image": "https://hotelos.webart.work/logo.png",
+        "description": "Hotel OS — бронювання, гості, оплати, прибирання та комунікація в одній простій системі для незалежних готелів.",
+        "offers": [
+          { "@type": "Offer", "name": "Start", "price": "19", "priceCurrency": "EUR" },
+          { "@type": "Offer", "name": "Small", "price": "39", "priceCurrency": "EUR" },
+          { "@type": "Offer", "name": "Hotel", "price": "69", "priceCurrency": "EUR" }
+        ]
+      }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

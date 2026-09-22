@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><script src="/assets/theme.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Hotel OS — повідомлення. Спілкуйтеся з гостями та контролюйте всю історію комунікації."><title>Повідомлення — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/messages/"><link rel="stylesheet" href="/messages/messages.css"><link rel="stylesheet" href="/assets/theme.css"></head>
+<body>
+<a class="skip" href="#main">Перейти до повідомлень</a>
+<aside class="sidebar" id="sidebar" aria-label="Навігація готелю">
+ <a class="logo" href="/" aria-label="Hotel OS — головна сторінка"><span class="logo-mark">H</span>Hotel <b>OS</b></a>
+ <div class="hotel"><span class="hotel-icon" data-icon="hotel"></span><div><b>Grand Hotel</b><small>Кам’янець-Подільський</small></div><span class="hotel-chevron">⌄</span></div>
+ <span class="nav-label">РОБОЧИЙ ПРОСТІР</span>
+ <nav><a class="nav-item" href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a class="nav-item" href="/calendar/"><span data-icon="calendar"></span>Календар</a><a class="nav-item" href="/guests/"><span data-icon="guests"></span>Гості</a><a class="nav-item" href="/rooms/"><span data-icon="hotel"></span>Номери</a><a class="nav-item" href="/payments/"><span data-icon="wallet"></span>Оплати</a><a class="nav-item" href="/housekeeping/"><span data-icon="clean"></span>Прибирання</a><a class="nav-item active" href="/messages/" aria-current="page"><span data-icon="message"></span>Повідомлення</a><a class="nav-item" href="/automations/"><span data-icon="automation"></span>Автоматизації</a><a class="nav-item" href="/sales/"><span data-icon="chart"></span>Продажі</a><a class="nav-item ai-nav" href="/ai/"><span data-icon="spark"></span>AI-помічник<span class="ai-label">AI</span></a></nav>
+ <div class="sidebar-bottom"><a class="nav-item" href="/team/"><span data-icon="guests"></span>Команда</a><a class="nav-item" href="/settings/"><span data-icon="settings"></span>Налаштування</a><div class="plan-note"><span class="plan-dot"></span><span>Тариф Small<small>Демонстраційний готель</small></span><a href="/#pricing" aria-label="Переглянути тарифи">↗</a></div></div>
+</aside><button class="nav-overlay" aria-label="Закрити навігацію" hidden></button>
+<div class="workspace">
+ <header class="topbar"><a class="topbar-logo" href="/" aria-label="Hotel OS — головна сторінка">H</a><button class="icon-button mobile-menu" aria-label="Відкрити навігацію" aria-expanded="false" aria-controls="sidebar" data-icon="menu"></button><div class="greeting"><b>Повідомлення <span class="greeting-spark">✦</span></b><span>Grand Hotel · Кам’янець-Подільський</span></div><div class="top-actions"><a class="icon-button" aria-label="Пошук" href="/search/" data-icon="search"></a><a class="icon-button notification-button" aria-label="Сповіщення" href="/notifications/"><span data-icon="bell"></span><i></i></a><span class="top-divider"></span><a class="ai-button" href="/ai/"><span data-icon="spark"></span>Hotel AI</a><a class="profile" href="/profile/" aria-label="Профіль">ОК</a></div></header>
+ <main id="main" tabindex="-1">
+  <div class="msg-page">
+   <div class="page-heading"><div><h1>Повідомлення</h1><p>Спілкуйтеся з гостями та контролюйте всю історію комунікації.</p></div><div class="page-actions"><button class="button secondary" id="btn-templates">Шаблони</button><button class="button primary" id="btn-new-message">+ Нове повідомлення</button></div></div>
+  </div>
+
+  <div class="inbox" id="inbox">
+   <div class="conv-list" id="conversation-list">
+    <div class="conv-list-head">
+     <h2>Розмови</h2>
+     <div class="conv-search"><span data-icon="search"></span><input id="conv-search" placeholder="Знайти гостя або бронювання"></div>
+     <div class="conv-filters" id="conv-filters">
+      <button data-filter="all" class="active">Усі</button>
+      <button data-filter="unread">Непрочитані</button>
+      <button data-filter="today">Сьогодні</button>
+      <button data-filter="upcoming">Майбутні заїзди</button>
+      <button data-filter="needsResponse">Потребують відповіді</button>
+     </div>
+     <div class="conv-sort"><select id="sort-select"><option value="activity">Остання активність</option><option value="unread">Непрочитані спочатку</option><option value="arrival">Найближчий заїзд</option></select></div>
+    </div>
+    <div class="conv-items" id="conv-items"></div>
+   </div>
+
+   <div class="conv-active" id="conv-active"></div>
+
+   <div class="context-panel" id="context-panel"></div>
+  </div>
+  <div class="workspace-footer"><span>Hotel OS · Повідомлення</span><span>Демонстраційні дані · 17.09.2026</span><button class="theme-toggle footer-theme-toggle" data-theme-toggle aria-label="Перемкнути тему"><span class="dot"></span><span class="theme-toggle-label"></span></button></div>
+ </main>
+</div>
+
+
+<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/"><span data-icon="calendar"></span>Календар</a><a href="/guests/"><span data-icon="guests"></span>Гості</a><button class="mobile-menu" aria-label="Відкрити меню" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span>Меню</button></div>
+<dialog id="details-dialog"><div class="dialog-head"><span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span><button class="icon-button" data-close aria-label="Закрити вікно" data-icon="close"></button></div><div id="dialog-content"></div></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="/messages/messages.js"></script>
+</body></html>

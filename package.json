@@ -1,0 +1,43 @@
+{
+	"name": "app",
+	"version": "22.0.1",
+	"scripts": {
+		"start": "ng serve",
+		"build": "ng build --configuration=production && node tools/seo/generate-static-seo.mjs"
+	},
+	"dependencies": {
+		"@angular/common": "22.1.2",
+		"@angular/compiler": "22.1.2",
+		"@angular/core": "22.1.2",
+		"@angular/forms": "22.1.2",
+		"@angular/platform-browser": "22.1.2",
+		"@angular/platform-server": "22.1.2",
+		"@angular/router": "22.1.2",
+		"@angular/ssr": "22.1.4",
+		"@wawjs/ngx-default": "22.0.2",
+		"@wawjs/ngx-core": "22.0.3",
+		"@wawjs/ngx-translate": "22.0.3",
+		"@wawjs/ngx-ui": "22.0.3",
+		"express": "5.1.0",
+		"rxjs": "7.8.0",
+		"tslib": "2.3.0"
+	},
+	"devDependencies": {
+		"@angular/compiler-cli": "22.1.2",
+		"@angular/build": "22.1.4",
+		"@angular/cli": "22.1.4",
+		"@tailwindcss/postcss": "4.1.12",
+		"@types/express": "5.0.1",
+		"@types/node": "25.9.3",
+		"postcss": "8.5.26",
+		"prettier": "3.8.1",
+		"tailwindcss": "4.1.12",
+		"ng-packagr": "22.0.0",
+		"typescript": "6.0.3",
+		"vitest": "4.1.8"
+	},
+	"overrides": {
+		"esbuild": "0.28.1",
+		"@hono/node-server": "2.0.11"
+	}
+}

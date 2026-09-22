@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><script src="/assets/theme.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><meta name="description" content="Hotel OS — мій профіль. Особисті дані, пароль, сповіщення та безпека акаунта."><title>Мій профіль — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/profile/"><link rel="stylesheet" href="/profile/profile.css"><link rel="stylesheet" href="/assets/theme.css"></head>
+<body>
+<a class="skip" href="#main">Перейти до профілю</a>
+<aside class="sidebar" id="sidebar" aria-label="Навігація готелю">
+ <a class="logo" href="/" aria-label="Hotel OS — головна сторінка"><span class="logo-mark">H</span>Hotel <b>OS</b></a>
+ <div class="hotel"><span class="hotel-icon" data-icon="hotel"></span><div><b>Grand Hotel</b><small>Кам’янець-Подільський</small></div><span class="hotel-chevron">⌄</span></div>
+ <span class="nav-label">РОБОЧИЙ ПРОСТІР</span>
+ <nav><a class="nav-item" href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a class="nav-item" href="/calendar/"><span data-icon="calendar"></span>Календар</a><a class="nav-item" href="/guests/"><span data-icon="guests"></span>Гості</a><a class="nav-item" href="/rooms/"><span data-icon="hotel"></span>Номери</a><a class="nav-item" href="/payments/"><span data-icon="wallet"></span>Оплати</a><a class="nav-item" href="/housekeeping/"><span data-icon="clean"></span>Прибирання</a><a class="nav-item" href="/messages/"><span data-icon="message"></span>Повідомлення</a><a class="nav-item" href="/automations/"><span data-icon="automation"></span>Автоматизації</a><a class="nav-item" href="/sales/"><span data-icon="chart"></span>Продажі</a><a class="nav-item ai-nav" href="/ai/"><span data-icon="spark"></span>AI-помічник<span class="ai-label">AI</span></a></nav>
+ <div class="sidebar-bottom"><a class="nav-item" href="/team/"><span data-icon="guests"></span>Команда</a><a class="nav-item" href="/settings/"><span data-icon="settings"></span>Налаштування</a><div class="plan-note"><span class="plan-dot"></span><span>Тариф Small<small>Демонстраційний готель</small></span><a href="/#pricing" aria-label="Переглянути тарифи">↗</a></div></div>
+</aside><button class="nav-overlay" aria-label="Закрити навігацію" hidden></button>
+<div class="workspace">
+ <header class="topbar"><a class="topbar-logo" href="/" aria-label="Hotel OS — головна сторінка">H</a><button class="icon-button mobile-menu" aria-label="Відкрити навігацію" aria-expanded="false" aria-controls="sidebar" data-icon="menu"></button><div class="greeting"><b>Мій профіль</b><span>Grand Hotel · Кам’янець-Подільський</span></div><div class="top-actions"><a class="icon-button" aria-label="Пошук" href="/search/" data-icon="search"></a><a class="icon-button notification-button" aria-label="Сповіщення" href="/notifications/"><span data-icon="bell"></span><i></i></a><span class="top-divider"></span><a class="ai-button" href="/ai/"><span data-icon="spark"></span>Hotel AI</a><button class="profile" aria-label="Профіль">ОК</button></div></header>
+ <main id="main" tabindex="-1">
+
+  <div class="page-heading"><h1>Мій профіль</h1><p>Особисті дані, пароль, сповіщення та безпека вашого акаунта.</p></div>
+
+  <div class="profile-header" id="profile-header">
+   <span class="avatar-lg" id="p-avatar">ОК</span>
+   <div>
+    <h2 id="p-name">Олександр Гончар</h2>
+    <div class="role-line">Grand Hotel · Кам’янець-Подільський<span class="role-chip">Власник</span></div>
+   </div>
+  </div>
+
+  <section class="settings-card" id="personal-data">
+   <h2>Особисті дані</h2>
+   <p class="card-sub">Ці дані бачить лише персонал готелю.</p>
+   <div class="field-grid">
+    <div class="field"><label>Ім’я</label><input id="f-first" value="Олександр"></div>
+    <div class="field"><label>Прізвище</label><input id="f-last" value="Гончар"></div>
+    <div class="field"><label>Телефон</label><input id="f-phone" value="+380 67 111 22 33"></div>
+    <div class="field"><label>Email</label><input id="f-email" value="oleksandr@example.com"></div>
+   </div>
+   <button class="button primary" id="btn-save-profile" style="margin-top:18px">Зберегти</button>
+  </section>
+
+  <section class="settings-card" id="password">
+   <h2>Пароль</h2>
+   <p class="card-sub">Пароль бачите лише ви — Hotel OS зберігає лише його захешоване значення.</p>
+   <div class="field-grid">
+    <div class="field full"><label>Поточний пароль</label><input type="password" id="f-pw-current"></div>
+    <div class="field"><label>Новий пароль</label><input type="password" id="f-pw-new"></div>
+    <div class="field"><label>Повторіть новий пароль</label><input type="password" id="f-pw-confirm"></div>
+   </div>
+   <button class="button secondary" id="btn-change-password" style="margin-top:18px">Змінити пароль</button>
+  </section>
+
+  <section class="settings-card" id="notifications">
+   <h2>Сповіщення</h2>
+   <p class="card-sub">Які події надсилати вам особисто.</p>
+   <div class="toggle-row"><div><b>Нове бронювання</b><span class="sub">Коли з’являється нове бронювання</span></div><span class="switch on" data-toggle="notifyBooking"></span></div>
+   <div class="toggle-row"><div><b>Нове повідомлення гостя</b><span class="sub">Коли гість пише в чат</span></div><span class="switch on" data-toggle="notifyMessage"></span></div>
+   <div class="toggle-row"><div><b>Оплата</b><span class="sub">Коли надходить оплата</span></div><span class="switch on" data-toggle="notifyPayment"></span></div>
+   <div class="toggle-row"><div><b>Помилка автоматизації</b><span class="sub">Якщо автоматичне повідомлення не надіслалося</span></div><span class="switch on" data-toggle="notifyAutomation"></span></div>
+   <div class="toggle-row"><div><b>Канал сповіщень</b><span class="sub">Де саме отримувати сповіщення</span></div>
+    <select id="notify-channel" style="border:1px solid #dcdce1;border-radius:7px;background:#fafafa;padding:8px 10px;font-size:12px"><option value="inapp">In-app</option><option value="email">Email</option></select>
+   </div>
+  </section>
+
+  <section class="settings-card" id="security">
+   <h2>Безпека</h2>
+   <div class="info-grid"><dt>Останній вхід</dt><dd>17 вересня 2026 · 08:04</dd><dt>Двофакторна автентифікація</dt><dd>Не налаштовано</dd></div>
+   <div class="notice">Hotel OS ніколи не показує ваш пароль власнику готелю чи іншим працівникам — лише ви можете його змінити.</div>
+   <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="button secondary" id="btn-end-sessions">Завершити всі сесії</button>
+    <button class="button secondary" id="btn-enable-2fa">Увімкнути 2FA</button>
+   </div>
+  </section>
+
+  <section class="settings-card danger-zone" id="logout">
+   <h2>Вийти з акаунта</h2>
+   <p class="card-sub">Завершити поточну сесію на цьому пристрої.</p>
+   <a class="button secondary destructive" href="/login/">Вийти</a>
+  </section>
+
+  <div class="workspace-footer"><span>Hotel OS · Мій профіль</span><span>Демонстраційні дані · 17.09.2026</span><button class="theme-toggle footer-theme-toggle" data-theme-toggle aria-label="Перемкнути тему"><span class="dot"></span><span class="theme-toggle-label"></span></button></div>
+ </main>
+</div>
+
+<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/"><span data-icon="calendar"></span>Календар</a><a href="/guests/"><span data-icon="guests"></span>Гості</a><button class="mobile-menu" aria-label="Відкрити меню" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span>Меню</button></div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="/profile/profile.js"></script>
+</body></html>

@@ -1,0 +1,562 @@
+<app-shell
+	activeNav="overview"
+	[housekeepingBadge]="cleanCount()"
+	greetingTitle="Добрий день, Олександре"
+	greetingSubtitle="Grand Hotel · Кам'янець-Подільський"
+>
+	<div class="page-heading">
+		<div>
+			<div class="breadcrumb">Робочий простір <span>/</span> Огляд</div>
+			<h1>Сьогодні в готелі</h1>
+			<p><app-icon name="calendar" />Четвер, 17 вересня 2026</p>
+		</div>
+		<div class="page-actions">
+			<a class="button secondary" href="/calendar/"><app-icon name="calendar" />Відкрити календар</a>
+			<button class="button primary" (click)="openDialog({ kind: 'new-booking' })">
+				<app-icon name="plus" />Нове бронювання
+			</button>
+		</div>
+	</div>
+
+	<div class="demo-strip">
+		<span><span class="demo-dot"></span>Демонстраційний огляд <span class="demo-extra">· Дані та дії — для ознайомлення · Овербукінгів: 0</span></span>
+		<button (click)="goEmpty()">Новий готель <span>↗</span></button>
+	</div>
+
+	@if (!empty()) {
+		<div class="dashboard-grid">
+			<section class="kpis" aria-label="Показники сьогодні">
+				@for (k of kpis(); track k.label) {
+					<button class="kpi" [class.kpi-warning]="k.warning" (click)="openDialog({ kind: k.view })" [attr.aria-label]="k.label + ': ' + k.value">
+						<div class="kpi-top"><span>{{ k.label }}</span><app-icon [name]="k.icon" /></div>
+						<div class="kpi-value">{{ k.value }}</div>
+						<div class="kpi-sub" [class.kpi-growth]="k.growth">{{ k.sub }}</div>
+						@if (k.progress) {
+							<div class="kpi-progress"><span [style.width.%]="occupancyToday()"></span></div>
+						}
+					</button>
+				}
+			</section>
+
+			<section class="card arrivals-card">
+				<div class="card-heading">
+					<h2><app-icon name="arrival" />Найближчі заїзди <span class="count">{{ arrivals().length }}</span></h2>
+					<button class="text-action" (click)="openDialog({ kind: 'arrivals' })">Всі заїзди <span>↗</span></button>
+				</div>
+				<div class="table-wrap">
+					<table>
+						<thead>
+							<tr><th>Час</th><th>Гість</th><th>Номер</th><th>Гості</th><th>Проживання</th><th>Оплата</th><th>Статус</th><th><span class="sr-only">Деталі</span></th></tr>
+						</thead>
+						<tbody>
+							@for (b of arrivals().slice(0, 3); track b.id) {
+								<tr tabindex="0" role="button" [attr.aria-label]="'Бронювання ' + b.name" (click)="openDialog({ kind: 'booking', id: b.id })">
+									<td class="time-cell">{{ b.time }}</td>
+									<td class="guest-cell"><span class="guest-initials">{{ initials(b.name) }}</span>{{ b.name }}</td>
+									<td class="room-cell">{{ b.room }}</td>
+									<td class="guest-count-cell">{{ b.guests }}</td>
+									<td class="stay-cell">{{ dates(b) }}</td>
+									<td class="payment-cell" [class.paid]="b.paid === b.total" [class.balance]="b.paid !== b.total">
+										{{ b.paid === b.total ? 'Оплачено' : money(b.total - b.paid) + ' залишок' }}
+									</td>
+									<td class="status-cell"><span class="pill" [class.ready]="b.status === 'Заїхав'">{{ b.status }}</span></td>
+									<td class="arrow-cell">›</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+				<div class="card-footer">
+					<span><i class="gold-dot"></i>Перший гість очікується о 13:30</span>
+					<span>Показано 3 з {{ arrivals().length }}</span>
+				</div>
+			</section>
+
+			<section class="card attention-card">
+				<div class="card-heading">
+					<h2><span class="gold-icon"><app-icon name="attention" /></span>Потребує уваги <span class="count gold-count">{{ attentionIssues().length }}</span></h2>
+					<span class="subtle">Сьогодні</span>
+				</div>
+				@if (attentionIssues().length) {
+					@for (issue of attentionIssues(); track issue.title) {
+						<article class="attention-item">
+							<span class="alert-mark"><app-icon [name]="issue.icon" /></span>
+							<div>
+								<h3>{{ issue.title }}</h3>
+								<p [innerHTML]="issue.body"></p>
+								<button
+									class="text-action"
+									(click)="issue.onAction ? issue.onAction() : issue.bookingId ? openDialog({ kind: 'booking', id: issue.bookingId }) : openDialog(issue.view ?? null)"
+								>
+									{{ issue.action }} →
+								</button>
+							</div>
+						</article>
+					}
+				} @else {
+					<div class="attention-success">✓<h3>Все під контролем</h3><p>На сьогодні немає критичних задач.</p></div>
+				}
+			</section>
+
+			<section class="card rooms-card">
+				<div class="card-heading"><h2>Номери</h2><a class="text-action" href="/housekeeping/">Відкрити прибирання ↗</a></div>
+				<div class="room-summary">
+					@for (s of roomSummary(); track s.label) {
+						<div [class.summary-gold]="s.label === 'Потребують прибирання' || s.label === 'Прибирається'">
+							<b>{{ s.count }}</b><span>{{ s.label }}</span>
+						</div>
+					}
+				</div>
+				<div class="room-list">
+					@for (r of roomList(); track r.number) {
+						<div class="room-row" role="button" tabindex="0" [attr.aria-label]="'Номер ' + r.number" (click)="openDialog({ kind: 'housekeeping', number: r.number })">
+							<span class="room-number">{{ r.number }}</span>
+							<div class="room-info"><b>{{ r.status }}</b><small>{{ r.note }}</small></div>
+							<span class="pill" [class.ready]="r.status === 'Готовий'" [class.gold]="r.status === 'Прибирається'">
+								{{ r.status === 'Готовий' ? 'Готовий' : r.status === 'Прибирається' ? 'У роботі' : 'Очікує' }}
+							</span>
+						</div>
+					}
+				</div>
+			</section>
+
+			<section class="card bookings-card">
+				<div class="card-heading"><h2>Нові бронювання</h2><a class="text-action" href="/calendar/">Всі бронювання ↗</a></div>
+				<div>
+					@for (b of newBookings(); track b.id) {
+						<div class="booking-row" role="button" tabindex="0" [attr.aria-label]="'Бронювання ' + b.name" (click)="openDialog({ kind: 'booking', id: b.id })">
+							<span class="guest-initials">{{ initials(b.name) }}</span>
+							<div><h3>{{ b.name }}</h3><p>{{ dates(b) }} · Номер {{ b.room }}</p><span class="source-tag">{{ b.source }}</span></div>
+							<div class="booking-amount"><b>{{ money(b.total) }}</b><small>{{ b.created }}</small></div>
+						</div>
+					}
+				</div>
+			</section>
+
+			<section class="card occupancy-card">
+				<div class="card-heading"><h2>Завантаження</h2><a class="text-action" href="/calendar/">Календар ↗</a></div>
+				<p class="section-subtitle">Наступні 7 днів</p>
+				<div class="occupancy-chart">
+					@for (d of occupancyChart(); track d.day) {
+						<div class="occupancy-day" [class.today]="$index === 0" [attr.aria-label]="d.day + ' вересня, ' + d.value + '%'">
+							<b>{{ d.value }}%</b>
+							<div class="occupancy-track"><span [style.height.%]="d.value"></span></div>
+							<span>{{ d.day }}</span>
+							<small>{{ d.label }}</small>
+						</div>
+					}
+				</div>
+			</section>
+
+			<section class="card sales-card">
+				<div class="card-heading"><h2>Джерела бронювань</h2><span class="period">Цей місяць ⌄</span></div>
+				<div class="sources">
+					@for (s of sources; track s.name) {
+						<div class="source-row">
+							<div><span>{{ s.name }}</span><b>{{ s.value }}%</b></div>
+							<div class="source-bar"><span [style.width.%]="s.value * 2.4"></span></div>
+						</div>
+					}
+				</div>
+				<div class="card-footer"><span><b>42</b> бронювання цього місяця</span><a class="text-action" href="/sales/">Переглянути ↗</a></div>
+			</section>
+
+			<section class="ai-insight">
+				<div class="insight-heading">
+					<span class="insight-icon"><app-icon name="spark" /></span>
+					<span>Hotel AI<small>ВАШ ЩОДЕННИЙ ПОМІЧНИК</small></span>
+					<span class="insight-tag">Огляд дня</span>
+				</div>
+				<h2>Що варто знати сьогодні</h2>
+				<div>
+					<p>Сьогодні у вас високий рівень завантаження — <b>{{ insightText().occupancy }}%.</b></p>
+					<p [innerHTML]="insightText().room204"></p>
+					<p [innerHTML]="insightText().unpaid"></p>
+					<p>На наступні вихідні ще доступно <b>5 номерів.</b></p>
+				</div>
+				<div class="insight-bottom"><span>Менше пошуку. Більше ясності.</span><a href="/ai/">Запитати AI <span>↗</span></a></div>
+			</section>
+
+			<section class="card quick-card">
+				<div class="card-heading"><h2>Швидкі дії</h2></div>
+				<div class="quick-grid">
+					<button (click)="openDialog({ kind: 'new-booking' })"><app-icon name="plus" />Нове бронювання</button>
+					<button (click)="openDialog({ kind: 'add-guest' })"><app-icon name="guests" />Додати гостя</button>
+					<a href="/payments/"><app-icon name="wallet" />Відмітити оплату</a>
+					<a href="/housekeeping/"><app-icon name="clean" />Прибирання</a>
+					<button (click)="openDialog({ kind: 'message-form' })"><app-icon name="message" />Надіслати повідомлення</button>
+					<a href="/calendar/"><app-icon name="calendar" />Відкрити календар</a>
+				</div>
+			</section>
+		</div>
+	} @else {
+		<section class="card empty-state">
+			<div class="empty-icon"><app-icon name="hotel" /></div>
+			<span class="empty-label">НОВИЙ ПОЧАТОК</span>
+			<h2>Ваш Hotel OS готовий до роботи</h2>
+			<p>
+				Додайте номери. Якщо готель уже приймає гостей — перенесіть наявні бронювання перед активацією
+				прямого бронювання, щоб не запропонувати зайняті номери.
+			</p>
+			<div class="empty-actions">
+				<button class="button primary" (click)="openDialog({ kind: 'add-room' })">Додати номери</button>
+				<button class="button secondary" (click)="openDialog({ kind: 'new-booking' })">Створити бронювання</button>
+			</div>
+			<ol>
+				<li class="complete">Готель створено</li>
+				<li [class.complete]="newRoomCount() > 0">{{ newRoomCount() > 0 ? 'Номери додано: ' + newRoomCount() : 'Додайте номери' }}</li>
+				<li>Налаштуйте ціни</li>
+				<li>Перенесіть наявні бронювання та позначте недоступні номери (або «Немає наявних бронювань» для нового готелю)</li>
+				<li [class.complete]="setupBookingDone()">{{ setupBookingDone() ? 'Перше бронювання створено' : 'Створіть перше бронювання (необов’язково, якщо дані вже перенесено)' }}</li>
+				<li>Перевірте сторінку прямого бронювання перед активацією</li>
+			</ol>
+			<button class="text-action" (click)="goPopulated()">Повернутися до демонстраційних даних →</button>
+		</section>
+	}
+</app-shell>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('booking') {
+				@let b = booking(view!.id!);
+				@if (b) {
+					<h2>{{ b.name }}</h2>
+					<p>
+						Бронювання #{{ b.id }} · {{ b.source }}
+						<span class="pill" [class.ready]="b.status === 'Заїхав'">{{ b.status }}</span>
+					</p>
+					<div class="detail-grid">
+						<div><small>Номер</small><b>{{ b.room }}</b></div>
+						<div><small>Гостей</small><b>{{ b.guests }}</b></div>
+						<div><small>Проживання</small><b>{{ dates(b) }}</b></div>
+						<div><small>Загальна сума</small><b>{{ money(b.total) }}</b></div>
+						<div><small>Сплачено</small><b>{{ money(b.paid) }}</b></div>
+						<div><small>Залишок</small><b>{{ money(b.total - b.paid) }}</b></div>
+					</div>
+					<p>Час заїзду: <b>{{ b.time }}</b> · Статус номера: <b>{{ roomFor(b)?.status || 'Готовий' }}</b></p>
+					<div class="dialog-actions">
+						@if (b.paid < b.total) {
+							<button class="button primary" (click)="openDialog({ kind: 'payment-form', id: b.id })">Відмітити оплату</button>
+						}
+						@if (b.status !== 'Заїхав' && b.start === '2026-09-17') {
+							<button class="button secondary" (click)="checkIn(b.id)">Відмітити заїзд</button>
+						}
+						@if (b.time === 'Не уточнено') {
+							<button class="button secondary" (click)="openDialog({ kind: 'confirm-time' })">Уточнити час заїзду</button>
+						}
+						<button class="button secondary" (click)="openDialog({ kind: 'housekeeping', number: b.room })">Переглянути номер</button>
+					</div>
+					<p class="form-note">Зміни демонстраційні та діють до перезавантаження сторінки.</p>
+				}
+			}
+			@case ('arrivals') {
+				<h2>Сьогоднішні заїзди</h2>
+				<p>{{ arrivals().length }} гостей очікуються сьогодні.</p>
+				<div class="result-list">
+					@for (b of arrivals(); track b.id) {
+						<button class="result-item" (click)="openDialog({ kind: 'booking', id: b.id })">
+							<span><b>{{ b.name }}</b><small>#{{ b.id }} · Номер {{ b.room }} · {{ dates(b) }} · {{ b.time }}</small></span>
+							<span>{{ b.paid === b.total ? 'Оплачено' : money(b.total - b.paid) }}</span>
+						</button>
+					}
+				</div>
+			}
+			@case ('bookings') {
+				<h2>Бронювання</h2>
+				<p>Демонстраційні бронювання Grand Hotel.</p>
+				<div class="result-list">
+					@for (b of bookings(); track b.id) {
+						<button class="result-item" (click)="openDialog({ kind: 'booking', id: b.id })">
+							<span><b>{{ b.name }}</b><small>#{{ b.id }} · Номер {{ b.room }} · {{ dates(b) }} · {{ b.time }}</small></span>
+							<span>{{ b.paid === b.total ? 'Оплачено' : money(b.total - b.paid) }}</span>
+						</button>
+					}
+				</div>
+			}
+			@case ('calendar') {
+				<h2>Календар бронювань</h2>
+				<p>17–23 вересня 2026 · Номери та проживання.</p>
+				<div class="calendar-preview">
+					<table>
+						<thead><tr><th>Номер</th>@for (d of [17,18,19,20,21,22,23]; track d) {<th>{{ d }}</th>}</tr></thead>
+						<tbody>
+							@for (n of ['103','107','202','204','205','206','208','209']; track n) {
+								<tr>
+									<td class="room-cell">{{ n }}</td>
+									@for (d of [17,18,19,20,21,22,23]; track d) {
+										@let match = bookingOnDay(n, d);
+										<td [class.occupied]="match" [attr.tabindex]="match ? 0 : null" [attr.role]="match ? 'button' : null" (click)="match && openDialog({ kind: 'booking', id: match.id })">
+											{{ match ? initials(match.name) : '—' }}
+										</td>
+									}
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+				<p class="form-note">Показані бронювання — демонстраційний зріз. Натисніть на зайняту дату для деталей.</p>
+			}
+			@case ('guests') {
+				<h2>Гості</h2>
+				<p>Історія гостей у демонстраційному готелі.</p>
+				<div class="result-list">
+					@for (n of uniqueGuestNames(); track n) {
+						@let bs = guestBookings(n);
+						<div class="result-item">
+							<span><b>{{ n }}</b><small>{{ bs.length }} бронювання · {{ money(bs.reduce((s, b) => s + b.paid, 0)) }} сплачено</small></span>
+							@if (bs.length) {
+								<button class="text-action" (click)="openDialog({ kind: 'booking', id: bs[0].id })">Історія ↗</button>
+							}
+						</div>
+					}
+				</div>
+				<button class="button primary" (click)="openDialog({ kind: 'add-guest' })">Додати гостя</button>
+			}
+			@case ('payments') {
+				<h2>Неоплачені бронювання</h2>
+				<p>{{ unpaid().length }} бронювання · Загальний залишок {{ money(unpaidTotal()) }}</p>
+				@for (b of unpaid(); track b.id) {
+					<div class="payment-entry">
+						<h3>{{ b.name }} <span class="pill gold">#{{ b.id }}</span></h3>
+						<p>Загалом {{ money(b.total) }} · Сплачено {{ money(b.paid) }}<br />Залишок: <b>{{ money(b.total - b.paid) }}</b></p>
+						<button class="button primary" (click)="openDialog({ kind: 'payment-form', id: b.id })">Відмітити оплату</button>
+					</div>
+				} @empty {
+					<p>Усі показані бронювання оплачені ✓</p>
+				}
+				<p class="form-note">Відмітка оплати змінює лише демонстраційні дані. Реальні кошти не списуються.</p>
+			}
+			@case ('payment-form') {
+				@let b = booking(view!.id!);
+				@if (b) {
+					<h2>Відмітити оплату</h2>
+					<p>{{ b.name }} · #{{ b.id }} · Залишок {{ money(b.total - b.paid) }}</p>
+					<form class="demo-form" #paymentForm="ngForm" (ngSubmit)="submitPayment(b.id, amountInput.valueAsNumber)">
+						<label class="full">
+							Сума, ₴
+							<input #amountInput name="amount" type="number" required min="1" [max]="b.total - b.paid" step="1" [value]="b.total - b.paid" />
+						</label>
+						<label class="full">
+							Спосіб оплати
+							<select name="method"><option>Банківський переказ</option><option>Картка</option><option>Готівка</option></select>
+						</label>
+						<p class="full form-note">Лише демонстраційна відмітка. Реальний платіж не здійснюється.</p>
+						<button class="button primary full" type="submit">Підтвердити відмітку</button>
+					</form>
+				}
+			}
+			@case ('housekeeping') {
+				@let number = view!.number;
+				@let pool = empty() ? setupRooms() : rooms();
+				@let list = number ? pool.filter(r => r.number === number) : pool.filter(r => r.status.includes('прибирання') || r.status === 'Прибирається');
+				<h2>{{ number ? 'Номер ' + number : 'Прибирання' }}</h2>
+				<p>Готовність номерів та завдання команди.</p>
+				@for (r of list; track r.number) {
+					<div class="house-detail">
+						<span class="room-number">{{ r.number }}</span>
+						<div><h3>{{ r.status }}</h3><p>{{ r.note || 'Відповідального ще не призначено' }}</p></div>
+						@if (r.status === 'Потребує прибирання') {
+							<button class="button secondary" (click)="startClean(r.number)">Почати прибирання</button>
+						}
+						@if (r.status === 'Прибирається') {
+							<button class="button primary" (click)="markCleanReady(r.number)">Позначити готовим</button>
+						}
+						@if (r.status === 'Готовий') {
+							<span class="pill ready">Готовий ✓</span>
+						}
+					</div>
+				}
+				<p class="form-note">Демонстраційні зміни не передаються працівникам.</p>
+			}
+			@case ('rooms') {
+				<h2>Номери</h2>
+				<p>28 номерів · Статуси готовності</p>
+				<div class="result-list">
+					@for (r of rooms(); track r.number) {
+						<button class="result-item" (click)="openDialog({ kind: 'housekeeping', number: r.number })">
+							<span><b>Номер {{ r.number }}</b><small>{{ r.note || 'Grand Hotel' }}</small></span>
+							<span>{{ r.status }}</span>
+						</button>
+					}
+				</div>
+			}
+			@case ('departures') {
+				<h2>Сьогоднішні виїзди</h2>
+				<p>4 виїзди · {{ departures().filter(d => d.done).length }} вже виїхали</p>
+				<div class="result-list">
+					@for (d of departures(); track d.name; let i = $index) {
+						<div class="result-item">
+							<span><b>{{ d.name }}</b><small>Номер {{ d.room }} · {{ d.time }}</small></span>
+							@if (d.done) {
+								<span class="pill ready">Виїхав</span>
+							} @else {
+								<button class="button secondary" (click)="checkOut(i)">Відмітити виїзд</button>
+							}
+						</div>
+					}
+				</div>
+				<p class="form-note">Після виїзду номер переходить до прибирання.</p>
+			}
+			@case ('messages') {
+				<h2>Повідомлення</h2>
+				<p>Комунікація з гостями</p>
+				<div class="notice">Надсилання повідомлень у цьому демо не підключене.</div>
+				<div class="result-item">
+					<span><b>Ірина Шевченко</b><small>{{ messageDrafted() ? 'Чернетку підготовлено' : 'Потрібно уточнити час заїзду' }}</small></span>
+					<button class="text-action" (click)="openDialog({ kind: 'message-form' })">Відкрити →</button>
+				</div>
+			}
+			@case ('message-form') {
+				<h2>Повідомлення гостю</h2>
+				<p>Ірина Шевченко · Заїзд сьогодні</p>
+				<form class="demo-form" (ngSubmit)="submitMessage(messageInput.value)">
+					<label class="full">
+						Текст повідомлення
+						<textarea #messageInput name="message" required maxlength="1000">Добрий день, Ірино! Чекаємо на вас сьогодні в Grand Hotel. Підкажіть, будь ласка, орієнтовний час вашого прибуття.</textarea>
+					</label>
+					<p class="full form-note">Можна підготувати чернетку. Надсилання гостю не підключене.</p>
+					<button class="button primary full" type="submit">Підготувати чернетку</button>
+				</form>
+			}
+			@case ('confirm-time') {
+				<h2>Уточнити час заїзду</h2>
+				<p>Ірина Шевченко · Вкажіть підтверджений час прибуття.</p>
+				<form class="demo-form" (ngSubmit)="confirmArrivalTime(timeInput.value)">
+					<label class="full">Час заїзду<input #timeInput name="time" type="time" required value="15:00" /></label>
+					<p class="form-note full">Демонстраційна зміна без надсилання гостю.</p>
+					<button class="button primary full" type="submit">Підтвердити час</button>
+				</form>
+			}
+			@case ('automations') {
+				<h2>Автоматизації</h2>
+				<p>Правильне повідомлення у правильний момент.</p>
+				@for (item of [['Після бронювання','Підтвердження бронювання'],['Перед заїздом','Інструкція та деталі прибуття'],['У день заїзду','Інформація про check-in'],['Перед виїздом','Нагадування про check-out'],['Після проживання','Подяка та пропозиція повернутися']]; track item[0]) {
+					<div class="notification-entry"><b>{{ item[0] }}</b><p>{{ item[1] }}</p></div>
+				}
+				<p class="form-note">Приклад сценаріїв. Автоматична відправка не активована.</p>
+			}
+			@case ('sales') {
+				<h2>Джерела бронювань</h2>
+				<p>Цей місяць · 42 бронювання</p>
+				<div class="sources">
+					@for (s of sources; track s.name) {
+						<div class="source-row">
+							<div><span>{{ s.name }}</span><b>{{ s.value }}%</b></div>
+							<div class="source-bar"><span [style.width.%]="s.value * 2.4"></span></div>
+						</div>
+					}
+				</div>
+				<p class="form-note">Аналітика — демонстраційний знімок за вересень.</p>
+			}
+			@case ('revenue') {
+				<h2>Дохід сьогодні</h2>
+				<div class="detail-grid">
+					<div><small>Отримано сьогодні</small><b>{{ money(revenue()) }}</b></div>
+					<div><small>Залишок до оплати</small><b>{{ money(unpaidTotal()) }}</b></div>
+					<div><small>Порівняння</small><b>+12%</b></div>
+				</div>
+				<p>Порівняно з минулим четвергом. Дані демонстраційні.</p>
+				<button class="button secondary" (click)="openDialog({ kind: 'payments' })">Переглянути неоплачені бронювання</button>
+			}
+			@case ('team') {
+				<h2>Команда готелю</h2>
+				<div class="result-list">
+					@for (m of [['Олександр','Власник'],['Марія','Прибирання · Номер 204'],['Оксана','Прибирання · Номер 101']]; track m[0]) {
+						<div class="result-item"><span><b>{{ m[0] }}</b><small>{{ m[1] }}</small></span></div>
+					}
+				</div>
+			}
+			@case ('settings') {
+				<h2>Налаштування</h2>
+				<p>Grand Hotel · Кам'янець-Подільський</p>
+				<div class="detail-grid">
+					<div><small>Номерів</small><b>28</b></div>
+					<div><small>Валюта</small><b>UAH · ₴</b></div>
+					<div><small>Тариф</small><b>Small</b></div>
+				</div>
+				<p class="form-note">Це демонстраційний профіль готелю. Дані відновлюються після перезавантаження.</p>
+				<button class="button secondary" (click)="goEmpty()">Переглянути новий готель</button>
+			}
+			@case ('new-booking') {
+				<h2>Нове бронювання</h2>
+				<p>Створіть бронювання в демонстраційному готелі.</p>
+				<form
+					class="demo-form"
+					(ngSubmit)="
+						submitNewBooking({
+							name: nameInput.value,
+							start: startInput.value,
+							end: endInput.value,
+							room: roomSelect.value,
+							guests: guestsInput.valueAsNumber,
+							time: timeField.value,
+							total: totalInput.valueAsNumber,
+							source: sourceSelect.value
+						})
+					"
+				>
+					<label class="full">Ім'я гостя<input #nameInput name="name" required maxlength="70" placeholder="Ім'я та прізвище" /></label>
+					<label>Заїзд<input #startInput name="start" type="date" required value="2026-09-17" /></label>
+					<label>Виїзд<input #endInput name="end" type="date" required value="2026-09-18" /></label>
+					<label>
+						Номер
+						<select #roomSelect name="room">
+							@for (r of (empty() ? setupRooms() : rooms()); track r.number) {
+								<option [value]="r.number" [selected]="r.number === '101'">{{ r.number }}</option>
+							}
+						</select>
+					</label>
+					<label>Кількість гостей<input #guestsInput name="guests" type="number" required value="2" min="1" max="6" /></label>
+					<label>Час заїзду<input #timeField name="time" type="time" required value="14:00" /></label>
+					<label class="full">Загальна сума, ₴<input #totalInput name="total" type="number" required min="1" max="1000000" value="2400" /></label>
+					<label class="full">
+						Джерело
+						<select #sourceSelect name="source">
+							<option>Пряме бронювання</option><option>Instagram</option><option>Google</option><option>Booking.com</option><option>Телефон</option>
+						</select>
+					</label>
+					<p class="full form-note">Бронювання зберігається лише до перезавантаження сторінки. Контакти реальних гостей вводити не потрібно.</p>
+					@if (formError()) {
+						<p class="full balance" role="alert">{{ formError() }}</p>
+					}
+					<button class="button primary full" type="submit">Створити демонстраційне бронювання</button>
+				</form>
+			}
+			@case ('add-guest') {
+				<h2>Додати гостя</h2>
+				<p>Новий демонстраційний профіль гостя.</p>
+				<form class="demo-form" (ngSubmit)="submitAddGuest(guestNameInput.value, guestNotesInput.value)">
+					<label class="full">Ім'я та прізвище<input #guestNameInput name="name" required maxlength="70" placeholder="Наприклад, Тестовий Гість" /></label>
+					<label class="full">Побажання<textarea #guestNotesInput name="notes" maxlength="500" placeholder="Тихий номер, сніданок..."></textarea></label>
+					<p class="full form-note">Профіль зберігається лише до перезавантаження. Вводьте тестові дані.</p>
+					<button class="button primary full" type="submit">Додати гостя</button>
+				</form>
+			}
+			@case ('add-room') {
+				<h2>Додати номер</h2>
+				<form class="demo-form" (ngSubmit)="submitAddRoom(roomNumberInput.value, roomPriceInput.valueAsNumber)">
+					<label class="full">Номер<input #roomNumberInput name="number" required maxlength="8" placeholder="101" /></label>
+					<label class="full">Ціна за ніч, ₴<input #roomPriceInput name="price" type="number" required min="1" value="1800" /></label>
+					<p class="full form-note">Демонстраційне налаштування нового готелю.</p>
+					<button class="button primary full" type="submit">Додати номер</button>
+				</form>
+			}
+			@case ('room-added') {
+				<h2>Номер {{ view!.number }} додано</h2>
+				<p>Ціна за ніч: {{ money(view!.price!) }}.</p>
+				<p>Налаштування нового готелю — демонстраційне. Дані не зберігаються після перезавантаження.</p>
+				<button class="button primary" (click)="openDialog({ kind: 'new-booking' })">Створити бронювання</button>
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

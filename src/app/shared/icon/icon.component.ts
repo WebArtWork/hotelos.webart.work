@@ -1,0 +1,59 @@
+import { Component, input } from '@angular/core';
+
+/**
+ * Angular view-encapsulation scopes styles per component, so a parent's
+ * `.foo svg { width: 17px }` rule can't reach the <svg> rendered inside this
+ * child component. Consumers size icons via `app-icon { width; height }` on
+ * the host element instead (which does carry the parent's scope attribute).
+ */
+
+const PATHS: Record<string, string> = {
+	overview: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+	hotel: 'M4 21V3h16v18M2 21h20M8 7h1m6 0h1M8 11h1m6 0h1M10 21v-5h4v5',
+	calendar:
+		'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM7 3v4m10-4v4M3 11h18M8 15h1m6 0h1',
+	booking: 'M6 3h12a2 2 0 0 1 2 2v16l-4-2-4 2-4-2-4 2V5a2 2 0 0 1 2-2ZM8 8h8m-8 4h5',
+	guests:
+		'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM17 3a4 4 0 0 1 0 8m5 10v-2a4 4 0 0 0-3-4',
+	wallet: 'M3 7V5a2 2 0 0 1 2-2h14v4M3 7h17a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V7Zm14 5h4v5h-4v-5Z',
+	clean: 'M14 3 8 15m-2-2 9 5m-9-5-4 6 7 3 6-6M18 2v5m-2-2h4',
+	message: 'M21 11a8 8 0 0 1-8 8H7l-5 3 2-6a8 8 0 0 1-1-4 8 8 0 0 1 8-8h2a8 8 0 0 1 8 7ZM8 10h8m-8 4h5',
+	automation: 'M13 2 4 14h7l-1 8 10-13h-7l1-7Z',
+	chart: 'M4 3v18h17M8 17v-4m5 4V7m5 10v-7',
+	spark: 'M12 3 14.5 9.5 21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Zm7-1v4m-2-2h4',
+	settings: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8ZM9 3h6l1 3 3 1 2 5-2 3-1 4-4 2-3-2-4-1-2-4 2-3 1-4 3-1Z',
+	search: 'M21 21 16 16M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z',
+	bell: 'M18 8a6 6 0 0 0-12 0c0 7-3 8-3 8h18s-3-1-3-8ZM10 21h4',
+	menu: 'M3 6h18M3 12h18M3 18h18',
+	close: 'M6 6l12 12M18 6 6 18',
+	plus: 'M12 5v14M5 12h14',
+	arrival: 'M12 3h7v18h-7M3 12h12M11 8l4 4-4 4',
+	departure: 'M12 3H5v18h7M10 12h11m-4-4 4 4-4 4',
+	attention: 'M12 3 2 21h20L12 3Zm0 6v5m0 3v1',
+	send: 'M3 3l18 9-18 9 3-9-3-9Zm3 9h15',
+	check: 'M5 12l4 4L19 6',
+};
+
+@Component({
+	selector: 'app-icon',
+	template: `<svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="path()" /></svg>`,
+	host: {
+		style: 'display: inline-flex; width: 20px; height: 20px; flex-shrink: 0;',
+	},
+	styles: `
+		:host svg {
+			width: 100%;
+			height: 100%;
+			display: block;
+			fill: none;
+			stroke: currentColor;
+			stroke-width: 1.6;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+	`,
+})
+export class IconComponent {
+	readonly name = input.required<string>();
+	protected readonly path = () => PATHS[this.name()] ?? PATHS['overview'];
+}

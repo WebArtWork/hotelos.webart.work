@@ -1,0 +1,91 @@
+<a class="skip" href="#main">Перейти до огляду</a>
+
+<aside class="sidebar" [class.open]="sidebarOpen()" aria-label="Навігація готелю">
+	<a class="logo" href="/" aria-label="Hotel OS — головна сторінка"><span class="logo-mark">H</span>Hotel <b>OS</b></a>
+	<div class="hotel">
+		<span class="hotel-icon"><app-icon name="hotel" /></span>
+		<div><b>Grand Hotel</b><small>Кам'янець-Подільський</small></div>
+		<span class="hotel-chevron">⌄</span>
+	</div>
+	<span class="nav-label">РОБОЧИЙ ПРОСТІР</span>
+	<nav>
+		@for (item of navItems; track item.key) {
+			<a
+				class="nav-item"
+				[class.active]="activeNav() === item.key"
+				[attr.aria-current]="activeNav() === item.key ? 'page' : null"
+				[href]="item.href"
+			>
+				<app-icon [name]="item.icon" />
+				{{ item.label }}
+				@if (item.key === 'housekeeping' && housekeepingBadge()) {
+					<span class="nav-number">{{ housekeepingBadge() }}</span>
+				}
+			</a>
+		}
+	</nav>
+	<div class="sidebar-bottom">
+		<a class="nav-item" href="/team/"><app-icon name="guests" />Команда</a>
+		<a class="nav-item" href="/settings/"><app-icon name="settings" />Налаштування</a>
+		<div class="plan-note">
+			<span class="plan-dot"></span>
+			<span>Тариф Small<small>Демонстраційний готель</small></span>
+			<a href="/#pricing" aria-label="Переглянути тарифи">↗</a>
+		</div>
+	</div>
+</aside>
+<button class="nav-overlay" aria-label="Закрити навігацію" [hidden]="!sidebarOpen()" (click)="closeSidebar()"></button>
+
+<div class="workspace">
+	<header class="topbar">
+		<a class="topbar-logo" href="/" aria-label="Hotel OS — головна сторінка">H</a>
+		<button
+			class="icon-button mobile-menu"
+			aria-label="Відкрити навігацію"
+			[attr.aria-expanded]="sidebarOpen()"
+			aria-controls="sidebar"
+			(click)="toggleSidebar()"
+		>
+			<app-icon name="menu" />
+		</button>
+		<div class="greeting">
+			<b>{{ greetingTitle() }} <span class="greeting-spark">✦</span></b>
+			<span>{{ greetingSubtitle() }}</span>
+		</div>
+		<div class="top-actions">
+			<a class="icon-button" aria-label="Пошук" href="/search/"><app-icon name="search" /></a>
+			<a class="icon-button notification-button" aria-label="Сповіщення, 4 нових" href="/notifications/">
+				<app-icon name="bell" /><i></i>
+			</a>
+			<span class="top-divider"></span>
+			<a class="ai-button" href="/ai/"><app-icon name="spark" />Hotel AI</a>
+			<a class="profile" href="/profile/" aria-label="Профіль Олександра">ОК</a>
+		</div>
+	</header>
+	<main id="main" tabindex="-1">
+		<ng-content />
+		<div class="workspace-footer">
+			<span>Hotel OS · Щоденний центр управління готелем</span>
+			<span>Демонстраційні дані · 17.09.2026</span>
+			<button class="theme-toggle footer-theme-toggle" (click)="toggleTheme()" aria-label="Перемкнути тему">
+				<span class="dot"></span>
+				<span class="theme-toggle-label">{{ isDark() ? 'Темна тема' : 'Світла тема' }}</span>
+			</button>
+		</div>
+	</main>
+</div>
+
+<div class="bottom-nav" aria-label="Мобільна навігація">
+	<a href="/dashboard/" [class.selected]="activeNav() === 'overview'"><app-icon name="overview" />Огляд</a>
+	<a href="/calendar/" [class.selected]="activeNav() === 'calendar'"><app-icon name="calendar" />Календар</a>
+	<a href="/guests/" [class.selected]="activeNav() === 'guests'"><app-icon name="guests" />Гості</a>
+	<button
+		class="mobile-menu"
+		aria-label="Відкрити меню"
+		[attr.aria-expanded]="sidebarOpen()"
+		aria-controls="sidebar"
+		(click)="toggleSidebar()"
+	>
+		<app-icon name="menu" />Меню
+	</button>
+</div>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><script src="/assets/theme.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><meta name="description" content="Hotel OS — вхід до системи."><title>Вхід — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/login/"><link rel="stylesheet" href="/login/login.css"><link rel="stylesheet" href="/assets/theme.css"></head>
+<body>
+<div class="demo-bar" id="demo-controls">
+ <span>Демо: цю сторінку не підключено до реальної автентифікації · Стан:</span>
+ <select id="demo-state">
+  <option value="login">Вхід</option>
+  <option value="forgot">Забули пароль</option>
+  <option value="checkEmail">Перевірте пошту</option>
+  <option value="newPassword">Новий пароль</option>
+  <option value="resetSuccess">Пароль змінено</option>
+  <option value="resetExpired">Посилання не діє</option>
+  <option value="invitation">Запрошення</option>
+  <option value="invitationExpired">Запрошення прострочене</option>
+  <option value="invitationUsed">Запрошення вже використано</option>
+  <option value="invitationCancelled">Запрошення скасовано</option>
+  <option value="createAccount">Створення доступу</option>
+  <option value="accountCreated">Акаунт створено</option>
+  <option value="welcome">Перший вхід (welcome)</option>
+  <option value="joinConfirm">Приєднатися до готелю?</option>
+  <option value="hotelSwitcher">Вибір готелю</option>
+  <option value="sessionExpired">Сесію завершено</option>
+  <option value="accountDisabled">Доступ деактивовано</option>
+  <option value="noHotelAccess">Немає доступу до готелів</option>
+  <option value="rateLimit">Забагато спроб</option>
+  <option value="genericError">Загальна помилка</option>
+ </select>
+ <span>Роль:</span>
+ <select id="demo-role"><option value="reception">Рецепція</option><option value="manager">Менеджер</option><option value="housekeeping">Прибирання</option><option value="owner">Власник</option></select>
+</div>
+
+<div class="shell">
+ <div class="form-side">
+  <div class="form-wrap" id="auth-panel">
+   <a class="brand" href="/"><span class="mark">H</span><span>Hotel <b>OS</b><small>Система управління готелем</small></span></a>
+   <div id="auth-main"></div>
+  </div>
+ </div>
+ <div class="visual-side">
+  <h2>Менше рутини.<br>Більше контролю над готелем.</h2>
+  <p>Бронювання, гості, оплати, прибирання та комунікація в одному місці.</p>
+  <div class="mock-card">
+   <b>Сьогодні в Grand Hotel</b>
+   <div class="mock-row"><span>Заїздів сьогодні</span><b>7</b></div>
+   <div class="mock-row"><span>Номерів зайнято</span><b>22 / 28</b></div>
+   <div class="mock-row"><span>Дохід сьогодні</span><b>38 400 ₴</b></div>
+   <div class="mock-row"><span>Hotel AI</span><span class="mock-pill">Готово допомогти</span></div>
+  </div>
+ </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="/login/login.js"></script>
+</body></html>

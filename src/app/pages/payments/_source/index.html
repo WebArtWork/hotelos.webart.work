@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><script src="/assets/theme.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Hotel OS — оплати. Контролюйте платежі, передоплати, залишки та повернення."><title>Оплати — Hotel OS</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161616'/%3E%3Cpath d='M9 8v16m14-16v16M9 16h14' stroke='%23C5A15A' stroke-width='3'/%3E%3C/svg%3E"><link rel="canonical" href="https://hotelos.webart.work/payments/"><link rel="stylesheet" href="/payments/payments.css"><link rel="stylesheet" href="/assets/theme.css"></head>
+<body>
+<a class="skip" href="#main">Перейти до оплат</a>
+<aside class="sidebar" id="sidebar" aria-label="Навігація готелю">
+ <a class="logo" href="/" aria-label="Hotel OS — головна сторінка"><span class="logo-mark">H</span>Hotel <b>OS</b></a>
+ <div class="hotel"><span class="hotel-icon" data-icon="hotel"></span><div><b>Grand Hotel</b><small>Кам’янець-Подільський</small></div><span class="hotel-chevron">⌄</span></div>
+ <span class="nav-label">РОБОЧИЙ ПРОСТІР</span>
+ <nav><a class="nav-item" href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a class="nav-item" href="/calendar/"><span data-icon="calendar"></span>Календар</a><a class="nav-item" href="/guests/"><span data-icon="guests"></span>Гості</a><a class="nav-item" href="/rooms/"><span data-icon="hotel"></span>Номери</a><a class="nav-item active" href="/payments/" aria-current="page"><span data-icon="wallet"></span>Оплати</a><a class="nav-item" href="/housekeeping/"><span data-icon="clean"></span>Прибирання</a><a class="nav-item" href="/messages/"><span data-icon="message"></span>Повідомлення</a><a class="nav-item" href="/automations/"><span data-icon="automation"></span>Автоматизації</a><a class="nav-item" href="/sales/"><span data-icon="chart"></span>Продажі</a><a class="nav-item ai-nav" href="/ai/"><span data-icon="spark"></span>AI-помічник<span class="ai-label">AI</span></a></nav>
+ <div class="sidebar-bottom"><a class="nav-item" href="/team/"><span data-icon="guests"></span>Команда</a><a class="nav-item" href="/settings/"><span data-icon="settings"></span>Налаштування</a><div class="plan-note"><span class="plan-dot"></span><span>Тариф Small<small>Демонстраційний готель</small></span><a href="/#pricing" aria-label="Переглянути тарифи">↗</a></div></div>
+</aside><button class="nav-overlay" aria-label="Закрити навігацію" hidden></button>
+<div class="workspace">
+ <header class="topbar"><a class="topbar-logo" href="/" aria-label="Hotel OS — головна сторінка">H</a><button class="icon-button mobile-menu" aria-label="Відкрити навігацію" aria-expanded="false" aria-controls="sidebar" data-icon="menu"></button><div class="greeting"><b>Оплати <span class="greeting-spark">✦</span></b><span>Grand Hotel · Кам’янець-Подільський</span></div><div class="top-actions"><a class="icon-button" aria-label="Пошук" href="/search/" data-icon="search"></a><a class="icon-button notification-button" aria-label="Сповіщення" href="/notifications/"><span data-icon="bell"></span><i></i></a><span class="top-divider"></span><a class="ai-button" href="/ai/"><span data-icon="spark"></span>Hotel AI</a><a class="profile" href="/profile/" aria-label="Профіль">ОК</a></div></header>
+ <main id="main" tabindex="-1">
+
+  <div class="page-heading"><div><h1>Оплати</h1><p>Контролюйте платежі, передоплати, залишки та повернення.</p></div><div class="page-actions"><button class="button secondary" id="btn-export">Експорт</button><button class="button primary" id="btn-add-payment">+ Додати оплату</button></div></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="ai-strip" id="ask-ai">
+   <b><span data-icon="spark"></span>Запитати AI про оплати</b>
+   <button class="ai-q" data-ai-q="unpaid">Хто сьогодні ще не оплатив?</button>
+   <button class="ai-q" data-ai-q="today">Скільки грошей ми отримали сьогодні?</button>
+   <button class="ai-q" data-ai-q="debt">Які бронювання мають найбільший борг?</button>
+   <button class="ai-q" data-ai-q="deposits">Скільки передоплат на наступний місяць?</button>
+   <button class="ai-q" data-ai-q="refunds">Скільки повернень було цього місяця?</button>
+  </div>
+  <div id="ai-answer"></div>
+
+  <div class="outstanding-section" id="outstanding-section">
+   <h2>Очікується оплата</h2>
+   <p class="card-sub">Бронювання з неоплаченим залишком.</p>
+   <div class="outstanding-cards" id="outstanding-cards"></div>
+  </div>
+
+  <div class="chart-card" id="monthly-chart">
+   <h2>Оплати цього місяця</h2>
+   <p class="card-sub">1–30 вересня</p>
+   <div class="bar-chart" id="bar-chart"></div>
+   <div class="chart-metrics">
+    <div><b id="mo-received"></b>Отримано</div>
+    <div><b id="mo-refunded"></b>Повернено</div>
+    <div><b id="mo-outstanding"></b>Очікується</div>
+   </div>
+  </div>
+
+  <div class="daily-grid" id="daily-grid"></div>
+
+  <div class="period-row">
+   <select class="plain" id="period-select">
+    <option value="today">Сьогодні</option>
+    <option value="yesterday">Вчора</option>
+    <option value="week">Цей тиждень</option>
+    <option value="month" selected>Цей місяць</option>
+    <option value="lastmonth">Минулий місяць</option>
+    <option value="custom">Власний період</option>
+   </select>
+  </div>
+
+  <div class="tabs" id="tabs">
+   <button data-tab="all" class="active">Усі</button>
+   <button data-tab="pending">Борг за бронюванням</button>
+   <button data-tab="partial">Передоплати отримано (транзакції)</button>
+   <button data-tab="success">Оплачено (транзакції)</button>
+   <button data-tab="refunded">Повернення (транзакції)</button>
+  </div>
+
+  <div class="toolbar-row" id="search-filters">
+   <div class="search-wrap"><span data-icon="search"></span><input id="search-input" placeholder="Гість, бронювання або номер"></div>
+   <div class="filters-wrap">
+    <button class="button secondary" id="filters-toggle">Фільтри</button>
+    <div class="filters-panel" id="filters-panel" hidden>
+     <section><h4>Спосіб оплати</h4>
+      <label><input type="checkbox" value="Готівка" checked>Готівка</label>
+      <label><input type="checkbox" value="Картка на місці" checked>Картка на місці</label>
+      <label><input type="checkbox" value="Банківський переказ" checked>Банківський переказ</label>
+      <label><input type="checkbox" value="Оплата онлайн" checked>Оплата онлайн</label>
+      <label><input type="checkbox" value="Інше" checked>Інше</label>
+     </section>
+     <section><h4>Тип</h4>
+      <label><input type="checkbox" value="Оплата" checked>Оплата</label>
+      <label><input type="checkbox" value="Передоплата" checked>Передоплата</label>
+      <label><input type="checkbox" value="Доплата" checked>Доплата</label>
+      <label><input type="checkbox" value="Повернення" checked>Повернення</label>
+     </section>
+     <div class="filters-actions"><button class="text-action" id="filters-clear">Очистити</button><button class="button primary" id="filters-apply">Застосувати</button></div>
+    </div>
+   </div>
+  </div>
+
+  <div id="empty-state" hidden></div>
+  <div class="table-card" id="payments-table">
+   <div class="table-wrap">
+    <table><thead><tr><th>Дата</th><th>Гість</th><th>Бронювання</th><th>Номер</th><th>Тип</th><th>Спосіб</th><th>Сума</th><th>Статус операції</th></tr></thead><tbody id="payments-tbody"></tbody></table>
+   </div>
+  </div>
+  <div class="payment-cards" id="payment-cards"></div>
+
+  <div class="chart-card" id="upcoming-payments" style="margin-top:22px">
+   <h2>Очікується найближчим часом</h2>
+   <div class="upcoming-row"><span>Сьогодні</span><b id="up-today"></b></div>
+   <div class="upcoming-row"><span>Завтра</span><b id="up-tomorrow"></b></div>
+   <div class="upcoming-row"><span>Наступні 7 днів</span><b id="up-week"></b></div>
+  </div>
+  <div class="workspace-footer"><span>Hotel OS · Оплати</span><span>Демонстраційні дані · 17.09.2026</span><button class="theme-toggle footer-theme-toggle" data-theme-toggle aria-label="Перемкнути тему"><span class="dot"></span><span class="theme-toggle-label"></span></button></div>
+ </main>
+</div>
+
+
+<div class="bottom-nav" aria-label="Мобільна навігація"><a href="/dashboard/"><span data-icon="overview"></span>Огляд</a><a href="/calendar/"><span data-icon="calendar"></span>Календар</a><a href="/guests/"><span data-icon="guests"></span>Гості</a><button class="mobile-menu" aria-label="Відкрити меню" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span>Меню</button></div>
+<div class="side-scrim" id="side-scrim" hidden></div>
+<aside class="side-panel" id="side-panel" aria-label="Деталі оплати">
+ <div class="side-panel-head"><span class="dialog-label">HOTEL OS <span>· ОПЛАТА</span></span><button class="icon-button" id="side-close" aria-label="Закрити" data-icon="close"></button></div>
+ <div class="side-panel-body" id="side-body"></div>
+</aside>
+
+<dialog id="details-dialog"><div class="dialog-head"><span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span><button class="icon-button" data-close aria-label="Закрити вікно" data-icon="close"></button></div><div id="dialog-content"></div></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="/assets/role.js"></script>
+<script src="/payments/payments.js"></script>
+</body></html>
