@@ -18,6 +18,8 @@
 	--gold-border-soft: #e0d4ba;
 
 	display: block;
+	height: 100vh;
+	overflow: hidden;
 	color: var(--ink);
 	background: var(--bg);
 	font: 14px/1.6 Manrope, Arial, sans-serif;
@@ -109,6 +111,30 @@ p {
 	}
 }
 
+.sidebar,
+main {
+	scrollbar-width: thin;
+	scrollbar-color: var(--line) transparent;
+
+	&::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: var(--line);
+		border-radius: 20px;
+		border: 2px solid var(--surface);
+	}
+
+	&::-webkit-scrollbar-thumb:hover {
+		background: var(--silver);
+	}
+}
+
 .sidebar {
 	position: fixed;
 	top: 0;
@@ -120,6 +146,7 @@ p {
 	padding: 28px 17px 18px;
 	display: flex;
 	flex-direction: column;
+	overflow-y: auto;
 	z-index: 20;
 }
 
@@ -304,9 +331,13 @@ p {
 
 .workspace {
 	margin-left: 238px;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
 }
 
 .topbar {
+	flex-shrink: 0;
 	height: 88px;
 	background: var(--surface);
 	border-bottom: 1px solid var(--line);
@@ -315,8 +346,6 @@ p {
 	align-items: center;
 	justify-content: space-between;
 	gap: 20px;
-	position: sticky;
-	top: 0;
 	z-index: 15;
 }
 
@@ -421,9 +450,14 @@ p {
 }
 
 main {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
 	padding: 30px 34px 0;
 	max-width: 1800px;
-	margin: auto;
+	margin-left: auto;
+	margin-right: auto;
+	width: 100%;
 }
 
 .workspace-footer {
