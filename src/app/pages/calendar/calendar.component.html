@@ -1,0 +1,339 @@
+<app-shell activeNav="calendar" greetingTitle="Календар" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="page-heading">
+		<div>
+			<div class="breadcrumb">Робочий простір <span>/</span> Календар</div>
+			<h1>Календар</h1>
+			<p>Усі номери, бронювання та вільні дати в одному місці.</p>
+		</div>
+		<div class="page-actions">
+			<button class="button secondary" (click)="goToday()">Сьогодні</button>
+			<button class="button primary" (click)="openQuickBooking(ROOMS[0].number, TODAY)"><app-icon name="plus" />Нове бронювання</button>
+		</div>
+	</div>
+
+	<div class="cal-toolbar cal-desktop">
+		<div class="cal-nav">
+			<button class="icon-button" aria-label="Попередній період" (click)="prevRange()"><app-icon name="left" /></button>
+			<b>{{ rangeLabel() }}</b>
+			<button class="icon-button" aria-label="Наступний період" (click)="nextRange()"><app-icon name="right" /></button>
+			<div class="cal-views" role="group" aria-label="Кількість днів">
+				<button [class.active]="viewDays() === 7" (click)="setViewDays(7)">7 днів</button>
+				<button [class.active]="viewDays() === 14" (click)="setViewDays(14)">14 днів</button>
+				<button [class.active]="viewDays() === 30" (click)="setViewDays(30)">30 днів</button>
+			</div>
+		</div>
+		<div class="cal-toolbar-right">
+			<div class="cal-search">
+				<app-icon name="search" />
+				<input [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Знайти гостя або бронювання" />
+			</div>
+			<div class="filters-wrap">
+				<button class="button secondary" (click)="toggleFilters()"><app-icon name="filter" />Фільтри</button>
+				@if (filtersOpen()) {
+					<div class="filters-panel">
+						<section>
+							<h4>Статус бронювання</h4>
+							@for (s of [['confirmed','Підтверджено'],['pending','Очікує'],['checkedin','Заїхав'],['cancelled','Скасовано']]; track s[0]) {
+								<label>
+									<input
+										type="checkbox"
+										[checked]="statusFilter().has($any(s[0]))"
+										(change)="toggleStatusFilter($any(s[0]), $any($event.target).checked)"
+									/>{{ s[1] }}
+								</label>
+							}
+						</section>
+						<section>
+							<h4>Тип номера</h4>
+							@for (t of GROUP_ORDER; track t) {
+								<label>
+									<input type="checkbox" [checked]="typeFilter().has(t)" (change)="toggleTypeFilter(t, $any($event.target).checked)" />{{ t }}
+								</label>
+							}
+						</section>
+						<div class="filters-actions">
+							<button class="text-action" (click)="resetFilters()">Очистити</button>
+							<button class="button primary" (click)="filtersOpen.set(false)">Застосувати</button>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+
+	<div class="legend cal-desktop">
+		<span><i class="lg-confirmed"></i>Підтверджено</span>
+		<span><i class="lg-checkedin"></i>Заїхав</span>
+		<span><i class="lg-pending"></i>Очікує</span>
+		<span><i class="lg-cancelled"></i>Скасовано</span>
+		<span><i class="lg-blocked"></i>Недоступно</span>
+	</div>
+
+	<div class="cal-wrap cal-desktop">
+		<div class="cal-grid" [style.grid-template-columns]="'170px repeat(' + dateRange().length + ', minmax(88px,1fr))'">
+			<div class="cal-head-room">НОМЕР</div>
+			@for (d of dateRange(); track d) {
+				<div class="cal-head-cell" [class.weekend]="isWeekend(d)" [class.today]="d === TODAY">
+					{{ dayNum(d) }} {{ weekdayShort(d) }}<small>{{ d === TODAY ? 'Сьогодні' : '' }}</small>
+				</div>
+			}
+			@for (row of gridRows(); track row.row) {
+				@if (row.kind === 'group') {
+					<div class="cal-group-label" [style.grid-row]="row.row">{{ row.label }}</div>
+				} @else {
+					<div class="cal-room-cell" [style.grid-row]="row.row"><b>{{ row.room.number }}</b><span>{{ row.room.type }} · {{ row.room.cap }}</span></div>
+					@for (d of dateRange(); track d; let ci = $index) {
+						<div
+							class="cal-day-cell"
+							[class.weekend]="isWeekend(d)"
+							[class.today]="d === TODAY"
+							[class.has-block]="occupied(row.room.number, d)"
+							[style.grid-row]="row.row"
+							[style.grid-column]="ci + 2"
+							(click)="onDayCellClick(row.room.number, d)"
+							(dragover)="onDragOver($event)"
+							(drop)="onDrop($event, row.room.number, d)"
+						></div>
+					}
+				}
+			}
+			@for (blk of blockedOverlays(); track blk.room + blk.start) {
+				<div class="cal-blocked" [style.grid-row]="blk.row" [style.grid-column]="blk.colStart + ' / ' + blk.colEnd">Недоступно<br />{{ blk.reason }}</div>
+			}
+			@for (blk of bookingBlocks(); track blk.booking.id) {
+				<div
+					class="booking-block"
+					[class]="'status-' + blk.booking.status"
+					[class.selected]="selectedId() === blk.booking.id"
+					[class.match]="blk.match"
+					[attr.draggable]="blk.booking.status !== 'cancelled'"
+					[style.grid-row]="blk.row"
+					[style.grid-column]="blk.colStart + ' / ' + blk.colEnd"
+					tabindex="0"
+					role="button"
+					[attr.aria-label]="'Бронювання ' + blk.booking.name"
+					(click)="openSidePanel(blk.booking.id)"
+					(dragstart)="onDragStart($event, blk.booking.id)"
+					(mouseenter)="showHover($event, blk.booking)"
+					(mouseleave)="hideHover()"
+				>
+					<b>{{ blk.booking.name }}</b>
+					<div class="bb-meta">
+						<span>{{ dayNum(blk.booking.start) }}–{{ dayNum(blk.booking.end) }} · {{ blk.booking.guests }} гост.</span>
+						@if (blk.booking.paid < blk.booking.total && blk.booking.status !== 'cancelled') {
+							<span class="bb-unpaid" title="Не оплачено"></span>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+
+	@if (hover(); as h) {
+		<div class="hover-card" [style.left.px]="h.x" [style.top.px]="h.y">
+			<b>{{ h.booking.name }}</b>
+			<p>Номер {{ h.booking.room }} · {{ roomOf(h.booking.room)?.type }}</p>
+			<p>{{ shortDate(h.booking.start) }} – {{ shortDate(h.booking.end) }}</p>
+			<p>{{ dayDiff(h.booking.start, h.booking.end) }} ночі · {{ h.booking.guests }} гості</p>
+			<div class="hc-amount">{{ money(h.booking.total) }}</div>
+			<p>{{ paymentLabel(h.booking) }}</p>
+			<p>{{ h.booking.source }}</p>
+		</div>
+	}
+
+	<div class="cal-mobile">
+		<div class="mobile-datebar">
+			<button aria-label="Попередній день" (click)="mobilePrev()"><app-icon name="left" /></button>
+			<span>{{ shortDate(mobileDate()) }}</span>
+			<button aria-label="Наступний день" (click)="mobileNext()"><app-icon name="right" /></button>
+		</div>
+		<div class="mobile-tabs">
+			<button [class.active]="mobileDays() === 1" (click)="setMobileDays(1)">День</button>
+			<button [class.active]="mobileDays() === 3" (click)="setMobileDays(3)">3 дні</button>
+		</div>
+		<div>
+			@for (card of mobileRoomCards(); track card.room.number) {
+				<div class="mobile-room-card">
+					@if (card.blocked) {
+						<div class="mrc-head"><b>{{ card.room.number }}</b><span class="pill">Недоступно</span></div>
+						<p>{{ card.blocked.reason }}</p>
+					} @else if (card.booking) {
+						<div class="mrc-head">
+							<b>{{ card.room.number }}</b>
+							<span class="pill" [class.ready]="card.booking.status === 'checkedin'" [class.gold]="card.booking.status === 'pending'">
+								{{ statusLabel(card.booking.status) }}
+							</span>
+						</div>
+						<p class="mrc-guest">{{ card.booking.name }}</p>
+						<p>{{ dayNum(card.booking.start) }}–{{ dayNum(card.booking.end) }} вересня</p>
+						<p>{{ paymentLabel(card.booking) }}</p>
+					} @else {
+						<div class="mrc-head"><b>{{ card.room.number }}</b><span class="pill ready">Вільний</span></div>
+						<p>{{ card.room.type }} · {{ card.room.cap }}</p>
+						<button class="button secondary" (click)="openQuickBooking(card.room.number, mobileDate())">+ Бронювання</button>
+					}
+				</div>
+			}
+		</div>
+	</div>
+</app-shell>
+
+<div class="side-scrim" [hidden]="selectedId() === null" (click)="closeSidePanel()"></div>
+<aside class="side-panel" [class.open]="selectedId() !== null" aria-label="Деталі бронювання">
+	<div class="side-panel-head">
+		<span class="dialog-label">HOTEL OS <span>· БРОНЮВАННЯ</span></span>
+		<button class="icon-button" aria-label="Закрити" (click)="closeSidePanel()"><app-icon name="close" /></button>
+	</div>
+	<div class="side-panel-body">
+		@if (selectedId() !== null) {
+			@let b = booking(selectedId()!);
+			@if (b) {
+				<span class="pill" [class.ready]="b.status === 'checkedin'" [class.gold]="b.status === 'pending'">{{ statusLabel(b.status) }}</span>
+				<h2>{{ b.name }}</h2>
+				<p>{{ b.phone || 'Телефон не вказано' }}{{ b.email ? ' · ' + b.email : '' }}</p>
+				<h5>Проживання</h5>
+				<div class="detail-grid">
+					<div><small>Номер</small><b>{{ b.room }} · {{ roomOf(b.room)?.type }}</b></div>
+					<div><small>Ночей</small><b>{{ dayDiff(b.start, b.end) }}</b></div>
+					<div><small>Гостей</small><b>{{ b.guests }}</b></div>
+				</div>
+				<p>Заїзд: <b>{{ shortDate(b.start) }}, після 14:00</b><br />Виїзд: <b>{{ shortDate(b.end) }}, до 11:00</b></p>
+				<h5>Оплата</h5>
+				<div class="detail-grid">
+					<div><small>Загальна сума</small><b>{{ money(b.total) }}</b></div>
+					<div><small>Оплачено</small><b>{{ money(b.paid) }}</b></div>
+					<div><small>Статус</small><b>{{ paymentLabel(b) }}</b></div>
+				</div>
+				<h5>Джерело</h5>
+				<p>{{ b.source }}</p>
+				<h5>Нотатки</h5>
+				<p>{{ b.notes || 'Нотаток немає.' }}</p>
+				<div class="dialog-actions">
+					<a class="button primary full" href="/booking/">Відкрити бронювання</a>
+					<button class="button secondary" (click)="requestRoomChange()">Змінити номер</button>
+					<button class="button secondary" (click)="dialogView.set({ kind: 'message', bookingId: b.id })">Надіслати повідомлення</button>
+					@if (b.paid < b.total && b.status !== 'cancelled') {
+						<button class="button secondary" (click)="dialogView.set({ kind: 'payment', bookingId: b.id })">Додати оплату</button>
+					}
+					@if (b.status !== 'cancelled') {
+						<button class="button secondary" (click)="cancelBooking(b.id)">Скасувати бронювання</button>
+					}
+				</div>
+			}
+		}
+	</div>
+</aside>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('quick-booking') {
+				<h2>Нове бронювання</h2>
+				<form
+					class="demo-form"
+					(ngSubmit)="
+						submitQuickBooking(view!, {
+							name: nameInput.value,
+							room: roomSelect.value,
+							guests: guestsInput.valueAsNumber,
+							start: startInput.value,
+							end: endInput.value,
+							total: totalInput.valueAsNumber,
+							source: sourceSelect.value,
+							payment: paymentSelect.value
+						})
+					"
+				>
+					<label class="full">Гість<input #nameInput name="name" required maxlength="70" placeholder="Ім'я або телефон" /></label>
+					<label>
+						Номер
+						<select #roomSelect name="room">
+							@for (r of ROOMS; track r.number) {
+								<option [value]="r.number" [selected]="r.number === view!.room">{{ r.number }} · {{ r.type }}</option>
+							}
+						</select>
+					</label>
+					<label>Гостей<input #guestsInput name="guests" type="number" min="1" max="8" value="2" /></label>
+					<label>Заїзд<input #startInput name="start" type="date" required [value]="view!.start" /></label>
+					<label>Виїзд<input #endInput name="end" type="date" required [value]="view!.end" /></label>
+					<label>Ціна, ₴<input #totalInput name="total" type="number" min="1" [value]="basePriceOf(view!.room)" /></label>
+					<label>
+						Джерело
+						<select #sourceSelect name="source">@for (s of SOURCES; track s) {<option>{{ s }}</option>}</select>
+					</label>
+					<label class="full">
+						Оплата
+						<select #paymentSelect name="payment"><option value="0">Не оплачено</option><option value="half">Передоплата</option><option value="full">Оплачено</option></select>
+					</label>
+					@if (formError()) {
+						<p class="full balance" role="alert">{{ formError() }}</p>
+					}
+					<button class="button primary full" type="submit">Створити бронювання</button>
+					<a class="text-action full" style="text-align: center" href="/new-booking/">Відкрити повну форму →</a>
+				</form>
+			}
+			@case ('conflict') {
+				<h2>Ці дати вже зайняті</h2>
+				<p>Номер {{ view!.room }} недоступний {{ shortDate(view!.start) }} – {{ shortDate(view!.end) }}.</p>
+				<div class="result-list">
+					@for (a of alternativesFor(view!.type, view!.start, view!.end, view!.room); track a.number) {
+						<button class="result-item" (click)="pickAlternative(a.number, view!.start)">
+							<span><b>{{ a.number }} · {{ a.type }}</b><small>{{ a.cap }}</small></span>
+							<span>Обрати →</span>
+						</button>
+					} @empty {
+						<p class="form-note">Вільних номерів цього типу немає на ці дати.</p>
+					}
+				</div>
+			}
+			@case ('confirm-move') {
+				@let m = pendingMove();
+				@let b = m ? booking(m.id) : undefined;
+				@if (m && b) {
+					<h2>Перемістити бронювання?</h2>
+					<p>{{ b.name }}</p>
+					<div class="detail-grid">
+						<div><small>Було</small><b>{{ b.room }} · {{ dayNum(b.start) }}–{{ dayNum(b.end) }} вер.</b></div>
+						<div><small>Буде</small><b>{{ m.room }} · {{ dayNum(m.start) }}–{{ dayNum(m.end) }} вер.</b></div>
+						<div><small>Ночей</small><b>{{ dayDiff(b.start, b.end) }}</b></div>
+					</div>
+					<div class="dialog-actions">
+						<button class="button primary" (click)="applyPendingMove()">Підтвердити</button>
+						<button class="button secondary" (click)="closeDialog()">Скасувати</button>
+					</div>
+				}
+			}
+			@case ('message') {
+				@let b = booking(view!.bookingId);
+				@if (b) {
+					<h2>Повідомлення гостю</h2>
+					<p>{{ b.name }}</p>
+					<form class="demo-form" (ngSubmit)="submitMessage()">
+						<label class="full">Текст повідомлення<textarea name="message" required maxlength="500">Добрий день, {{ b.name.split(' ')[0] }}! Чекаємо на вас у Grand Hotel.</textarea></label>
+						<button class="button primary full" type="submit">Підготувати чернетку</button>
+					</form>
+				}
+			}
+			@case ('payment') {
+				@let b = booking(view!.bookingId);
+				@if (b) {
+					<h2>Додати оплату</h2>
+					<p>{{ b.name }} · Залишок {{ money(b.total - b.paid) }}</p>
+					<form class="demo-form" (ngSubmit)="submitPayment(b.id, amountInput.valueAsNumber)">
+						<label class="full">Сума, ₴<input #amountInput name="amount" type="number" required min="1" [max]="b.total - b.paid" [value]="b.total - b.paid" /></label>
+						<button class="button primary full" type="submit">Підтвердити оплату</button>
+					</form>
+				}
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

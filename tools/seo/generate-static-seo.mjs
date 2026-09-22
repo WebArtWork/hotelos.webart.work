@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '../..');
-const outputDirs = [path.join(rootDir, 'public'), path.join(rootDir, 'dist/app/browser')];
+const outputDirs = [path.join(rootDir, 'dist/app/browser')];
 
 const staticRoutes = ['/'];
 

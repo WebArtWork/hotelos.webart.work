@@ -41,6 +41,19 @@ export const routes: Routes = [
 			import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent),
 	},
 	{
+		path: 'calendar',
+		data: {
+			meta: {
+				title: 'Календар — Hotel OS',
+				titleSuffix: '',
+				description: 'Hotel OS — календар. Усі номери, бронювання та вільні дати в одному місці.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () =>
+			import('./pages/calendar/calendar.component').then((m) => m.CalendarComponent),
+	},
+	{
 		path: '**',
 		redirectTo: '',
 	},
