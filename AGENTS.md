@@ -18,6 +18,10 @@ APIs must be imported from `@wawjs/ngx-default`.
   `src/app/feature/company/`
 - Reusable package: `@wawjs/ngx-default`
 - Package guidance: `node_modules/@wawjs/ngx-default/ai/`
+- **CRM business logic source of truth: [`CRM.md`](./CRM.md)** — pages, sections, and role
+  access. Read this before working on roles, permissions, or page access, and before reading
+  page component templates for that purpose. Edit it first when business logic changes, then
+  bring the code in line with it.
 
 ## Package Guidance
 

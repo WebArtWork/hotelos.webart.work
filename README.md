@@ -4,6 +4,12 @@ Modern Angular 22 starter template for building fast landing pages with **SSR pr
 
 This template is optimized for static landing sites where pages are rendered at **build time** for SEO and performance.
 
+## CRM business logic
+
+[`CRM.md`](./CRM.md) is the **source of truth for CRM business logic**: pages, sections, and
+which roles can see what. Read it before touching roles, permissions, or page access — and
+update it first when that logic changes, then bring the code in line with it.
+
 ---
 
 # Acknowledge
