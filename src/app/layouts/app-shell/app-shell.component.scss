@@ -215,6 +215,41 @@ main {
 	color: var(--muted);
 }
 
+.denied-notice {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	background: var(--gold-bg);
+	border: 1px solid var(--gold-border-soft);
+	color: var(--ink);
+	border-radius: 8px;
+	padding: 10px 14px;
+	margin-bottom: 18px;
+	font-size: 12.5px;
+
+	span {
+		flex: 1;
+		min-width: 200px;
+	}
+
+	a {
+		color: var(--gold-text);
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	button {
+		display: inline-flex;
+		color: var(--muted);
+
+		app-icon {
+			width: 14px;
+			height: 14px;
+		}
+	}
+}
+
 .role-badge {
 	display: inline-flex;
 	align-items: center;

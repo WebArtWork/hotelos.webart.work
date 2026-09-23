@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { clearStoredRole, getStoredRole, isPageAllowed, ROLE_LABEL } from '../../shared/role';
+import { clearStoredRole, defaultPageFor, getStoredRole, isPageAllowed, PAGE_LABEL, ROLE_LABEL } from '../../shared/role';
 
 interface NavItem {
 	key: string;
@@ -54,6 +54,8 @@ export class AppShellComponent {
 		return NAV_ITEMS.filter((item) => isPageAllowed(role, item.href.slice(1)));
 	});
 
+	protected readonly deniedNotice = signal(this._readDeniedNotice());
+
 	protected readonly mobileNavItems = computed(() => this.navItems().slice(0, 3));
 
 	protected readonly showTeam = computed(() => {
@@ -74,6 +76,22 @@ export class AppShellComponent {
 
 	protected closeSidebar(): void {
 		this.sidebarOpen.set(false);
+	}
+
+	protected dismissDenied(): void {
+		this.deniedNotice.set(null);
+		this._router.navigate([], { queryParams: { denied: null, missing: null }, queryParamsHandling: 'merge', replaceUrl: true });
+	}
+
+	private _readDeniedNotice(): { text: string; homeLabel: string; home: string } | null {
+		const params = this._router.parseUrl(this._router.url).queryParams;
+		const role = this.role();
+		if (!role || (!params['denied'] && !params['missing'])) return null;
+		const home = defaultPageFor(role);
+		const text = params['denied']
+			? `Розділ «${PAGE_LABEL[params['denied']] ?? params['denied']}» недоступний для ролі «${ROLE_LABEL[role]}». Якщо він потрібен для роботи, зверніться до власника або менеджера.`
+			: `Сторінка «${params['missing']}» ще не доступна в демо.`;
+		return { text, home: '/' + home, homeLabel: PAGE_LABEL[home] ?? home };
 	}
 
 	protected logout(): void {

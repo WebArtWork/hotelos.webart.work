@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { getStoredRole } from '../../shared/role';
+import { canCurrent, getStoredRole } from '../../shared/role';
 
 type RoomStatus = 'occupied' | 'ready' | 'needs-cleaning' | 'cleaning' | 'unavailable';
 
@@ -151,6 +151,14 @@ const statusLabel = (s: RoomStatus | string) =>
 })
 export class RoomsComponent {
 	protected readonly showGuestAndFinance = getStoredRole() !== 'maintenance';
+	protected readonly canEditInventory = canCurrent('editInventory');
+	protected readonly canBlockRoom = canCurrent('blockRoom');
+	protected readonly blockRequested = signal<Record<string, boolean>>({});
+
+	protected requestBlock(number: string): void {
+		this.blockRequested.update((m) => ({ ...m, [number]: true }));
+		this.toast(`Номер ${number}: запит на блокування надіслано менеджеру`);
+	}
 
 	protected readonly TYPE_ORDER = TYPE_ORDER;
 	protected readonly money = money;

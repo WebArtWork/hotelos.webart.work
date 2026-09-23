@@ -49,7 +49,7 @@
 					<div class="alert-row">
 						<span>⚠</span>
 						<span><b>Задачу не призначено</b> · {{ alert.room.number }} · Заїзд о {{ alert.room.nextArrivalTime || '-' }}.</span>
-						<button class="text-action" (click)="openAssign(alert.room.number)">Призначити →</button>
+						@if (canAssign) {<button class="text-action" (click)="openAssign(alert.room.number)">Призначити →</button>}
 					</div>
 				}
 				@case ('long-clean') {
@@ -62,7 +62,7 @@
 					<div class="alert-row warn">
 						<span>⚠</span>
 						<span><b>Є непризначені задачі</b> · {{ alert.count }} номер{{ alert.count === 1 ? '' : 'и' }} потребують прибирання.</span>
-						<button class="text-action" (click)="openDistribute()">Розподілити →</button>
+						@if (canAssign) {<button class="text-action" (click)="openDistribute()">Розподілити →</button>}
 					</div>
 				}
 			}
@@ -226,7 +226,7 @@
 			}
 			<div class="tc-facts">Призначено: <b>{{ r.assigned || 'Не призначено' }}</b></div>
 			<div class="tc-actions">
-				<button class="primary" (click)="$event.stopPropagation(); openAssign(r.number)">Призначити</button>
+				@if (canAssign) {<button class="primary" (click)="$event.stopPropagation(); openAssign(r.number)">Призначити</button>}
 			</div>
 		</div>
 	} @else if (r.status === 'cleaning') {
@@ -317,7 +317,7 @@
 				<div class="dialog-actions">
 					@if (r.status === 'needs-cleaning') {
 						<button class="button primary" (click)="startCleaning(r.number)">Почати прибирання</button>
-						<button class="button secondary" (click)="openAssign(r.number)">Призначити</button>
+						@if (canAssign) {<button class="button secondary" (click)="openAssign(r.number)">Призначити</button>}
 					}
 					@if (r.status === 'cleaning') {
 						<button class="button primary" (click)="openComplete(r.number)">Номер готовий</button>
@@ -428,12 +428,21 @@
 				</form>
 			}
 			@case ('block-followup') {
-				<h2>Позначити номер недоступним?</h2>
-				<p>Номер {{ view!.room }} буде позначений недоступним і заблокований у Календарі. Дія доступна лише Manager / Owner.</p>
-				<div class="dialog-actions">
-					<button class="button primary destructive" (click)="confirmBlock(view!.room)">Позначити недоступним</button>
-					<button class="button secondary" (click)="closeDialog()">Не зараз</button>
-				</div>
+				@if (canBlockRoom) {
+					<h2>Позначити номер недоступним?</h2>
+					<p>Номер {{ view!.room }} буде позначений недоступним і заблокований у Календарі.</p>
+					<div class="dialog-actions">
+						<button class="button primary destructive" (click)="confirmBlock(view!.room)">Позначити недоступним</button>
+						<button class="button secondary" (click)="closeDialog()">Не зараз</button>
+					</div>
+				} @else {
+					<h2>Запросити блокування номера?</h2>
+					<p>Номер {{ view!.room }} заблокує Менеджер або Власник. Запит буде видимим до підтвердження.</p>
+					<div class="dialog-actions">
+						<button class="button primary" (click)="requestBlock(view!.room)">Запросити блокування</button>
+						<button class="button secondary" (click)="closeDialog()">Не зараз</button>
+					</div>
+				}
 			}
 			@case ('complete') {
 				<h2>Позначити номер готовим?</h2>

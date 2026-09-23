@@ -31,6 +31,9 @@
 			<button [class.active]="segment() === 'manager'" (click)="setSegment('manager')">Менеджери</button>
 			<button [class.active]="segment() === 'reception'" (click)="setSegment('reception')">Рецепція</button>
 			<button [class.active]="segment() === 'housekeeping'" (click)="setSegment('housekeeping')">Прибирання</button>
+		<button [class.active]="segment() === 'sales'" (click)="setSegment('sales')">Продажі</button>
+		<button [class.active]="segment() === 'accountant'" (click)="setSegment('accountant')">Бухгалтерія</button>
+		<button [class.active]="segment() === 'maintenance'" (click)="setSegment('maintenance')">Техслужба</button>
 			<button [class.active]="segment() === 'inactive'" (click)="setSegment('inactive')">Неактивні</button>
 		</div>
 	</div>
@@ -153,24 +156,28 @@
 				}
 
 				<h5>Дії</h5>
-				<div class="dialog-actions">
-					<button class="button secondary" (click)="openEdit(e.id)">Редагувати</button>
-					<button class="button secondary" (click)="openChangeRole(e.id)">Змінити роль</button>
-					@if (e.status === 'active') {
-						<button
-							class="button secondary destructive"
-							[disabled]="isLastOwner(e)"
-							[title]="isLastOwner(e) ? 'Готель повинен мати щонайменше одного власника' : ''"
-							(click)="openDeactivate(e.id)"
-						>
-							Деактивувати доступ
-						</button>
-					} @else {
-						<button class="button primary" (click)="reactivate(e.id)">Відновити доступ</button>
-					}
-				</div>
+				@if (canManage(e)) {
+					<div class="dialog-actions">
+						<button class="button secondary" (click)="openEdit(e.id)">Редагувати</button>
+						<button class="button secondary" [disabled]="isLastOwner(e)" (click)="openChangeRole(e.id)">Змінити роль</button>
+						@if (e.status === 'active') {
+							<button
+								class="button secondary destructive"
+								[disabled]="isLastOwner(e)"
+								[title]="isLastOwner(e) ? 'Готель повинен мати щонайменше одного власника' : ''"
+								(click)="openDeactivate(e.id)"
+							>
+								Деактивувати доступ
+							</button>
+						} @else {
+							<button class="button primary" (click)="reactivate(e.id)">Відновити доступ</button>
+						}
+					</div>
+				} @else {
+					<p class="form-note">Керувати цим працівником може лише Власник.</p>
+				}
 
-				@if (e.role !== 'owner' && permsFor(e).length) {
+				@if (e.role !== 'owner' && canManage(e) && permsFor(e).length) {
 					<h5>Дозволи</h5>
 					@for (p of permsFor(e); track p[0]) {
 						<div class="toggle-row">
@@ -224,12 +231,14 @@
 					<label class="full">
 						Роль
 						<select #roleSelect name="role">
-							<option value="manager">Менеджер</option>
-							<option value="reception">Рецепція</option>
-							<option value="housekeeping">Прибирання</option>
+							@for (r of ASSIGNABLE_ROLES; track r) {
+								<option [value]="r">{{ ROLES[r].label }}</option>
+							}
 						</select>
 					</label>
-					<p class="full form-note">Роль «Власник» не призначається через цю форму.</p>
+					<p class="full form-note">
+						Роль «Власник» не призначається через цю форму.{{ viewerRole === 'manager' ? ' Менеджер не може надати доступ рівня менеджера.' : '' }}
+					</p>
 					<button class="button primary full" type="submit">Далі</button>
 				</form>
 			}
@@ -263,14 +272,13 @@
 					<thead>
 						<tr>
 							<th>Функція</th>
-							<th>Власник</th>
-							<th>Менеджер</th>
-							<th>Рецепція</th>
-							<th>Прибирання</th>
+							@for (r of MATRIX_ROLES; track r) {
+								<th>{{ ROLES[r].label }}</th>
+							}
 						</tr>
 					</thead>
 					<tbody>
-						@for (row of MATRIX; track row[0]) {
+						@for (row of MATRIX_PAGES; track row[0]) {
 							<tr>
 								<td>{{ row[0] }}</td>
 								@for (r of MATRIX_ROLES; track r) {

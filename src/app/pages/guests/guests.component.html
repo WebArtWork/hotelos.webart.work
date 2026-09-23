@@ -5,7 +5,7 @@
 			<p>Усі гості та історія їхніх проживань в одному місці.</p>
 		</div>
 		<div class="page-actions">
-			<button class="button secondary" (click)="exportGuests()">Експорт</button>
+			@if (canBulk) {<button class="button secondary" (click)="exportGuests()">Експорт</button>}
 			<button class="button primary" (click)="openAddGuest()">+ Додати гостя</button>
 		</div>
 	</div>
@@ -98,7 +98,7 @@
 			<span class="bulk-scope-note">Вибір зберігається при зміні фільтрів</span>
 			<button (click)="openBulkTag()">Додати тег</button>
 			<button (click)="openBulkMessage()">Надіслати повідомлення</button>
-			<button (click)="bulkExport()">Експорт</button>
+			@if (canBulk) {<button (click)="bulkExport()">Експорт</button>}
 		</div>
 	}
 
@@ -164,8 +164,8 @@
 											<button (click)="closeRowMenu(); openMessage(g.id)">Надіслати повідомлення</button>
 											<button (click)="closeRowMenu(); openNote(g.id)">Додати нотатку</button>
 											<button (click)="closeRowMenu(); openEdit(g.id)">Редагувати</button>
-											<button (click)="closeRowMenu(); openMerge(g.id)">Об’єднати дублікати</button>
-											<button class="destructive" (click)="closeRowMenu(); openDelete(g.id)">Видалити</button>
+											@if (canBulk) {<button (click)="closeRowMenu(); openMerge(g.id)">Об’єднати дублікати</button>
+											<button class="destructive" (click)="closeRowMenu(); openDelete(g.id)">Видалити</button>}
 										</div>
 									}
 								</td>

@@ -21,12 +21,75 @@ export const ROLE_PAGES: Record<Role, string[]> = {
 	maintenance: ['rooms', 'housekeeping', 'ai'],
 };
 
+/** Explicit home screen per role (CRM.md → People, roles and home screens). Used by login and denied-route fallback. */
+export const ROLE_HOME: Record<Role, string> = {
+	owner: 'dashboard',
+	manager: 'dashboard',
+	reception: 'dashboard',
+	housekeeping: 'housekeeping',
+	sales: 'sales',
+	accountant: 'payments',
+	maintenance: 'rooms',
+};
+
+export const PAGE_LABEL: Record<string, string> = {
+	dashboard: 'Огляд',
+	calendar: 'Календар',
+	guests: 'Гості',
+	rooms: 'Номери',
+	payments: 'Оплати',
+	housekeeping: 'Прибирання',
+	messages: 'Повідомлення',
+	automations: 'Автоматизації',
+	sales: 'Продажі',
+	ai: 'AI-помічник',
+	team: 'Команда',
+	settings: 'Налаштування',
+};
+
 export function isPageAllowed(role: Role, path: string): boolean {
 	return ROLE_PAGES[role].includes(path);
 }
 
 export function defaultPageFor(role: Role): string {
-	return ROLE_PAGES[role][0];
+	return ROLE_HOME[role];
+}
+
+/** Action authority, separate from page visibility (CRM.md → Data visibility is separate from action authority). */
+export type Capability =
+	| 'guestBill'
+	| 'financeReports'
+	| 'salesAnalytics'
+	| 'collectPayment'
+	| 'refundPayment'
+	| 'changeBooking'
+	| 'editInventory'
+	| 'blockRoom'
+	| 'assignCleaning'
+	| 'guestBulk'
+	| 'manageTeam';
+
+const CAPABILITIES: Record<Capability, Role[]> = {
+	guestBill: ['owner', 'manager', 'reception', 'accountant'],
+	financeReports: ['owner', 'manager', 'accountant'],
+	salesAnalytics: ['owner', 'manager', 'sales'],
+	collectPayment: ['owner', 'manager', 'reception', 'accountant'],
+	refundPayment: ['owner', 'manager', 'accountant'],
+	changeBooking: ['owner', 'manager', 'reception'],
+	editInventory: ['owner', 'manager'],
+	blockRoom: ['owner', 'manager'],
+	assignCleaning: ['owner', 'manager'],
+	guestBulk: ['owner', 'manager'],
+	manageTeam: ['owner', 'manager'],
+};
+
+export function can(role: Role | null, capability: Capability): boolean {
+	return !!role && CAPABILITIES[capability].includes(role);
+}
+
+/** Capability check for the current session role. */
+export function canCurrent(capability: Capability): boolean {
+	return can(getStoredRole(), capability);
 }
 
 const ROLE_KEY = 'hotelos_role';

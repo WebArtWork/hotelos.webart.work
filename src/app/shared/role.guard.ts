@@ -13,7 +13,7 @@ export const roleGuard: CanActivateFn = (route) => {
 
 	const path = route.routeConfig?.path ?? '';
 	if (!isPageAllowed(role, path)) {
-		return router.parseUrl('/' + defaultPageFor(role));
+		return router.createUrlTree(['/' + defaultPageFor(role)], { queryParams: { denied: path } });
 	}
 
 	return true;

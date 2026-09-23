@@ -2,7 +2,7 @@ import { Component, computed, ElementRef, effect, signal, viewChild } from '@ang
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { getStoredRole } from '../../shared/role';
+import { canCurrent } from '../../shared/role';
 
 type PaymentType = 'Оплата' | 'Передоплата' | 'Доплата' | 'Повернення';
 type PaymentStatus = 'success' | 'refunded';
@@ -95,7 +95,9 @@ const outstandingStatusLabel = (o: Outstanding) =>
 	styleUrl: './payments.component.scss',
 })
 export class PaymentsComponent {
-	protected readonly showReports = getStoredRole() !== 'reception';
+	protected readonly showReports = canCurrent('financeReports');
+	protected readonly canRefund = canCurrent('refundPayment');
+	protected readonly pendingApproval = signal<Record<number, string>>({});
 
 	protected readonly TODAY = TODAY;
 	protected readonly METHODS = METHODS;
@@ -279,12 +281,19 @@ export class PaymentsComponent {
 		this.dialogView.set({ kind: 'add-payment', forcedBookingId });
 	}
 
+	protected requestApproval(id: number, what: string): void {
+		this.pendingApproval.update((m) => ({ ...m, [id]: what }));
+		this.toast(`Запит на ${what} надіслано менеджеру`);
+	}
+
 	protected openRefund(id: number): void {
+		if (!this.canRefund) return;
 		this.closeSidePanel();
 		this.dialogView.set({ kind: 'refund', paymentId: id });
 	}
 
 	protected openReassign(id: number): void {
+		if (!this.canRefund) return;
 		this.closeSidePanel();
 		this.dialogView.set({ kind: 'reassign', paymentId: id });
 	}

@@ -20,6 +20,7 @@
 			<button class="clear-chat-btn" aria-label="Очистити чат" (click)="clearChat()"><app-icon name="close" />Очистити чат</button>
 	<div class="chat-scroll" #chatScrollEl>
 		@if (!hasMessages()) {
+			@if (showBrief) {
 			<div class="brief-card">
 				<b class="title"><app-icon name="spark" />Ранковий огляд</b>
 				<h2>Сьогодні у вас:</h2>
@@ -33,6 +34,7 @@
 				<div class="attn">Потребує уваги: номер 204 ще прибирається, а наступний гість очікується о 13:30. Бронювання #1847 має залишок 1 200 ₴.</div>
 				<button (click)="openUnderDevelopment()">Відкрити деталі</button>
 			</div>
+			}
 			<div class="welcome">
 				<span class="ai-label">HOTEL AI</span>
 				<h2>Що хочете дізнатися про ваш готель?</h2>

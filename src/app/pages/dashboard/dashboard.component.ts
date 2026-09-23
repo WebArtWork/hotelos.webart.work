@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { getStoredRole } from '../../shared/role';
+import { canCurrent } from '../../shared/role';
 
 interface Booking {
 	id: number;
@@ -133,7 +133,8 @@ const OCCUPANCY_BASE = [79, 86, 93, 93, 71, 64, 68];
 	styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
-	protected readonly showSalesCard = getStoredRole() !== 'reception';
+	protected readonly showSalesCard = canCurrent('salesAnalytics');
+	protected readonly showFinanceReports = canCurrent('financeReports');
 
 	protected readonly money = money;
 	protected readonly initials = initials;
@@ -215,16 +216,27 @@ export class DashboardComponent {
 				growth: false,
 				progress: false,
 			},
-			{
-				icon: 'chart',
-				value: money(this.revenue()),
-				label: 'Дохід сьогодні',
-				sub: '+12% до минулого четверга',
-				view: 'revenue' as const,
-				warning: false,
-				growth: true,
-				progress: false,
-			},
+			this.showFinanceReports
+				? {
+						icon: 'chart',
+						value: money(this.revenue()),
+						label: 'Надходження сьогодні',
+						sub: '+12% до минулого четверга',
+						view: 'revenue' as const,
+						warning: false,
+						growth: true,
+						progress: false,
+					}
+				: {
+						icon: 'wallet',
+						value: money(this.revenue()),
+						label: 'Зібрано за зміну',
+						sub: 'Оплати, прийняті на рецепції',
+						view: 'payments' as const,
+						warning: false,
+						growth: false,
+						progress: false,
+					},
 		];
 	});
 

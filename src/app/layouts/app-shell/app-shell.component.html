@@ -74,6 +74,13 @@
 		</div>
 	</header>
 	<main id="main" tabindex="-1">
+		@if (deniedNotice(); as n) {
+			<div class="denied-notice" role="status">
+				<span>{{ n.text }}</span>
+				<a [routerLink]="n.home" (click)="dismissDenied()">Перейти до «{{ n.homeLabel }}»</a>
+				<button type="button" aria-label="Закрити" (click)="dismissDenied()"><app-icon name="close" /></button>
+			</div>
+		}
 		<ng-content />
 	</main>
 </div>

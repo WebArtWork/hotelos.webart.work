@@ -2,6 +2,7 @@ import { Component, computed, ElementRef, effect, signal, viewChild } from '@ang
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { canCurrent } from '../../shared/role';
 
 type Category = 'Direct' | 'OTA' | 'Social' | 'Offline' | 'Other';
 
@@ -111,6 +112,9 @@ const AI_ANSWERS: Record<string, string> = {
 	styleUrl: './sales.component.scss',
 })
 export class SalesComponent {
+	/** Payment/refund reconciliation stays with finance roles; Sales sees aggregate booking value only. */
+	protected readonly showReconciliation = canCurrent('financeReports');
+
 	protected readonly SOURCES = SOURCES;
 	protected readonly DIRECT_TREND = DIRECT_TREND;
 	protected readonly RETURN_SOURCES = RETURN_SOURCES;

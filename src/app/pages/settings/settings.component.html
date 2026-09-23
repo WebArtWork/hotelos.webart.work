@@ -5,12 +5,6 @@
 			<p>Керуйте інформацією про готель, правилами та поведінкою Hotel OS.</p>
 		</div>
 		<div class="page-actions">
-			<select class="role-select" aria-label="Роль для демонстрації" [ngModel]="role()" (ngModelChange)="onRoleChange($event)">
-				<option value="owner">Owner</option>
-				<option value="manager">Manager</option>
-				<option value="reception">Reception</option>
-				<option value="housekeeping">Housekeeping</option>
-			</select>
 			<span class="save-status" [class.dirty]="dirty()">{{ dirty() ? 'Є незбережені зміни' : 'Зміни збережено' }}</span>
 			<button class="button primary" [disabled]="!dirty()" (click)="saveChanges()">Зберегти</button>
 		</div>

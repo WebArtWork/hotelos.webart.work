@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { getStoredRole, isPageAllowed } from '../../shared/role';
+import { canCurrent, getStoredRole, isPageAllowed } from '../../shared/role';
 
 type Status = 'needs-cleaning' | 'cleaning' | 'ready' | 'occupied';
 type Priority = 'critical' | 'high' | 'normal' | 'low' | null;
@@ -232,6 +232,8 @@ export class HousekeepingComponent {
 		const role = getStoredRole();
 		return !role || isPageAllowed(role, 'team');
 	})();
+	protected readonly canAssign = canCurrent('assignCleaning');
+	protected readonly canBlockRoom = canCurrent('blockRoom');
 	protected readonly STAFF_LIST = STAFF_LIST;
 	protected readonly CHECKLIST = CHECKLIST;
 	protected readonly ISSUE_TYPES = ISSUE_TYPES;
@@ -498,6 +500,7 @@ export class HousekeepingComponent {
 	}
 
 	protected openAssign(number: string): void {
+		if (!this.canAssign) return;
 		this.dialogView.set({ kind: 'assign', room: number });
 	}
 
@@ -514,6 +517,7 @@ export class HousekeepingComponent {
 	}
 
 	protected openDistribute(): void {
+		if (!this.canAssign) return;
 		this.dialogView.set({ kind: 'distribute' });
 	}
 
@@ -539,7 +543,13 @@ export class HousekeepingComponent {
 		this.toast('Номер ' + number + ' готовий');
 	}
 
+	protected requestBlock(number: string): void {
+		this.closeDialog();
+		this.toast(`Номер ${number}: запит на блокування надіслано менеджеру`);
+	}
+
 	protected confirmBlock(number: string): void {
+		if (!this.canBlockRoom) return;
 		this.closeDialog();
 		this.toast('Номер позначено недоступним · Демо');
 	}

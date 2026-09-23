@@ -3,8 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { getStoredRole, ROLE_PAGES, type Role } from '../../shared/role';
 
-type Role = 'owner' | 'manager' | 'reception' | 'housekeeping';
 type Status = 'active' | 'invited' | 'deactivated';
 type Segment = 'all' | Role | 'inactive';
 
@@ -119,24 +119,45 @@ const ROLES: Record<Role, RoleInfo> = {
 		desc: 'Бачить лише інформацію, необхідну для підготовки номерів.',
 		access: ['Мої задачі', 'Прибирання', 'базова інформація про номери'],
 	},
+	sales: {
+		label: 'Продажі / Маркетинг',
+		desc: 'Запити, пропозиції, доступність та агрегована аналітика каналів.',
+		access: ['Calendar (без платежів гостей)', 'Продажі', 'AI (обмежено)'],
+	},
+	accountant: {
+		label: 'Бухгалтер',
+		desc: 'Оплати, звірка та перегляд підтвердних документів бронювань.',
+		access: ['Оплати', 'Звірка', 'AI (обмежено)'],
+	},
+	maintenance: {
+		label: 'Технічне обслуговування',
+		desc: 'Черга ремонтів без даних гостей та цін.',
+		access: ['Номери (технічний стан)', 'Прибирання (ремонти)', 'AI (обмежено)'],
+	},
 };
 
-const MATRIX: [string, string][] = [
-	['Dashboard', 'owner,manager,reception'],
-	['Calendar', 'owner,manager,reception'],
-	['Бронювання', 'owner,manager,reception'],
-	['Гості', 'owner,manager,reception'],
-	['Оплати', 'owner,manager,reception'],
-	['Прибирання', 'owner,manager,reception,housekeeping'],
-	['Повідомлення', 'owner,manager,reception'],
-	['Автоматизації', 'owner,manager'],
-	['Продажі', 'owner,manager'],
-	['AI', 'owner,manager,reception,housekeeping:обмежено'],
-	['Команда', 'owner,manager:optional'],
-	['Налаштування', 'owner,manager:optional'],
+const MATRIX_PAGES: [string, string][] = [
+	['Dashboard', 'dashboard'],
+	['Calendar', 'calendar'],
+	['Гості', 'guests'],
+	['Номери', 'rooms'],
+	['Оплати', 'payments'],
+	['Прибирання', 'housekeeping'],
+	['Повідомлення', 'messages'],
+	['Автоматизації', 'automations'],
+	['Продажі', 'sales'],
+	['AI', 'ai'],
+	['Команда', 'team'],
+	['Налаштування', 'settings'],
 ];
 
-const MATRIX_ROLES: Role[] = ['owner', 'manager', 'reception', 'housekeeping'];
+const MATRIX_ROLES: Role[] = ['owner', 'manager', 'reception', 'housekeeping', 'sales', 'accountant', 'maintenance'];
+
+/** Roles a viewer may assign. Owner is never assignable here; Manager cannot grant Manager-level access. */
+const ASSIGNABLE_BY: Partial<Record<Role, Role[]>> = {
+	owner: ['manager', 'reception', 'housekeeping', 'sales', 'accountant', 'maintenance'],
+	manager: ['reception', 'housekeeping', 'sales', 'accountant', 'maintenance'],
+};
 
 const SEED_EMPLOYEES: Employee[] = [
 	{
@@ -191,7 +212,7 @@ const SEED_EMPLOYEES: Employee[] = [
 			{ time: '12:58', text: 'Змінила номер у бронюванні #1841' },
 			{ time: '11:20', text: 'Додала оплату 800 ₴' },
 		],
-		perms: { canSeeFinance: false, canCancelBooking: false },
+		perms: { canCancelBooking: false },
 	},
 	{
 		id: 4,
@@ -209,7 +230,7 @@ const SEED_EMPLOYEES: Employee[] = [
 			{ time: '12:20', text: 'Розпочала прибирання номера 207' },
 			{ time: '11:41', text: 'Завершила прибирання номера 103' },
 		],
-		perms: {},
+		perms: { canSupervise: true },
 	},
 	{
 		id: 5,
@@ -239,7 +260,49 @@ const SEED_EMPLOYEES: Employee[] = [
 		online: false,
 		shift: '20:00–08:00',
 		activity: [{ time: '20:40', text: 'Заселив Олега Бондаря' }],
-		perms: { canSeeFinance: false, canCancelBooking: false },
+		perms: { canCancelBooking: false },
+	},
+	{
+		id: 8,
+		first: 'Андрій',
+		last: 'Литвин',
+		email: 'andrii@example.com',
+		phone: '+380 67 777 88 99',
+		role: 'sales',
+		status: 'active',
+		joined: '10 серпня 2026',
+		lastActivity: '1 год тому',
+		online: true,
+		activity: [{ time: '14:05', text: 'Підготував пропозицію для запиту від Instagram' }],
+		perms: {},
+	},
+	{
+		id: 9,
+		first: 'Наталія',
+		last: 'Кравець',
+		email: 'natalia@example.com',
+		phone: '+380 50 888 99 00',
+		role: 'accountant',
+		status: 'active',
+		joined: '1 вересня 2026',
+		lastActivity: 'сьогодні · 10:12',
+		online: false,
+		activity: [{ time: '10:12', text: 'Позначила розбіжність у платежі #P-2291' }],
+		perms: { canRefund: true },
+	},
+	{
+		id: 10,
+		first: 'Сергій',
+		last: 'Бойко',
+		email: 'serhii@example.com',
+		phone: '+380 63 999 00 11',
+		role: 'maintenance',
+		status: 'active',
+		joined: '15 серпня 2026',
+		lastActivity: '25 хв тому',
+		online: true,
+		activity: [{ time: '14:50', text: 'Взяв у роботу кондиціонер у номері 56' }],
+		perms: {},
 	},
 	{
 		id: 7,
@@ -272,11 +335,11 @@ const PERM_MAP: Record<Role, [string, string][]> = {
 		['canManageTeam', 'Може керувати командою'],
 		['canEditSettings', 'Може змінювати налаштування'],
 	],
-	reception: [
-		['canSeeFinance', 'Може бачити фінансові показники'],
-		['canCancelBooking', 'Може скасовувати бронювання'],
-	],
-	housekeeping: [],
+	reception: [['canCancelBooking', 'Може скасовувати бронювання']],
+	housekeeping: [['canSupervise', 'Супервайзер прибирання: призначає та перевіряє']],
+	sales: [['canChangeBookings', 'Може змінювати бронювання поза своїми запитами']],
+	accountant: [['canRefund', 'Може здійснювати повернення та перерозподіл']],
+	maintenance: [],
 };
 
 const NOTIF_OPTS: [string, string][] = [
@@ -290,8 +353,8 @@ const NOTIF_OPTS: [string, string][] = [
 const defaultNotif = (role: Role): Record<string, boolean> => ({
 	notifyBooking: true,
 	notifyMessage: true,
-	notifyPayment: role !== 'housekeeping',
-	notifyHousekeeping: role === 'housekeeping' || role === 'owner' || role === 'manager',
+	notifyPayment: role === 'owner' || role === 'manager' || role === 'reception' || role === 'accountant',
+	notifyHousekeeping: role === 'housekeeping' || role === 'maintenance' || role === 'owner' || role === 'manager',
 	notifyAutomation: role === 'owner' || role === 'manager',
 });
 
@@ -303,9 +366,10 @@ const defaultNotif = (role: Role): Record<string, boolean> => ({
 })
 export class TeamComponent {
 	protected readonly ROLES = ROLES;
-	protected readonly MATRIX = MATRIX;
+	protected readonly MATRIX_PAGES = MATRIX_PAGES;
 	protected readonly MATRIX_ROLES = MATRIX_ROLES;
-	protected readonly ASSIGNABLE_ROLES: Role[] = ['manager', 'reception', 'housekeeping'];
+	protected readonly viewerRole: Role = getStoredRole() ?? 'owner';
+	protected readonly ASSIGNABLE_ROLES: Role[] = ASSIGNABLE_BY[this.viewerRole] ?? [];
 	protected readonly NOTIF_OPTS = NOTIF_OPTS;
 	protected readonly fullName = fullName;
 	protected readonly statusLabel = statusLabel;
@@ -382,10 +446,17 @@ export class TeamComponent {
 		return e.notif;
 	}
 
-	protected matrixCell(spec: string, role: Role): string {
-		if (spec.includes(role + ':optional')) return 'optional';
-		if (spec.includes(role + ':обмежено')) return 'обмежено';
-		return spec.split(',').some((v) => v.split(':')[0] === role) ? '✓' : '-';
+	protected matrixCell(page: string, role: Role): string {
+		if (!ROLE_PAGES[role].includes(page)) return '-';
+		if (page === 'ai' && role !== 'owner' && role !== 'manager') return 'обмежено';
+		return '✓';
+	}
+
+	/** Owner manages everyone; Manager manages operational staff only, never Owners or other Managers. */
+	protected canManage(e: Employee): boolean {
+		if (this.viewerRole === 'owner') return true;
+		if (this.viewerRole === 'manager') return e.role !== 'owner' && e.role !== 'manager';
+		return false;
 	}
 
 	protected setSegment(seg: Segment): void {
@@ -492,6 +563,15 @@ export class TeamComponent {
 	}
 
 	protected submitChangeRole(id: number, role: Role): void {
+		const emp = this.employee(id);
+		if (!emp || !this.canManage(emp) || !this.ASSIGNABLE_ROLES.includes(role)) {
+			this.toast('Недостатньо прав для цієї зміни');
+			return;
+		}
+		if (this.isLastOwner(emp)) {
+			this.toast('Готель повинен мати щонайменше одного власника');
+			return;
+		}
 		this.employees.update((list) => list.map((e) => (e.id === id ? { ...e, role } : e)));
 		this.closeDialog();
 		this.openProfile(id);
@@ -503,6 +583,8 @@ export class TeamComponent {
 	}
 
 	protected confirmDeactivate(id: number): void {
+		const emp = this.employee(id);
+		if (!emp || !this.canManage(emp) || this.isLastOwner(emp)) return;
 		this.employees.update((list) => list.map((e) => (e.id === id ? { ...e, status: 'deactivated', online: false } : e)));
 		this.closeDialog();
 		this.closeSidePanel();
@@ -516,6 +598,8 @@ export class TeamComponent {
 	}
 
 	protected togglePerm(id: number, key: string): void {
+		const emp = this.employee(id);
+		if (!emp || !this.canManage(emp)) return;
 		this.employees.update((list) =>
 			list.map((e) => (e.id === id ? { ...e, perms: { ...e.perms, [key]: !e.perms[key] } } : e)),
 		);

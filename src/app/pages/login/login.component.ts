@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ROLE_LABEL, setStoredRole, type Role } from '../../shared/role';
+import { defaultPageFor, ROLE_LABEL, setStoredRole, type Role } from '../../shared/role';
 
 type Screen =
 	| 'login'
@@ -30,7 +30,6 @@ interface RoleCapabilities {
 	can: string[];
 	cannot: string[];
 	cta: string;
-	href: string;
 }
 
 const INVITE = {
@@ -54,13 +53,11 @@ const ROLE_CAPS: Record<Role, RoleCapabilities> = {
 		],
 		cannot: ['налаштування готелю', 'управління командою', 'критичні фінансові налаштування'],
 		cta: 'Почати роботу',
-		href: '/dashboard/',
 	},
 	manager: {
 		can: ['Dashboard', 'Calendar', 'Бронювання', 'Гості', 'Оплати', 'Прибирання', 'Повідомлення', 'Продажі'],
 		cannot: ['критичні налаштування безпеки', 'деактивація готелю'],
 		cta: 'Відкрити Dashboard',
-		href: '/dashboard/',
 	},
 	housekeeping: {
 		can: [
@@ -71,31 +68,26 @@ const ROLE_CAPS: Record<Role, RoleCapabilities> = {
 		],
 		cannot: ['гостьові дані та оплати', 'фінансову інформацію', 'налаштування готелю'],
 		cta: 'Відкрити мої задачі',
-		href: '/housekeeping/',
 	},
 	owner: {
 		can: ['повний доступ до Hotel OS', 'управління готелем та командою', 'фінансові та критичні налаштування'],
 		cannot: [],
 		cta: 'Відкрити Dashboard',
-		href: '/dashboard/',
 	},
 	sales: {
 		can: ['аналітику продажів та джерел бронювань', 'кампанії та канали', 'бачити календар та бронювання'],
 		cannot: ['фінансові налаштування', 'управління командою', 'прибирання'],
 		cta: 'Відкрити продажі',
-		href: '/sales/',
 	},
 	accountant: {
 		can: ['оплати, рахунки та депозити', 'повернення коштів', 'фінансову аналітику'],
 		cannot: ['календар та бронювання', 'управління командою', 'прибирання'],
 		cta: 'Відкрити оплати',
-		href: '/payments/',
 	},
 	maintenance: {
 		can: ['бачити номери з несправностями', 'відмічати ремонт виконаним', 'повідомляти про проблеми'],
 		cannot: ['гостьові дані та оплати', 'фінансову інформацію', 'налаштування готелю'],
 		cta: 'Відкрити прибирання',
-		href: '/housekeeping/',
 	},
 };
 
@@ -169,7 +161,7 @@ export class LoginComponent {
 
 	protected testLoginAs(role: Role): void {
 		setStoredRole(role);
-		this._navigate(ROLE_CAPS[role].href);
+		this._navigate('/' + defaultPageFor(role));
 	}
 
 	private _navigate(url: string): void {
@@ -218,7 +210,7 @@ export class LoginComponent {
 				return;
 			}
 			setStoredRole(this.demoRole());
-			this._navigate('/dashboard');
+			this._navigate('/' + defaultPageFor(this.demoRole()));
 		}, 700);
 	}
 
@@ -275,7 +267,7 @@ export class LoginComponent {
 
 	protected openWelcomeCta(): void {
 		setStoredRole(this.demoRole());
-		this._navigate(this.welcomeCaps().href);
+		this._navigate('/' + defaultPageFor(this.demoRole()));
 	}
 
 	private showToast(text: string): void {

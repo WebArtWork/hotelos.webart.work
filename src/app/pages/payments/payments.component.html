@@ -16,8 +16,10 @@
 	<div class="kpis">
 		<div class="kpi"><small>Отримано сьогодні</small><b>{{ money(receivedToday()) }}</b><span>{{ todaysPayments().length }} платежів</span></div>
 		<div class="kpi gold"><small>Очікується</small><b>{{ money(outstandingTotal()) }}</b><span>{{ outstanding().length }} бронювань</span></div>
-		<div class="kpi"><small>Передоплати</small><b>{{ money(deposits()) }}</b><span>майбутні бронювання</span></div>
-		<div class="kpi"><small>Повернення</small><b>{{ money(monthRefunds()) }}</b><span>цього місяця</span></div>
+		@if (showReports) {
+			<div class="kpi"><small>Передоплати</small><b>{{ money(deposits()) }}</b><span>майбутні бронювання</span></div>
+			<div class="kpi"><small>Повернення</small><b>{{ money(monthRefunds()) }}</b><span>цього місяця</span></div>
+		}
 	</div>
 
 	<div class="ai-strip">
@@ -25,8 +27,10 @@
 		<button class="ai-q" (click)="aiAnswer('unpaid')">Хто сьогодні ще не оплатив?</button>
 		<button class="ai-q" (click)="aiAnswer('today')">Скільки грошей ми отримали сьогодні?</button>
 		<button class="ai-q" (click)="aiAnswer('debt')">Які бронювання мають найбільший борг?</button>
-		<button class="ai-q" (click)="aiAnswer('deposits')">Скільки передоплат на наступний місяць?</button>
-		<button class="ai-q" (click)="aiAnswer('refunds')">Скільки повернень було цього місяця?</button>
+		@if (showReports) {
+			<button class="ai-q" (click)="aiAnswer('deposits')">Скільки передоплат на наступний місяць?</button>
+			<button class="ai-q" (click)="aiAnswer('refunds')">Скільки повернень було цього місяця?</button>
+		}
 	</div>
 	@if (aiAnswerHtml()) {
 		<div class="ai-answer-box" [innerHTML]="aiAnswerHtml()"></div>
@@ -244,10 +248,20 @@
 			<div class="dialog-actions">
 				<button class="button secondary" (click)="openNote(p.id)">Редагувати нотатку</button>
 				@if (p.status === 'success') {
-					<button class="button secondary" (click)="openReassign(p.id)">Виправити бронювання (не повернення)</button>
-					<button class="button secondary" (click)="openRefund(p.id)">Повернути кошти</button>
+					@if (canRefund) {
+						<button class="button secondary" (click)="openReassign(p.id)">Виправити бронювання (не повернення)</button>
+						<button class="button secondary" (click)="openRefund(p.id)">Повернути кошти</button>
+					} @else if (pendingApproval()[p.id]) {
+						<span class="pill gold">Очікує погодження · {{ pendingApproval()[p.id] }}</span>
+					} @else {
+						<button class="button secondary" (click)="requestApproval(p.id, 'повернення')">Запросити погодження повернення</button>
+						<button class="button secondary" (click)="requestApproval(p.id, 'виправлення бронювання')">Запросити виправлення</button>
+					}
 				}
 			</div>
+			@if (!canRefund && p.status === 'success') {
+				<p class="form-note">Повернення та перерозподіл виконують Власник, Менеджер або Бухгалтер. Запит фіксує автора, час і причину.</p>
+			}
 		}
 	</div>
 </aside>

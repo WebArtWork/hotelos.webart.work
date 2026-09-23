@@ -2,6 +2,7 @@ import { Component, computed, ElementRef, effect, signal, viewChild } from '@ang
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { canCurrent } from '../../shared/role';
 
 interface Guest {
 	id: number;
@@ -84,6 +85,9 @@ function staysBucket(n: number): string {
 	styleUrl: './guests.component.scss',
 })
 export class GuestsComponent {
+	/** Guest export, merge and deletion are separate capabilities (Owner/Manager by default). */
+	protected readonly canBulk = canCurrent('guestBulk');
+
 	protected readonly TAGS = TAGS;
 	protected readonly STAYS_BUCKETS = STAYS_BUCKETS;
 	protected readonly money = money;
@@ -311,10 +315,12 @@ export class GuestsComponent {
 	}
 
 	protected openMerge(id: number): void {
+		if (!this.canBulk) return;
 		this.dialogView.set({ kind: 'merge', id });
 	}
 
 	protected openDelete(id: number): void {
+		if (!this.canBulk) return;
 		this.dialogView.set({ kind: 'delete', id });
 	}
 
@@ -324,6 +330,7 @@ export class GuestsComponent {
 	}
 
 	protected forceDelete(id: number): void {
+		if (!this.canBulk) return;
 		this.guests.update((gs) => gs.filter((g) => g.id !== id));
 		this.selected.update((set) => {
 			const next = new Set(set);
@@ -343,6 +350,7 @@ export class GuestsComponent {
 	}
 
 	protected exportGuests(): void {
+		if (!this.canBulk) return;
 		this.toast('Експорт CRM · Демо');
 	}
 
@@ -363,6 +371,7 @@ export class GuestsComponent {
 	}
 
 	protected bulkExport(): void {
+		if (!this.canBulk) return;
 		this.toast('Обраних гостей експортовано · Демо');
 	}
 

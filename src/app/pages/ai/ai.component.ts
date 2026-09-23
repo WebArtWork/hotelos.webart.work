@@ -2,7 +2,7 @@ import { Component, ElementRef, computed, effect, signal, viewChild } from '@ang
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { getStoredRole, ROLE_LABEL, type Role } from '../../shared/role';
+import { can, getStoredRole, isPageAllowed, ROLE_LABEL, type Role } from '../../shared/role';
 
 interface AiAnswer {
 	html: string;
@@ -107,6 +107,54 @@ const INSIGHTS = [
 	{ title: 'Зросла частка прямих бронювань', text: '34% бронювань цього місяця були прямими проти 31% минулого місяця.', cta: 'Переглянути продажі', href: '/sales/' },
 ];
 
+/* ---- AI inherits the user's scope (CRM.md → Shared operational definitions) ---- */
+type Topic = 'guestBill' | 'hotelRevenue' | 'opsDetail' | 'prices';
+
+const TOPIC_PATTERNS: Record<Topic, RegExp> = {
+	guestBill: /(не оплат|неоплач|оплат|борг|залиш|передоплат|поверн|нагадай)/,
+	hotelRevenue: /(дохід|виторг|заробив|revenue|отримали|надходжен)/,
+	opsDetail: /(прибир|кондиціонер|ремонт|техніч|не готов|непризначен|скарг|увагу)/,
+	prices: /(ціна|₴|вартість)/,
+};
+
+function topicAllowed(topic: Topic, role: Role): boolean {
+	switch (topic) {
+		case 'guestBill':
+			return can(role, 'guestBill');
+		case 'hotelRevenue':
+			return can(role, 'financeReports') || can(role, 'salesAnalytics');
+		case 'opsDetail':
+			return role !== 'sales' && role !== 'accountant';
+		case 'prices':
+			return role !== 'housekeeping' && role !== 'maintenance';
+		default:
+			return topic satisfies never;
+	}
+}
+
+const TOPIC_DENIAL: Record<Topic, string> = {
+	guestBill: 'У вашої ролі немає доступу до рахунків і оплат гостей.',
+	hotelRevenue: 'У вашої ролі немає доступу до загальних фінансових показників готелю.',
+	opsDetail: 'У вашої ролі немає доступу до деталей прибирання та ремонтів. Доступність номерів можна запитати окремо.',
+	prices: 'У вашої ролі немає доступу до цін.',
+};
+
+function textAllowed(text: string, role: Role): boolean {
+	const q = text.toLocaleLowerCase('uk-UA');
+	return (Object.keys(TOPIC_PATTERNS) as Topic[]).every((t) => !TOPIC_PATTERNS[t].test(q) || topicAllowed(t, role));
+}
+
+const stripHtml = (html: string) => html.replace(/<[^>]+>/g, ' ');
+
+function conversationText(c: Conversation): string {
+	return [c.title, c.preview, ...c.messages.map((m) => m.text ?? stripHtml(m.html ?? ''))].join(' ');
+}
+
+function scopeDenial(q: string, role: Role): string | null {
+	const topic = (Object.keys(TOPIC_PATTERNS) as Topic[]).find((t) => TOPIC_PATTERNS[t].test(q) && !topicAllowed(t, role));
+	return topic ? TOPIC_DENIAL[topic] : null;
+}
+
 function itemCard(title: string, sub: string, extra?: string): string {
 	return `<div class="ai-item-card"><span><b>${esc(title)}</b><small>${esc(sub)}</small></span>${extra ?? ''}</div>`;
 }
@@ -178,12 +226,8 @@ const SEED_CONVERSATIONS: Conversation[] = [
 function answer(qRaw: string, role: Role): AiAnswer | null {
 	const q = qRaw.toLocaleLowerCase('uk-UA');
 
-	if ((role === 'housekeeping' || role === 'maintenance') && /(заробив|дохід|revenue|виторг|оплат|гроші)/.test(q) && !/прибир/.test(q)) {
-		return { html: `<div class="perm-note">У вашої ролі немає доступу до фінансових даних.</div>`, noFeedback: true };
-	}
-	if (role === 'sales' && /(прибирання|номер\s?\d|кондиціонер)/.test(q)) {
-		return { html: `<div class="perm-note">У вашої ролі немає доступу до даних прибирання.</div>`, noFeedback: true };
-	}
+	const denied = scopeDenial(q, role);
+	if (denied) return { html: `<div class="perm-note">${denied}</div>`, noFeedback: true };
 
 	if (/олександр/.test(q) && !/коваленко|бондар|петренко/.test(q)) {
 		const names = KB.ambiguous['олександр'];
@@ -362,8 +406,9 @@ function answer(qRaw: string, role: Role): AiAnswer | null {
 	return null;
 }
 
-function fallbackAnswer(): AiAnswer {
-	return { html: `<p>Не знайшов точної відповіді на це запитання. Спробуйте одне з підказаних або перефразуйте.</p><div class="ai-cards">${SUGGESTIONS.slice(0, 3).map((s) => itemCard(s, 'Натисніть, щоб запитати')).join('')}</div>` };
+function fallbackAnswer(role: Role): AiAnswer {
+	const hints = SUGGESTIONS.filter((s) => textAllowed(s, role)).slice(0, 3);
+	return { html: `<p>Не знайшов точної відповіді на це запитання. Спробуйте одне з підказаних або перефразуйте.</p><div class="ai-cards">${hints.map((s) => itemCard(s, 'Натисніть, щоб запитати')).join('')}</div>` };
 }
 
 @Component({
@@ -374,15 +419,19 @@ function fallbackAnswer(): AiAnswer {
 })
 export class AiComponent {
 	protected readonly money = money;
-	protected readonly SUGGESTIONS = SUGGESTIONS;
-	protected readonly INSIGHTS = INSIGHTS;
-	protected readonly QUICK_CHIPS = ['Сьогодні', 'Заїзди', 'Оплати', 'Прибирання', 'Вільні номери', 'Гості', 'Продажі'];
 	protected readonly KB = KB;
 	protected readonly ROLE_LABEL = ROLE_LABEL;
 
 	protected readonly role = signal<Role>(getStoredRole() ?? 'owner');
-	protected readonly conversations = signal<Conversation[]>(SEED_CONVERSATIONS.map((c) => ({ ...c, messages: c.messages.map((m) => ({ ...m })) })));
-	protected readonly activeId = signal<string>(SEED_CONVERSATIONS[0].id);
+	protected readonly SUGGESTIONS = SUGGESTIONS.filter((s) => textAllowed(s, this.role()));
+	protected readonly showBrief = topicAllowed('guestBill', this.role()) && topicAllowed('opsDetail', this.role());
+	protected readonly INSIGHTS = INSIGHTS.filter(
+		(i) => isPageAllowed(this.role(), i.href.replace(/\//g, '')) && textAllowed(i.title + ' ' + i.text, this.role()),
+	);
+	protected readonly conversations = signal<Conversation[]>(
+		SEED_CONVERSATIONS.filter((c) => textAllowed(conversationText(c), this.role())).map((c) => ({ ...c, messages: c.messages.map((m) => ({ ...m })) })),
+	);
+	protected readonly activeId = signal<string>(this.conversations()[0]?.id ?? 'new-' + Date.now());
 	protected readonly composerText = signal('');
 	protected readonly dialogView = signal<DialogView>(null);
 	protected readonly toastMessage = signal('');
@@ -468,7 +517,10 @@ export class AiComponent {
 		const loadingIndex = this.messages().length - 1;
 		clearTimeout(this._answerTimer);
 		this._answerTimer = setTimeout(() => {
-			const res = answer(text, this.role()) ?? fallbackAnswer();
+			let res = answer(text, this.role()) ?? fallbackAnswer(this.role());
+			if (!res.noFeedback && !textAllowed(stripHtml(res.html) + ' ' + (res.source ?? ''), this.role())) {
+				res = { html: `<div class="perm-note">Відповідь містить дані поза межами вашої ролі. Уточніть запит у межах вашої роботи.</div>`, noFeedback: true };
+			}
 			this.conversations.update((cs) =>
 				cs.map((c) =>
 					c.id === id

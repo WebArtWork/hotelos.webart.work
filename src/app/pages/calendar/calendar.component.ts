@@ -2,7 +2,7 @@ import { Component, computed, ElementRef, effect, signal, viewChild } from '@ang
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { getStoredRole } from '../../shared/role';
+import { canCurrent } from '../../shared/role';
 
 interface Room {
 	number: string;
@@ -120,7 +120,7 @@ const paymentLabel = (b: Booking) => (b.paid <= 0 ? 'Не оплачено' : b.
 	styleUrl: './calendar.component.scss',
 })
 export class CalendarComponent {
-	protected readonly showFinance = getStoredRole() !== 'sales';
+	protected readonly showFinance = canCurrent('guestBill');
 
 	protected readonly TODAY = TODAY;
 	protected readonly GROUP_ORDER = GROUP_ORDER;

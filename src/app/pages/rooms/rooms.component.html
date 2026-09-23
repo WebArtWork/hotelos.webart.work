@@ -5,10 +5,12 @@
 			<h1>Номери</h1>
 			<p>Керуйте номерами, типами, цінами та їхнім поточним станом.</p>
 		</div>
-		<div class="page-actions">
-			<button class="button secondary" (click)="openDialog({ kind: 'room-types' })">Типи номерів</button>
-			<button class="button primary" (click)="openDialog({ kind: 'add-room' })">+ Додати номер</button>
-		</div>
+		@if (canEditInventory) {
+			<div class="page-actions">
+				<button class="button secondary" (click)="openDialog({ kind: 'room-types' })">Типи номерів</button>
+				<button class="button primary" (click)="openDialog({ kind: 'add-room' })">+ Додати номер</button>
+			</div>
+		}
 	</div>
 
 	<div class="kpis">
@@ -165,7 +167,9 @@
 											<button (click)="openTask(); $event.stopPropagation()">Відкрити задачу</button>
 										}
 										@case ('unavailable') {
+											@if (canBlockRoom) {
 											<button (click)="openDialog({ kind: 'block-room', number: r.number }); $event.stopPropagation()">Редагувати блокування</button>
+										}
 										}
 										@default {
 											@if (showGuestAndFinance) {
@@ -237,7 +241,9 @@
 			<span class="status-tag" [class]="r.status">{{ statusLabel(r.status) }}</span>
 			<h2>Номер {{ r.number }}</h2>
 			<div class="dialog-actions">
-				<button class="button secondary" (click)="openDialog({ kind: 'edit-room', number: r.number })">Редагувати</button>
+				@if (canEditInventory) {
+					<button class="button secondary" (click)="openDialog({ kind: 'edit-room', number: r.number })">Редагувати</button>
+				}
 				@if (showGuestAndFinance) {
 					<a class="button primary" href="/new-booking/">+ Нове бронювання</a>
 				}
@@ -319,7 +325,13 @@
 
 			<h5>Дії</h5>
 			<div class="dialog-actions">
-				<button class="button secondary" (click)="openDialog({ kind: 'block-room', number: r.number })">Заблокувати номер</button>
+				@if (canBlockRoom) {
+					<button class="button secondary" (click)="openDialog({ kind: 'block-room', number: r.number })">Заблокувати номер</button>
+				} @else if (blockRequested()[r.number]) {
+					<span class="pill gold">Запит на блокування надіслано · очікує підтвердження</span>
+				} @else {
+					<button class="button secondary" (click)="requestBlock(r.number)">Повідомити про проблему та запросити блокування</button>
+				}
 				<button class="button secondary" (click)="openDialog({ kind: 'change-status', number: r.number })">Змінити статус</button>
 			</div>
 		}

@@ -1,4 +1,7 @@
-import { Routes } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { Router, Routes } from '@angular/router';
+import { defaultPageFor, getStoredRole } from './shared/role';
 import { roleGuard } from './shared/role.guard';
 
 export const routes: Routes = [
@@ -190,6 +193,11 @@ export const routes: Routes = [
 	},
 	{
 		path: '**',
-		redirectTo: '',
+		redirectTo: ({ url }) => {
+			const role = isPlatformBrowser(inject(PLATFORM_ID)) ? getStoredRole() : null;
+			if (!role) return '';
+			const missing = url.map((s) => s.path).join('/');
+			return inject(Router).createUrlTree(['/' + defaultPageFor(role)], { queryParams: { missing } });
+		},
 	},
 ];

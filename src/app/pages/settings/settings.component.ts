@@ -3,8 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-
-type Role = 'owner' | 'manager' | 'reception' | 'housekeeping';
+import { getStoredRole, type Role } from '../../shared/role';
 
 type SectionId =
 	| 'general'
@@ -167,7 +166,7 @@ const SECTIONS: SectionDef[] = [
 	{ id: 'security', label: 'Безпека' },
 ];
 const OWNER_ONLY = new Set<SectionId>(['payments', 'rules', 'ai', 'security']);
-const READONLY_ROLES = new Set<Role>(['reception', 'housekeeping']);
+const EDITOR_ROLES = new Set<Role>(['owner', 'manager']);
 
 const SEED_SETTINGS: SettingsData = {
 	name: 'Grand Hotel',
@@ -333,7 +332,7 @@ export class SettingsComponent {
 
 	protected readonly section = signal<SectionId>(this._sectionFromHash());
 	protected readonly dirty = signal(false);
-	protected readonly role = signal<Role>('owner');
+	protected readonly role = signal<Role>(getStoredRole() ?? 'owner');
 	protected readonly pendingSection = signal<SectionId | null>(null);
 	protected readonly dialogView = signal<DialogView>(null);
 	protected readonly toastMessage = signal('');
@@ -341,7 +340,7 @@ export class SettingsComponent {
 
 	private _toastTimer?: ReturnType<typeof setTimeout>;
 
-	protected readonly isReadonly = computed(() => READONLY_ROLES.has(this.role()));
+	protected readonly isReadonly = computed(() => !EDITOR_ROLES.has(this.role()));
 	protected readonly onboardDone = computed(() => this.ONBOARDING.filter((o) => o.done).length);
 
 	protected readonly paymentPreview = computed(() => {
@@ -537,11 +536,6 @@ export class SettingsComponent {
 			this.toast('AI проіндексував ' + file.name);
 		}, 1200);
 		input.value = '';
-	}
-
-	protected onRoleChange(value: string): void {
-		this.role.set(value as Role);
-		this.toast('Роль (демо): ' + value);
 	}
 
 	private toast(text: string): void {
