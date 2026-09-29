@@ -1,4 +1,4 @@
-# Hotel OS — CRM Business Logic (Source of Truth)
+# Hotel Upwork — CRM Business Logic (Source of Truth)
 
 This file is the **single source of truth for CRM business logic**: which pages exist, what
 each page contains, and which roles can see what. It exists so that business-logic decisions
@@ -48,13 +48,48 @@ role model for the logged-in user's own permissions.
 | `accountant`    | Бухгалтер                  | Payments, reconciliation and read-only supporting booking/payer documents. |
 | `maintenance`   | Технічне обслуговування    | Rooms/housekeeping only, no guest identity or pricing. |
 
-In the static demo, role is stored client-side in `localStorage` (`hotelos_role`) and read via `getStoredRole()`.
+In the static demo, role is stored client-side in `localStorage` (`hotelup_role`) and read via `getStoredRole()`.
 `isPageAllowed(role, path)` and `defaultPageFor(role)` drive routing (`role.guard.ts`).
 `defaultPageFor` reads the explicit `ROLE_HOME` map; login and denied-route fallback both use it.
 Action authority is a separate `Capability` table in `role.ts`, checked with `can(role, cap)` /
 `canCurrent(cap)`, never inferred from page access.
 
-**Everyone with any role can open `/ai`.**
+**Everyone with any role can open `/ai`** — when the hotel's plan includes it (see Plans).
+
+## Plans — which features the hotel has paid for
+
+Defined in `src/app/shared/plan.ts` (`Plan` type, `PLANS`, `PLAN_PAGES`). A plan is a
+**hotel-level** switch, independent of the user's role. A page opens only when **both** the
+role allows it (`ROLE_PAGES`) **and** the hotel's plan includes it (`PLAN_PAGES`); checked with
+`isPageAvailable(role, plan, path)`. Plan never grants a role anything it could not do before.
+
+| Plan key     | Name       | Price (demo)      | Pages added                                                        | Roles that can be used |
+| ------------ | ---------- | ----------------- | ------------------------------------------------------------------ | ---------------------- |
+| `start`      | Start      | Free              | `calendar`, `submissions`, `team`, `settings`                      | owner, manager, reception, sales |
+| `pro`        | Pro        | €39 / month       | + `dashboard`, `guests`, `rooms`, `payments`, `housekeeping`, `messages` | all 7 |
+| `enterprise` | Enterprise | €89 / month       | + `automations`, `sales`, `ai`                                      | all 7 |
+
+Plan limits (shown on the pricing page, not enforced in the demo): Start — up to 10 rooms and 3
+staff accounts; Pro — up to 30 rooms and 15 staff; Enterprise — unlimited rooms/staff, several
+hotels, priority support.
+
+Rules:
+
+- **Free features:** booking calendar and website form submissions (`submissions`). Websites are
+  separate projects that post into Hotel Upwork through the public API; this project does not host
+  hotel websites.
+- **Home screen:** `defaultPageFor(role, plan)` uses `ROLE_HOME` when the plan includes it,
+  otherwise the first page from `ROLE_PAGES[role]` the plan includes. A role with no page in the
+  plan (housekeeping, accountant, maintenance on Start) cannot sign in; the login screen marks
+  it "Доступно з тарифу Pro".
+- **Plan-locked page:** the page is not hidden from the navigation; it shows a "Pro"/"Enterprise"
+  tag. Opening it redirects to the home screen with `?locked=<page>`, and the shell explains which
+  plan includes it with a link to `/pricing`. This is an upsell, not a permission error.
+- **Team:** Add employee / change role offers only roles usable on the current plan.
+- **Pricing page:** `/pricing` is public and prerendered; landing, login and the sidebar plan note
+  link there.
+- In the static demo the plan is stored client-side in `localStorage` (`hotelup_plan`, default
+  `enterprise`) and picked on the test-login screen.
 
 ## Intended rules — take precedence over the page inventory
 
@@ -179,6 +214,7 @@ a link to the home page. Unknown routes (`**`) send a signed-in user to their ho
 | ----------------- | :---: | :-----: | :-------: | :----------: | :---: | :--------: | :---------: |
 | `dashboard`        |  ✅   |   ✅    |    ✅     |      —       |   —   |     —      |      —      |
 | `calendar`         |  ✅   |   ✅    |    ✅     |      —       |  ✅   |     —      |      —      |
+| `submissions`      |  ✅   |   ✅    |    ✅     |      —       |  ✅   |     —      |      —      |
 | `guests`           |  ✅   |   ✅    |    ✅     |      —       |   —   |     —      |      —      |
 | `rooms`            |  ✅   |   ✅    |    ✅     |      —       |   —   |     —      |     ✅      |
 | `payments`         |  ✅   |   ✅    |    ✅     |      —       |   —   |    ✅      |      —      |
@@ -228,6 +264,22 @@ Purpose: see room availability by date, manage bookings, move/extend stays, quic
 | Booking side panel: guest & stay info, source, notes, actions | Same as page |
 | **Booking side panel: payment block ("Оплата") + "Додати оплату", unpaid badges** | **`guestBill` only** — hidden for `sales` |
 | Quick-booking / conflict / move / message / payment / extend dialogs | Same as page |
+
+### `submissions` — Website form submissions (free, Start plan)
+
+Purpose: one inbox for forms sent from the hotel's websites (booking requests, call-backs,
+questions, group requests). Sites are separate projects that post to the Hotel Upwork API.
+
+| Section                                   | Extra access rule |
+| --------------------------------------------- | -------------------- |
+| KPI strip (new, in progress, converted, avg. first response) | Same as page |
+| Status tabs, search, site filter, submissions table/cards | Same as page |
+| Submission side panel: contact, dates, guests, room wish, message, source site/form, history | Same as page |
+| Status actions: take into work, create booking, close, mark as spam | Same as page |
+| **"Підключити сайт" dialog: API endpoint, API key, connected sites** | Endpoint/example: same as page. **API key and key rotation: `manageIntegrations` only** (owner, manager) |
+
+"Create booking" marks the submission converted and opens the Calendar; the booking itself is
+created there. Submissions contain no payment data.
 
 ### `guests` — Guest CRM
 
@@ -465,8 +517,18 @@ Found while rewriting the Gemini Gem knowledge on 23 September 2026 (code read, 
 17. **Calendar mobile cards show payment status to `sales`** — the `showFinance` gate is
     applied on desktop blocks, hover card and side panel, but not on the mobile day cards.
 
+Added with plans on 29 September 2026 (not yet verified in the running app):
+
+18. **Plan limits are not enforced**: room and staff limits are shown on the pricing page only.
+19. **Settings tabs for plan-locked features** (Messages, Automations, AI) stay editable on
+    lower plans; they should show the plan requirement.
+20. **Links inside pages to plan-locked pages** (e.g. Calendar side panel → Guests/Payments) rely
+    on the route redirect with `?locked=`; they are not tagged in place.
+21. **Submissions are demo data**: no real API, key rotation or site connection.
+
 ## Where implementation lives (for implementers)
 
+- Plans, prices, plan page allowlist: `src/app/shared/plan.ts`
 - Roles, labels, page allowlist: `src/app/shared/role.ts`
 - Route guard: `src/app/shared/role.guard.ts`
 - Route declarations: `src/app/app.routes.ts`

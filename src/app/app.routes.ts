@@ -9,22 +9,34 @@ export const routes: Routes = [
 		path: '',
 		data: {
 			meta: {
-				title: 'Hotel OS: Увесь готель в одній простій системі',
+				title: 'Hotel Upwork: Увесь готель в одній простій системі',
 				titleSuffix: '',
 				description:
-					'Hotel OS: бронювання, гості, оплати, прибирання та комунікація в одній простій системі для незалежних готелів.',
+					'Hotel Upwork: бронювання, гості, оплати, прибирання та комунікація в одній простій системі для незалежних готелів.',
 			},
 		},
 		loadComponent: () =>
 			import('./pages/landing/landing.component').then((m) => m.LandingComponent),
 	},
 	{
+		path: 'pricing',
+		data: {
+			meta: {
+				title: 'Тарифи · Hotel Upwork',
+				titleSuffix: '',
+				description:
+					'Тарифи Hotel Upwork: безкоштовний Start з календарем і заявками з сайтів, Pro для щоденної роботи готелю та Enterprise з автоматизаціями, аналітикою і AI.',
+			},
+		},
+		loadComponent: () => import('./pages/pricing/pricing.component').then((m) => m.PricingComponent),
+	},
+	{
 		path: 'login',
 		data: {
 			meta: {
-				title: 'Вхід · Hotel OS',
+				title: 'Вхід · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: вхід до системи.',
+				description: 'Hotel Upwork: вхід до системи.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -35,10 +47,10 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Огляд готелю · Hotel OS',
+				title: 'Огляд готелю · Hotel Upwork',
 				titleSuffix: '',
 				description:
-					'Hotel OS: щоденний центр управління готелем. Заїзди, номери, оплати та завдання в одному огляді.',
+					'Hotel Upwork: щоденний центр управління готелем. Заїзди, номери, оплати та завдання в одному огляді.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -50,9 +62,9 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Календар · Hotel OS',
+				title: 'Календар · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: календар. Усі номери, бронювання та вільні дати в одному місці.',
+				description: 'Hotel Upwork: календар. Усі номери, бронювання та вільні дати в одному місці.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -60,13 +72,27 @@ export const routes: Routes = [
 			import('./pages/calendar/calendar.component').then((m) => m.CalendarComponent),
 	},
 	{
+		path: 'submissions',
+		canActivate: [roleGuard],
+		data: {
+			meta: {
+				title: 'Заявки · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: заявки з форм ваших сайтів в одному місці.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () =>
+			import('./pages/submissions/submissions.component').then((m) => m.SubmissionsComponent),
+	},
+	{
 		path: 'guests',
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Гості · Hotel OS',
+				title: 'Гості · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: база гостей готелю, історія проживань та контакти.',
+				description: 'Hotel Upwork: база гостей готелю, історія проживань та контакти.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -77,9 +103,9 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Номери · Hotel OS',
+				title: 'Номери · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: номерний фонд, типи номерів та їх статуси.',
+				description: 'Hotel Upwork: номерний фонд, типи номерів та їх статуси.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -90,9 +116,9 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Оплати · Hotel OS',
+				title: 'Оплати · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: оплати, заборгованості та фінансова аналітика.',
+				description: 'Hotel Upwork: оплати, заборгованості та фінансова аналітика.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -103,9 +129,9 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Прибирання · Hotel OS',
+				title: 'Прибирання · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: керування прибиранням номерів та завданнями персоналу.',
+				description: 'Hotel Upwork: керування прибиранням номерів та завданнями персоналу.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -117,9 +143,9 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Повідомлення · Hotel OS',
+				title: 'Повідомлення · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: спілкування з гостями в одному вхідному ящику.',
+				description: 'Hotel Upwork: спілкування з гостями в одному вхідному ящику.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -130,9 +156,9 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Автоматизації · Hotel OS',
+				title: 'Автоматизації · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: автоматичні сценарії та правила для щоденних завдань.',
+				description: 'Hotel Upwork: автоматичні сценарії та правила для щоденних завдань.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -144,9 +170,9 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Продажі · Hotel OS',
+				title: 'Продажі · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: аналітика продажів, канали бронювань та кампанії.',
+				description: 'Hotel Upwork: аналітика продажів, канали бронювань та кампанії.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -157,9 +183,9 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'AI-помічник · Hotel OS',
+				title: 'AI-помічник · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: AI-помічник для швидких відповідей та дій по готелю.',
+				description: 'Hotel Upwork: AI-помічник для швидких відповідей та дій по готелю.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -170,9 +196,9 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Команда · Hotel OS',
+				title: 'Команда · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: керування командою, ролями та доступами співробітників.',
+				description: 'Hotel Upwork: керування командою, ролями та доступами співробітників.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -183,9 +209,9 @@ export const routes: Routes = [
 		canActivate: [roleGuard],
 		data: {
 			meta: {
-				title: 'Налаштування · Hotel OS',
+				title: 'Налаштування · Hotel Upwork',
 				titleSuffix: '',
-				description: 'Hotel OS: налаштування готелю, бронювань та інтеграцій.',
+				description: 'Hotel Upwork: налаштування готелю, бронювань та інтеграцій.',
 				robots: 'noindex, nofollow',
 			},
 		},
@@ -195,9 +221,10 @@ export const routes: Routes = [
 		path: '**',
 		redirectTo: ({ url }) => {
 			const role = isPlatformBrowser(inject(PLATFORM_ID)) ? getStoredRole() : null;
-			if (!role) return '';
+			const home = role ? defaultPageFor(role) : null;
+			if (!home) return '';
 			const missing = url.map((s) => s.path).join('/');
-			return inject(Router).createUrlTree(['/' + defaultPageFor(role)], { queryParams: { missing } });
+			return inject(Router).createUrlTree(['/' + home], { queryParams: { missing } });
 		},
 	},
 ];

@@ -1,6 +1,6 @@
 'use strict';
 (function(){
- var KEY='hotelos_theme';
+ var KEY='hotelup_theme';
  function get(){try{return localStorage.getItem(KEY)||'dark'}catch(e){return 'dark'}}
  function apply(t){document.documentElement.setAttribute('data-theme',t)}
  function sync(){

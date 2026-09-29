@@ -234,7 +234,7 @@ function answer(qRaw: string, role: Role): AiAnswer | null {
 		return { html: `<p>Знайдено ${names.length} гостей з ім'ям Олександр.</p><div class="ai-cards">${names.map((n) => itemCard(n, 'Клікніть, щоб уточнити')).join('')}</div><p style="margin-top:10px">Кого ви маєте на увазі?</p>` };
 	}
 	if (/spa|спа/.test(q)) {
-		return { html: `<p>У Hotel OS недостатньо даних, щоб це визначити.</p><p>У профілях гостей зараз не зберігається інформація про використання SPA.</p>` };
+		return { html: `<p>У Hotel Upwork недостатньо даних, щоб це визначити.</p><p>У профілях гостей зараз не зберігається інформація про використання SPA.</p>` };
 	}
 
 	if (/скасу.*(анн|1842)/.test(q)) {

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { getStoredPlan, PLAN_ROLES } from '../../shared/plan';
 import { getStoredRole, ROLE_PAGES, type Role } from '../../shared/role';
 
 type Status = 'active' | 'invited' | 'deactivated';
@@ -73,7 +74,7 @@ type DialogView =
 const ROLES: Record<Role, RoleInfo> = {
 	owner: {
 		label: 'Власник',
-		desc: 'Повний доступ до Hotel OS та управління готелем.',
+		desc: 'Повний доступ до Hotel Upwork та управління готелем.',
 		access: [
 			'Dashboard',
 			'Calendar',
@@ -139,6 +140,7 @@ const ROLES: Record<Role, RoleInfo> = {
 const MATRIX_PAGES: [string, string][] = [
 	['Dashboard', 'dashboard'],
 	['Calendar', 'calendar'],
+	['Заявки', 'submissions'],
 	['Гості', 'guests'],
 	['Номери', 'rooms'],
 	['Оплати', 'payments'],
@@ -369,7 +371,10 @@ export class TeamComponent {
 	protected readonly MATRIX_PAGES = MATRIX_PAGES;
 	protected readonly MATRIX_ROLES = MATRIX_ROLES;
 	protected readonly viewerRole: Role = getStoredRole() ?? 'owner';
-	protected readonly ASSIGNABLE_ROLES: Role[] = ASSIGNABLE_BY[this.viewerRole] ?? [];
+	/** Roles the viewer may grant, limited to roles usable on the hotel's plan (CRM.md → Plans). */
+	protected readonly ASSIGNABLE_ROLES: Role[] = (ASSIGNABLE_BY[this.viewerRole] ?? []).filter((r) =>
+		PLAN_ROLES[getStoredPlan()].includes(r),
+	);
 	protected readonly NOTIF_OPTS = NOTIF_OPTS;
 	protected readonly fullName = fullName;
 	protected readonly statusLabel = statusLabel;
@@ -532,7 +537,7 @@ export class TeamComponent {
 	}
 
 	protected copyInviteLink(): void {
-		navigator.clipboard?.writeText('https://hotelos.app/invite/DEMO-TOKEN').catch(() => {});
+		navigator.clipboard?.writeText('https://hotelup.work/invite/DEMO-TOKEN').catch(() => {});
 		this.toast('Посилання скопійовано');
 	}
 

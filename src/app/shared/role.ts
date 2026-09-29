@@ -1,3 +1,5 @@
+import { getStoredPlan, planIncludes, type Plan } from './plan';
+
 export type Role = 'reception' | 'manager' | 'housekeeping' | 'owner' | 'sales' | 'accountant' | 'maintenance';
 
 export const ROLE_LABEL: Record<Role, string> = {
@@ -12,11 +14,11 @@ export const ROLE_LABEL: Record<Role, string> = {
 
 /** Route paths (as declared in app.routes.ts, without the leading slash) each role may open. `ai` is available to everyone. */
 export const ROLE_PAGES: Record<Role, string[]> = {
-	owner: ['dashboard', 'calendar', 'guests', 'rooms', 'payments', 'housekeeping', 'messages', 'automations', 'sales', 'ai', 'team', 'settings'],
-	manager: ['dashboard', 'calendar', 'guests', 'rooms', 'payments', 'housekeeping', 'messages', 'automations', 'sales', 'ai', 'team', 'settings'],
-	reception: ['dashboard', 'calendar', 'guests', 'rooms', 'payments', 'messages', 'ai'],
+	owner: ['dashboard', 'calendar', 'submissions', 'guests', 'rooms', 'payments', 'housekeeping', 'messages', 'automations', 'sales', 'ai', 'team', 'settings'],
+	manager: ['dashboard', 'calendar', 'submissions', 'guests', 'rooms', 'payments', 'housekeeping', 'messages', 'automations', 'sales', 'ai', 'team', 'settings'],
+	reception: ['dashboard', 'calendar', 'submissions', 'guests', 'rooms', 'payments', 'messages', 'ai'],
 	housekeeping: ['housekeeping', 'ai'],
-	sales: ['calendar', 'sales', 'ai'],
+	sales: ['calendar', 'submissions', 'sales', 'ai'],
 	accountant: ['payments', 'ai'],
 	maintenance: ['rooms', 'housekeeping', 'ai'],
 };
@@ -35,6 +37,7 @@ export const ROLE_HOME: Record<Role, string> = {
 export const PAGE_LABEL: Record<string, string> = {
 	dashboard: 'Огляд',
 	calendar: 'Календар',
+	submissions: 'Заявки',
 	guests: 'Гості',
 	rooms: 'Номери',
 	payments: 'Оплати',
@@ -51,8 +54,15 @@ export function isPageAllowed(role: Role, path: string): boolean {
 	return ROLE_PAGES[role].includes(path);
 }
 
-export function defaultPageFor(role: Role): string {
-	return ROLE_HOME[role];
+/** Role and plan together: the page is open only when both allow it (CRM.md → Plans). */
+export function isPageAvailable(role: Role, plan: Plan, path: string): boolean {
+	return isPageAllowed(role, path) && planIncludes(plan, path);
+}
+
+/** Home screen for the role on the plan, or null when the plan gives the role no page at all. */
+export function defaultPageFor(role: Role, plan: Plan = getStoredPlan()): string | null {
+	if (planIncludes(plan, ROLE_HOME[role])) return ROLE_HOME[role];
+	return ROLE_PAGES[role].find((path) => planIncludes(plan, path)) ?? null;
 }
 
 /** Action authority, separate from page visibility (CRM.md → Data visibility is separate from action authority). */
@@ -67,7 +77,8 @@ export type Capability =
 	| 'blockRoom'
 	| 'assignCleaning'
 	| 'guestBulk'
-	| 'manageTeam';
+	| 'manageTeam'
+	| 'manageIntegrations';
 
 const CAPABILITIES: Record<Capability, Role[]> = {
 	guestBill: ['owner', 'manager', 'reception', 'accountant'],
@@ -81,6 +92,7 @@ const CAPABILITIES: Record<Capability, Role[]> = {
 	assignCleaning: ['owner', 'manager'],
 	guestBulk: ['owner', 'manager'],
 	manageTeam: ['owner', 'manager'],
+	manageIntegrations: ['owner', 'manager'],
 };
 
 export function can(role: Role | null, capability: Capability): boolean {
@@ -92,7 +104,7 @@ export function canCurrent(capability: Capability): boolean {
 	return can(getStoredRole(), capability);
 }
 
-const ROLE_KEY = 'hotelos_role';
+const ROLE_KEY = 'hotelup_role';
 
 export function getStoredRole(): Role | null {
 	try {

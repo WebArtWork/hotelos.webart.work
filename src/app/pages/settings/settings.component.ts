@@ -487,7 +487,7 @@ export class SettingsComponent {
 
 	protected copyLink(): void {
 		if (typeof navigator !== 'undefined') {
-			navigator.clipboard?.writeText('https://hotelos.app/' + this.settings().slug).catch(() => {});
+			navigator.clipboard?.writeText('https://hotelup.work/' + this.settings().slug).catch(() => {});
 		}
 		this.toast('Посилання скопійовано');
 	}

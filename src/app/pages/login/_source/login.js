@@ -11,7 +11,7 @@ const ROLE_CAPS={
  reception:{can:['працювати з календарем','створювати бронювання','заселяти та виселяти гостей','працювати з CRM гостей','додавати оплати','відповідати на повідомлення'],cannot:['налаштування готелю','управління командою','критичні фінансові налаштування'],cta:'Почати роботу',href:'/dashboard/'},
  manager:{can:['Dashboard','Calendar','Бронювання','Гості','Оплати','Прибирання','Повідомлення','Продажі'],cannot:['критичні налаштування безпеки','деактивація готелю'],cta:'Відкрити Dashboard',href:'/dashboard/'},
  housekeeping:{can:['бачити призначені номери','починати прибирання','відмічати номер готовим','повідомляти про проблеми'],cannot:['гостьові дані та оплати','фінансову інформацію','налаштування готелю'],cta:'Відкрити мої задачі',href:'/housekeeping/'},
- owner:{can:['повний доступ до Hotel OS','управління готелем та командою','фінансові та критичні налаштування'],cannot:[],cta:'Відкрити Dashboard',href:'/dashboard/'}
+ owner:{can:['повний доступ до Hotel Upwork','управління готелем та командою','фінансові та критичні налаштування'],cannot:[],cta:'Відкрити Dashboard',href:'/dashboard/'}
 };
 
 const state={pwVisible:false,busy:false};
@@ -21,7 +21,7 @@ function passwordStrength(pw){const c=passwordChecks(pw);const score=[c.len,c.le
 
 /* ---------- screens ---------- */
 function screenLogin(prefillEmail){
- return `<h1>Вхід до Hotel OS</h1><p class="sub">Увійдіть, щоб продовжити роботу з вашим готелем.</p>
+ return `<h1>Вхід до Hotel Upwork</h1><p class="sub">Увійдіть, щоб продовжити роботу з вашим готелем.</p>
  <form id="login-form">
   <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="name@example.com" value="${esc(prefillEmail||'')}"><div class="field-error" id="err-login-email">Введіть правильну email-адресу.</div></div>
   <div class="field"><label>Пароль</label><div class="pw-wrap"><input type="password" id="login-password" placeholder="Ваш пароль"><button type="button" class="pw-toggle" data-pw-toggle="login-password" data-icon="eye"></button></div><div class="field-error" id="err-login-password">Введіть пароль.</div></div>
@@ -30,10 +30,10 @@ function screenLogin(prefillEmail){
   <button class="btn primary" type="submit" id="login-submit">Увійти</button>
  </form>
  <div class="link-row"><button type="button" data-goto="forgot">Забули пароль?</button></div>
- <p class="bottom-note">Ще не використовуєте Hotel OS? <a href="/#pricing">Спробувати безкоштовно</a></p>`;
+ <p class="bottom-note">Ще не використовуєте Hotel Upwork? <a href="/#pricing">Спробувати безкоштовно</a></p>`;
 }
 function screenForgot(){
- return `<h1>Відновлення пароля</h1><p class="sub">Введіть email, який використовується для входу в Hotel OS.</p>
+ return `<h1>Відновлення пароля</h1><p class="sub">Введіть email, який використовується для входу в Hotel Upwork.</p>
  <form id="forgot-form">
   <div class="field"><label>Email</label><input type="email" id="forgot-email" placeholder="name@example.com"></div>
   <button class="btn primary" type="submit">Надіслати посилання</button>
@@ -46,7 +46,7 @@ function screenCheckEmail(){
  <p class="link-row"><button type="button" data-goto="newPassword">Демо: перейти за посиланням із листа →</button></p>`;
 }
 function screenNewPassword(){
- return `<h1>Створіть новий пароль</h1><p class="sub">Використайте новий пароль для входу в Hotel OS.</p>
+ return `<h1>Створіть новий пароль</h1><p class="sub">Використайте новий пароль для входу в Hotel Upwork.</p>
  <form id="new-password-form">
   <div class="field"><label>Новий пароль</label><div class="pw-wrap"><input type="password" id="np-1"><button type="button" class="pw-toggle" data-pw-toggle="np-1" data-icon="eye"></button></div></div>
   <div class="strength" id="pw-strength-bar"><span></span></div>
@@ -65,7 +65,7 @@ function inviteCard(){
  return `<div class="invite-card"><div class="ic-row"><span>Готель</span><b>${INVITE.hotel}</b></div><div class="ic-row"><span>Роль</span><b>${ROLE_LABEL[INVITE.role]}</b></div><div class="ic-row"><span>Email</span><b>${esc(INVITE.email)}</b></div></div>`;
 }
 function screenInvitation(){
- return `<h1>Вас запросили до ${INVITE.hotel}</h1><p class="sub">${INVITE.inviter} запросив(ла) вас приєднатися до команди Hotel OS.</p>
+ return `<h1>Вас запросили до ${INVITE.hotel}</h1><p class="sub">${INVITE.inviter} запросив(ла) вас приєднатися до команди Hotel Upwork.</p>
  ${inviteCard()}
  <button class="btn primary" type="button" data-goto="createAccount">Продовжити</button>
  <div class="link-row"><button type="button" data-goto="invitationCancelled">Відхилити запрошення</button></div>`;
@@ -80,7 +80,7 @@ function screenInvitationCancelled(){
  return `<div class="status-icon danger">✕</div><h1>Запрошення скасовано</h1><p class="sub">Доступ до цього готелю більше не активний.<br>Зверніться до адміністратора ${INVITE.hotel}.</p><button class="btn secondary" type="button" data-goto="login">Повернутися до входу</button>`;
 }
 function screenCreateAccount(){
- return `<h1>Створіть доступ</h1><p class="sub">Створіть пароль для входу в Hotel OS.</p>
+ return `<h1>Створіть доступ</h1><p class="sub">Створіть пароль для входу в Hotel Upwork.</p>
  <form id="create-account-form">
   <div class="field"><label>Ім’я</label><input id="ca-first" value="${esc(INVITE.first)}"></div>
   <div class="field"><label>Прізвище</label><input id="ca-last" value="${esc(INVITE.last)}"></div>
@@ -93,18 +93,18 @@ function screenCreateAccount(){
  </form>`;
 }
 function screenAccountCreated(){
- return `<div class="status-icon" data-icon="check"></div><h1>Готово</h1><p class="sub">Ваш доступ до ${INVITE.hotel} активовано.</p><span class="role-badge">${ROLE_LABEL[INVITE.role]}</span><button class="btn primary" type="button" data-goto="welcome">Відкрити Hotel OS</button>`;
+ return `<div class="status-icon" data-icon="check"></div><h1>Готово</h1><p class="sub">Ваш доступ до ${INVITE.hotel} активовано.</p><span class="role-badge">${ROLE_LABEL[INVITE.role]}</span><button class="btn primary" type="button" data-goto="welcome">Відкрити Hotel Upwork</button>`;
 }
 function screenWelcome(role){
  const r=ROLE_CAPS[role];
  const name=role===INVITE.role?INVITE.first:'Олександре';
- return `<h1>Вітаємо в Hotel OS${role===INVITE.role?', '+name:''}</h1><p class="sub">Ви приєдналися до команди ${INVITE.hotel}.</p><span class="role-badge">${ROLE_LABEL[role]}</span>
+ return `<h1>Вітаємо в Hotel Upwork${role===INVITE.role?', '+name:''}</h1><p class="sub">Ви приєдналися до команди ${INVITE.hotel}.</p><span class="role-badge">${ROLE_LABEL[role]}</span>
  <p style="font-size:12.5px;font-weight:700;color:#3a3a3c;margin-bottom:6px">Ви можете:</p>
  <div class="capability-list">${r.can.map(c=>`<div class="can">${esc(c)}</div>`).join('')}${r.cannot.length?`<p style="font-size:11px;color:#9b9ca2;margin:10px 0 2px">Недоступно:</p>`+r.cannot.map(c=>`<div class="cannot">${esc(c)}</div>`).join(''):''}</div>
  <button class="btn primary" type="button" id="welcome-cta" data-href="${r.href}">${r.cta}</button>`;
 }
 function screenJoinConfirm(){
- return `<h1>Приєднатися до ${INVITE.hotel}?</h1><p class="sub">У вас уже є акаунт Hotel OS. Підтвердіть приєднання до нового готелю.</p>${inviteCard()}<button class="btn primary" type="button" data-goto="welcome">Приєднатися</button><div class="link-row"><button type="button" data-goto="login">Скасувати</button></div>`;
+ return `<h1>Приєднатися до ${INVITE.hotel}?</h1><p class="sub">У вас уже є акаунт Hotel Upwork. Підтвердіть приєднання до нового готелю.</p>${inviteCard()}<button class="btn primary" type="button" data-goto="welcome">Приєднатися</button><div class="link-row"><button type="button" data-goto="login">Скасувати</button></div>`;
 }
 function screenHotelSwitcher(){
  return `<h1>Оберіть готель</h1><p class="sub">Ваш акаунт має доступ до кількох готелів.</p>

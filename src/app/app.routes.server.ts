@@ -3,6 +3,7 @@ import { RenderMode, ServerRoute } from '@angular/ssr';
 const PROTECTED_PATHS = [
 	'dashboard',
 	'calendar',
+	'submissions',
 	'guests',
 	'rooms',
 	'payments',

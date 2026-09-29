@@ -2,7 +2,8 @@ import { DOCUMENT } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { clearStoredRole, defaultPageFor, getStoredRole, isPageAllowed, PAGE_LABEL, ROLE_LABEL } from '../../shared/role';
+import { getStoredPlan, planForPage, planIncludes, PLANS } from '../../shared/plan';
+import { clearStoredRole, defaultPageFor, getStoredRole, isPageAllowed, isPageAvailable, PAGE_LABEL, ROLE_LABEL } from '../../shared/role';
 
 interface NavItem {
 	key: string;
@@ -10,11 +11,14 @@ interface NavItem {
 	icon: string;
 	label: string;
 	badge?: number;
+	/** Plan name to unlock the page, set when the role may open it but the hotel's plan does not include it. */
+	lockedPlan?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
 	{ key: 'overview', href: '/dashboard', icon: 'overview', label: 'Огляд' },
 	{ key: 'calendar', href: '/calendar', icon: 'calendar', label: 'Календар' },
+	{ key: 'submissions', href: '/submissions', icon: 'send', label: 'Заявки' },
 	{ key: 'guests', href: '/guests', icon: 'guests', label: 'Гості' },
 	{ key: 'rooms', href: '/rooms', icon: 'hotel', label: 'Номери' },
 	{ key: 'payments', href: '/payments', icon: 'wallet', label: 'Оплати' },
@@ -25,7 +29,7 @@ const NAV_ITEMS: NavItem[] = [
 	{ key: 'ai', href: '/ai', icon: 'spark', label: 'AI-помічник' },
 ];
 
-const THEME_KEY = 'hotelos_theme';
+const THEME_KEY = 'hotelup_theme';
 
 @Component({
 	selector: 'app-shell',
@@ -48,24 +52,34 @@ export class AppShellComponent {
 		return role ? ROLE_LABEL[role] : '';
 	});
 
-	protected readonly navItems = computed(() => {
+	protected readonly plan = signal(getStoredPlan());
+	protected readonly planName = computed(() => PLANS[this.plan()].name);
+
+	/** Role-allowed pages; plan-locked ones stay visible with the plan that unlocks them (CRM.md → Plans). */
+	protected readonly navItems = computed<NavItem[]>(() => {
 		const role = this.role();
+		const plan = this.plan();
 		if (!role) return NAV_ITEMS;
-		return NAV_ITEMS.filter((item) => isPageAllowed(role, item.href.slice(1)));
+		return NAV_ITEMS.filter((item) => isPageAllowed(role, item.href.slice(1))).map((item) => {
+			const path = item.href.slice(1);
+			if (planIncludes(plan, path)) return item;
+			const needed = planForPage(path);
+			return { ...item, lockedPlan: needed ? PLANS[needed].name : '' };
+		});
 	});
 
 	protected readonly deniedNotice = signal(this._readDeniedNotice());
 
-	protected readonly mobileNavItems = computed(() => this.navItems().slice(0, 3));
+	protected readonly mobileNavItems = computed(() => this.navItems().filter((item) => !item.lockedPlan).slice(0, 3));
 
-	protected readonly showTeam = computed(() => {
+	protected readonly showTeam = computed(() => this._available('team'));
+	protected readonly showSettings = computed(() => this._available('settings'));
+	protected readonly showAi = computed(() => this._available('ai'));
+
+	private _available(path: string): boolean {
 		const role = this.role();
-		return !role || isPageAllowed(role, 'team');
-	});
-	protected readonly showSettings = computed(() => {
-		const role = this.role();
-		return !role || isPageAllowed(role, 'settings');
-	});
+		return !role || isPageAvailable(role, this.plan(), path);
+	}
 
 	protected readonly sidebarOpen = signal(false);
 	protected readonly isDark = signal(this._readInitialTheme() === 'dark');
@@ -80,18 +94,29 @@ export class AppShellComponent {
 
 	protected dismissDenied(): void {
 		this.deniedNotice.set(null);
-		this._router.navigate([], { queryParams: { denied: null, missing: null }, queryParamsHandling: 'merge', replaceUrl: true });
+		this._router.navigate([], {
+			queryParams: { denied: null, missing: null, locked: null },
+			queryParamsHandling: 'merge',
+			replaceUrl: true,
+		});
 	}
 
-	private _readDeniedNotice(): { text: string; homeLabel: string; home: string } | null {
+	private _readDeniedNotice(): { text: string; homeLabel: string; home: string; pricing: boolean } | null {
 		const params = this._router.parseUrl(this._router.url).queryParams;
 		const role = this.role();
-		if (!role || (!params['denied'] && !params['missing'])) return null;
-		const home = defaultPageFor(role);
-		const text = params['denied']
-			? `Розділ «${PAGE_LABEL[params['denied']] ?? params['denied']}» недоступний для ролі «${ROLE_LABEL[role]}». Якщо він потрібен для роботи, зверніться до власника або менеджера.`
-			: `Сторінка «${params['missing']}» ще не доступна в демо.`;
-		return { text, home: '/' + home, homeLabel: PAGE_LABEL[home] ?? home };
+		const home = role ? defaultPageFor(role, this.plan()) : null;
+		if (!role || !home || (!params['denied'] && !params['missing'] && !params['locked'])) return null;
+		const page = (key: string) => PAGE_LABEL[key] ?? key;
+		let text: string;
+		if (params['locked']) {
+			const needed = planForPage(params['locked']);
+			text = `Розділ «${page(params['locked'])}» входить у тариф ${needed ? PLANS[needed].name : 'вищого рівня'}. Ваш готель зараз на тарифі ${this.planName()}.`;
+		} else if (params['denied']) {
+			text = `Розділ «${page(params['denied'])}» недоступний для ролі «${ROLE_LABEL[role]}». Якщо він потрібен для роботи, зверніться до власника або менеджера.`;
+		} else {
+			text = `Сторінка «${params['missing']}» ще не доступна в демо.`;
+		}
+		return { text, home: '/' + home, homeLabel: page(home), pricing: !!params['locked'] };
 	}
 
 	protected logout(): void {

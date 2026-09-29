@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { getStoredPlan, PLAN_ORDER, PLAN_ROLES, PLANS, setStoredPlan, type Plan } from '../../shared/plan';
 import { defaultPageFor, ROLE_LABEL, setStoredRole, type Role } from '../../shared/role';
 
 type Screen =
@@ -70,7 +71,7 @@ const ROLE_CAPS: Record<Role, RoleCapabilities> = {
 		cta: 'Відкрити мої задачі',
 	},
 	owner: {
-		can: ['повний доступ до Hotel OS', 'управління готелем та командою', 'фінансові та критичні налаштування'],
+		can: ['повний доступ до Hotel Upwork', 'управління готелем та командою', 'фінансові та критичні налаштування'],
 		cannot: [],
 		cta: 'Відкрити Dashboard',
 	},
@@ -159,9 +160,26 @@ export class LoginComponent {
 		this.screen.set(screen);
 	}
 
+	protected readonly plans = PLAN_ORDER.map((key) => PLANS[key]);
+	protected readonly demoPlan = signal<Plan>(getStoredPlan());
+
+	protected setDemoPlan(plan: Plan): void {
+		this.demoPlan.set(plan);
+		setStoredPlan(plan);
+	}
+
+	protected roleOnPlan(role: Role): boolean {
+		return PLAN_ROLES[this.demoPlan()].includes(role);
+	}
+
 	protected testLoginAs(role: Role): void {
+		if (!this.roleOnPlan(role)) return;
 		setStoredRole(role);
-		this._navigate('/' + defaultPageFor(role));
+		this._goHome(role);
+	}
+
+	private _goHome(role: Role): void {
+		this._navigate('/' + (defaultPageFor(role) ?? 'login'));
 	}
 
 	private _navigate(url: string): void {
@@ -210,7 +228,7 @@ export class LoginComponent {
 				return;
 			}
 			setStoredRole(this.demoRole());
-			this._navigate('/' + defaultPageFor(this.demoRole()));
+			this._goHome(this.demoRole());
 		}, 700);
 	}
 
@@ -267,7 +285,7 @@ export class LoginComponent {
 
 	protected openWelcomeCta(): void {
 		setStoredRole(this.demoRole());
-		this._navigate('/' + defaultPageFor(this.demoRole()));
+		this._goHome(this.demoRole());
 	}
 
 	private showToast(text: string): void {

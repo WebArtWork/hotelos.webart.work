@@ -42,13 +42,13 @@
 		<div class="form-wrap">
 			<a class="brand" routerLink="/">
 				<span class="mark">H</span>
-				<span>Hotel <b>OS</b><small>Система управління готелем</small></span>
+				<span>Hotel <b>Upwork</b><small>Система управління готелем</small></span>
 			</a>
 
 			<div id="auth-main">
 				@switch (screen()) {
 					@case ('login') {
-						<h1>Вхід до Hotel OS</h1>
+						<h1>Вхід до Hotel Upwork</h1>
 						<p class="sub">Увійдіть, щоб продовжити роботу з вашим готелем.</p>
 						<form (submit)="$event.preventDefault(); submitLogin()">
 							<div class="field">
@@ -97,20 +97,37 @@
 							<button type="button" (click)="goto('testLogin')">Тестовий вхід за роллю</button>
 						</div>
 						<p class="bottom-note">
-							Ще не використовуєте Hotel OS? <a href="/#pricing">Спробувати безкоштовно</a>
+							Ще не використовуєте Hotel Upwork? <a routerLink="/pricing">Спробувати безкоштовно</a>
 						</p>
 					}
 
 					@case ('testLogin') {
 						<h1>Тестовий вхід</h1>
-						<p class="sub">Оберіть роль, щоб побачити Hotel OS з її погляду.</p>
-						<div class="role-pick-grid">
-							@for (r of testLoginRoles; track r) {
-								<button type="button" class="role-pick" (click)="testLoginAs(r)">
-									{{ roleLabel[r] }}
+						<p class="sub">Оберіть тариф готелю та роль, щоб побачити Hotel Upwork з її погляду.</p>
+						<div class="plan-pick" role="radiogroup" aria-label="Тариф готелю">
+							@for (p of plans; track p.key) {
+								<button
+									type="button"
+									role="radio"
+									[attr.aria-checked]="demoPlan() === p.key"
+									[class.selected]="demoPlan() === p.key"
+									(click)="setDemoPlan(p.key)"
+								>
+									<b>{{ p.name }}</b><small>{{ p.price }} {{ p.period }}</small>
 								</button>
 							}
 						</div>
+						<div class="role-pick-grid">
+							@for (r of testLoginRoles; track r) {
+								<button type="button" class="role-pick" [disabled]="!roleOnPlan(r)" (click)="testLoginAs(r)">
+									{{ roleLabel[r] }}
+									@if (!roleOnPlan(r)) {
+										<small>Доступно з тарифу Pro</small>
+									}
+								</button>
+							}
+						</div>
+						<p class="bottom-note"><a routerLink="/pricing">Порівняти тарифи</a></p>
 						<div class="link-row">
 							<button type="button" (click)="goto('login')">Повернутися до входу</button>
 						</div>
@@ -118,7 +135,7 @@
 
 					@case ('forgot') {
 						<h1>Відновлення пароля</h1>
-						<p class="sub">Введіть email, який використовується для входу в Hotel OS.</p>
+						<p class="sub">Введіть email, який використовується для входу в Hotel Upwork.</p>
 						<form (submit)="$event.preventDefault(); submitForgot()">
 							<div class="field">
 								<label>Email</label>
@@ -146,7 +163,7 @@
 
 					@case ('newPassword') {
 						<h1>Створіть новий пароль</h1>
-						<p class="sub">Використайте новий пароль для входу в Hotel OS.</p>
+						<p class="sub">Використайте новий пароль для входу в Hotel Upwork.</p>
 						<form (submit)="$event.preventDefault(); submitNewPassword()">
 							<div class="field">
 								<label>Новий пароль</label>
@@ -199,7 +216,7 @@
 
 					@case ('invitation') {
 						<h1>Вас запросили до {{ invite.hotel }}</h1>
-						<p class="sub">{{ invite.inviter }} запросив(ла) вас приєднатися до команди Hotel OS.</p>
+						<p class="sub">{{ invite.inviter }} запросив(ла) вас приєднатися до команди Hotel Upwork.</p>
 						<div class="invite-card">
 							<div class="ic-row"><span>Готель</span><b>{{ invite.hotel }}</b></div>
 							<div class="ic-row"><span>Роль</span><b>{{ roleLabel[invite.role] }}</b></div>
@@ -237,7 +254,7 @@
 
 					@case ('createAccount') {
 						<h1>Створіть доступ</h1>
-						<p class="sub">Створіть пароль для входу в Hotel OS.</p>
+						<p class="sub">Створіть пароль для входу в Hotel Upwork.</p>
 						<form (submit)="$event.preventDefault(); submitCreateAccount()">
 							<div class="field">
 								<label>Ім'я</label>
@@ -290,12 +307,12 @@
 						<h1>Готово</h1>
 						<p class="sub">Ваш доступ до {{ invite.hotel }} активовано.</p>
 						<span class="role-badge">{{ roleLabel[invite.role] }}</span>
-						<button class="btn primary" type="button" (click)="goto('welcome')">Відкрити Hotel OS</button>
+						<button class="btn primary" type="button" (click)="goto('welcome')">Відкрити Hotel Upwork</button>
 					}
 
 					@case ('welcome') {
 						<h1>
-							Вітаємо в Hotel OS{{ demoRole() === invite.role ? ', ' + welcomeName() : '' }}
+							Вітаємо в Hotel Upwork{{ demoRole() === invite.role ? ', ' + welcomeName() : '' }}
 						</h1>
 						<p class="sub">Ви приєдналися до команди {{ invite.hotel }}.</p>
 						<span class="role-badge">{{ roleLabel[demoRole()] }}</span>
@@ -320,7 +337,7 @@
 
 					@case ('joinConfirm') {
 						<h1>Приєднатися до {{ invite.hotel }}?</h1>
-						<p class="sub">У вас уже є акаунт Hotel OS. Підтвердіть приєднання до нового готелю.</p>
+						<p class="sub">У вас уже є акаунт Hotel Upwork. Підтвердіть приєднання до нового готелю.</p>
 						<div class="invite-card">
 							<div class="ic-row"><span>Готель</span><b>{{ invite.hotel }}</b></div>
 							<div class="ic-row"><span>Роль</span><b>{{ roleLabel[invite.role] }}</b></div>
@@ -397,7 +414,7 @@
 					@case ('noHotelAccess') {
 						<h1>Немає активних готелів</h1>
 						<p class="sub">Ваш акаунт активний, але наразі ви не маєте доступу до жодного готелю.</p>
-						<a class="btn primary" href="/#pricing">Створити готель</a>
+						<a class="btn primary" routerLink="/pricing">Створити готель</a>
 					}
 
 					@case ('rateLimit') {

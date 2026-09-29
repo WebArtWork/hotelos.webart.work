@@ -1,6 +1,6 @@
 'use strict';
 (function(){
- var KEY='hotelos_role';
+ var KEY='hotelup_role';
  var LABELS={owner:'Власник',manager:'Менеджер',reception:'Ресепшн',housekeeping:'Прибирання'};
  function get(){try{return localStorage.getItem(KEY)||'owner'}catch(e){return 'owner'}}
  function set(r){try{localStorage.setItem(KEY,r)}catch(e){}apply()}

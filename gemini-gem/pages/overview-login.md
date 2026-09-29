@@ -3,7 +3,7 @@
 ## Головна маркетингова сторінка — /
 
 ### Призначення
-Публічна сторінка продукту Hotel OS: що вміє система, для кого вона, тарифи. Не потребує входу.
+Публічна сторінка продукту Hotel Upwork: що вміє система, для кого вона, тарифи. Не потребує входу.
 
 ### Хто має доступ
 Будь-хто, без входу.
@@ -22,24 +22,24 @@
 - Кнопки «Забронювати» та «Переглянути бронювання» ведуть на публічну сторінку бронювання, якої в поточній версії ще немає (див. файл про недоступні сторінки).
 
 ### Посилання
-- [Головна](https://hotelos.webart.work/)
-- [Продукт](https://hotelos.webart.work/#product)
-- [Можливості](https://hotelos.webart.work/#features)
-- [Календар](https://hotelos.webart.work/#calendar)
-- [CRM гостей](https://hotelos.webart.work/#crm)
-- [Пряме бронювання](https://hotelos.webart.work/#booking)
-- [Оплати](https://hotelos.webart.work/#payments)
-- [Прибирання](https://hotelos.webart.work/#housekeeping)
-- [Повідомлення та автоматизації](https://hotelos.webart.work/#messages)
-- [Продажі](https://hotelos.webart.work/#sales)
-- [AI-помічник](https://hotelos.webart.work/#ai)
-- [Для готелів](https://hotelos.webart.work/#hotels)
-- [Тарифи](https://hotelos.webart.work/#pricing)
+- [Головна](https://hotelupwork.webart.work/)
+- [Продукт](https://hotelupwork.webart.work/#product)
+- [Можливості](https://hotelupwork.webart.work/#features)
+- [Календар](https://hotelupwork.webart.work/#calendar)
+- [CRM гостей](https://hotelupwork.webart.work/#crm)
+- [Пряме бронювання](https://hotelupwork.webart.work/#booking)
+- [Оплати](https://hotelupwork.webart.work/#payments)
+- [Прибирання](https://hotelupwork.webart.work/#housekeeping)
+- [Повідомлення та автоматизації](https://hotelupwork.webart.work/#messages)
+- [Продажі](https://hotelupwork.webart.work/#sales)
+- [AI-помічник](https://hotelupwork.webart.work/#ai)
+- [Для готелів](https://hotelupwork.webart.work/#hotels)
+- [Тарифи](https://hotelupwork.webart.work/#pricing)
 
 ## Вхід у систему — /login
 
 ### Призначення
-Вхід до робочого простору Hotel OS. У демо-версії вхід відбувається через **вибір ролі**, без пароля.
+Вхід до робочого простору Hotel Upwork. У демо-версії вхід відбувається через **вибір ролі**, без пароля.
 
 ### Хто має доступ
 Будь-хто.
@@ -63,7 +63,7 @@
 - Без обраної ролі будь-яка сторінка CRM автоматично перенаправляє на /login.
 
 ### Посилання
-- [Вхід / Тестовий вхід](https://hotelos.webart.work/login)
+- [Вхід / Тестовий вхід](https://hotelupwork.webart.work/login)
 
 ## Загальна навігація робочого простору (для всіх сторінок CRM)
 

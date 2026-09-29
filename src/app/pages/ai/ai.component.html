@@ -38,7 +38,7 @@
 			<div class="welcome">
 				<span class="ai-label">HOTEL AI</span>
 				<h2>Що хочете дізнатися про ваш готель?</h2>
-				<p>Запитуйте звичайними словами. Hotel OS використає актуальні дані вашого готелю та покаже відповідь.</p>
+				<p>Запитуйте звичайними словами. Hotel Upwork використає актуальні дані вашого готелю та покаже відповідь.</p>
 				<div class="suggest-grid">
 					@for (s of SUGGESTIONS; track s) {
 						<button (click)="askSuggestion(s)">{{ s }}</button>
@@ -113,7 +113,7 @@
 
 <dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
 	<div class="dialog-head">
-		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<span class="dialog-label">HOTEL UPWORK <span>· ДЕМО</span></span>
 		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
 	</div>
 	<div id="dialog-content">

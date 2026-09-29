@@ -48,13 +48,13 @@
 
 ### Обмеження
 - Це демо: дані працівників тестові, а зміни зберігаються лише до перезавантаження сторінки.
-- Запрошення насправді не надсилаються. «Скопіювати посилання» копіює демо-посилання `https://hotelos.app/invite/DEMO-TOKEN`.
+- Запрошення насправді не надсилаються. «Скопіювати посилання» копіює демо-посилання `https://hotelup.work/invite/DEMO-TOKEN`.
 - Перемикачі «Дозволи» записуються в картку працівника, але **ще не застосовуються** до сесії користувача, який увійшов. Права сесії визначає лише вибрана роль.
 - Кнопка «Завершити всі сесії» лише показує повідомлення «Усі сесії завершено». Реальні сесії вона не завершує.
 
 ### Посилання
-- Команда: https://hotelos.webart.work/team
-- Сторінка CRM потребує входу: https://hotelos.webart.work/login → екран «Тестовий вхід» → виберіть роль «Власник» або «Менеджер».
+- Команда: https://hotelupwork.webart.work/team
+- Сторінка CRM потребує входу: https://hotelupwork.webart.work/login → екран «Тестовий вхід» → виберіть роль «Власник» або «Менеджер».
 
 ## Налаштування — /settings
 
@@ -100,7 +100,7 @@
     - «Дані компанії»: Назва компанії / ФОП, ЄДРПОУ / ІПН, юридична адреса.
     - «Дані готелю»: кнопки «Експортувати гостей», «Експортувати бронювання», «Експортувати оплати».
     - «Історія змін».
-    - «Небезпечна зона»: «Деактивувати Booking Page» (з підтвердженням; дані CRM не видаляються) і «Деактивувати готель» (потрібне підтвердження з підтримкою Hotel OS).
+    - «Небезпечна зона»: «Деактивувати Booking Page» (з підтвердженням; дані CRM не видаляються) і «Деактивувати готель» (потрібне підтвердження з підтримкою Hotel Upwork).
 
 ### Обмеження
 - Це демо: значення не надсилаються на сервер і після перезавантаження сторінки повертаються до початкових.
@@ -110,20 +110,20 @@
 
 ### Посилання
 Через `#` у посиланні можна відкрити потрібний розділ одразу:
-- Загальне: https://hotelos.webart.work/settings#general
-- Загальне (оформлення): https://hotelos.webart.work/settings#appearance
-- Контакти та локація: https://hotelos.webart.work/settings#contacts
-- Заселення та виїзд: https://hotelos.webart.work/settings#checkin-checkout
-- Бронювання: https://hotelos.webart.work/settings#booking-rules
-- Оплати: https://hotelos.webart.work/settings#payments
-- Правила: https://hotelos.webart.work/settings#policies
-- Booking Page: https://hotelos.webart.work/settings#booking-page
-- Повідомлення: https://hotelos.webart.work/settings#messaging
-- Автоматизації: https://hotelos.webart.work/settings#automations
-- Сповіщення: https://hotelos.webart.work/settings#notifications
-- Джерела бронювань: https://hotelos.webart.work/settings#sources
-- AI: https://hotelos.webart.work/settings#ai
-- AI (база знань): https://hotelos.webart.work/settings#ai-knowledge
-- Безпека: https://hotelos.webart.work/settings#security
+- Загальне: https://hotelupwork.webart.work/settings#general
+- Загальне (оформлення): https://hotelupwork.webart.work/settings#appearance
+- Контакти та локація: https://hotelupwork.webart.work/settings#contacts
+- Заселення та виїзд: https://hotelupwork.webart.work/settings#checkin-checkout
+- Бронювання: https://hotelupwork.webart.work/settings#booking-rules
+- Оплати: https://hotelupwork.webart.work/settings#payments
+- Правила: https://hotelupwork.webart.work/settings#policies
+- Booking Page: https://hotelupwork.webart.work/settings#booking-page
+- Повідомлення: https://hotelupwork.webart.work/settings#messaging
+- Автоматизації: https://hotelupwork.webart.work/settings#automations
+- Сповіщення: https://hotelupwork.webart.work/settings#notifications
+- Джерела бронювань: https://hotelupwork.webart.work/settings#sources
+- AI: https://hotelupwork.webart.work/settings#ai
+- AI (база знань): https://hotelupwork.webart.work/settings#ai-knowledge
+- Безпека: https://hotelupwork.webart.work/settings#security
 
-Сторінка CRM потребує входу: https://hotelos.webart.work/login → екран «Тестовий вхід» → виберіть роль «Власник» або «Менеджер».
+Сторінка CRM потребує входу: https://hotelupwork.webart.work/login → екран «Тестовий вхід» → виберіть роль «Власник» або «Менеджер».

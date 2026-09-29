@@ -2,7 +2,7 @@
 	<div class="page-heading">
 		<div>
 			<h1>Налаштування</h1>
-			<p>Керуйте інформацією про готель, правилами та поведінкою Hotel OS.</p>
+			<p>Керуйте інформацією про готель, правилами та поведінкою Hotel Upwork.</p>
 		</div>
 		<div class="page-actions">
 			<span class="save-status" [class.dirty]="dirty()">{{ dirty() ? 'Є незбережені зміни' : 'Зміни збережено' }}</span>
@@ -48,15 +48,15 @@
 				@case ('general') {
 					<div class="settings-card">
 						<h2>Оформлення</h2>
-						<p class="card-sub">Тема інтерфейсу Hotel OS застосовується одразу і запам'ятовується в цьому браузері.</p>
+						<p class="card-sub">Тема інтерфейсу Hotel Upwork застосовується одразу і запам'ятовується в цьому браузері.</p>
 						<div class="toggle-row" style="border-top:0">
-							<div><b>Темна тема</b><span>За замовчуванням Hotel OS відкривається в темній темі</span></div>
+							<div><b>Темна тема</b><span>За замовчуванням Hotel Upwork відкривається в темній темі</span></div>
 							<span class="text-action">Перемикається кнопкою теми внизу сторінки</span>
 						</div>
 					</div>
 					<div class="settings-card">
 						<h2>Загальна інформація</h2>
-						<p class="card-sub">Основна інформація, яка використовується всередині Hotel OS та на публічних сторінках.</p>
+						<p class="card-sub">Основна інформація, яка використовується всередині Hotel Upwork та на публічних сторінках.</p>
 						<div class="field-grid">
 							<div class="field">
 								<label>Назва готелю *</label>
@@ -222,7 +222,7 @@
 						<h2>Призначення номера</h2>
 						<div class="option-cards">
 							<div class="opt-card" [class.selected]="get('roomAssignment') === 'auto'" (click)="pick('roomAssignment', 'auto')">
-								<b>Автоматично</b><span>Hotel OS обирає конкретний вільний номер потрібного типу.</span>
+								<b>Автоматично</b><span>Hotel Upwork обирає конкретний вільний номер потрібного типу.</span>
 							</div>
 							<div class="opt-card" [class.selected]="get('roomAssignment') === 'manual'" (click)="pick('roomAssignment', 'manual')">
 								<b>Менеджер призначає пізніше</b><span>Гість бронює лише тип номера. Рекомендовано.</span>
@@ -352,14 +352,14 @@
 						</div>
 						<div class="subhead">Посилання для бронювання</div>
 						<div class="link-row">
-							<code>hotelos.app/{{ get('slug') }}</code>
+							<code>hotelup.work/{{ get('slug') }}</code>
 							<button class="text-action" (click)="copyLink()">Копіювати</button>
 							<a class="text-action" href="/book/" target="_blank">Відкрити</a>
 						</div>
 						<div class="field" style="margin-top:12px">
 							<label>Slug</label>
 							<div class="slug-field">
-								<span>hotelos.app/</span>
+								<span>hotelup.work/</span>
 								<input [disabled]="isLocked(section())" [ngModel]="get('slug')" (ngModelChange)="setField('slug', $event)" />
 							</div>
 							<small class="help">Зміна посилання може призвести до того, що старе посилання перестане працювати.</small>
@@ -551,7 +551,7 @@
 
 <dialog #dialogEl (click)="onDialogClick($event)">
 	<div class="dialog-head">
-		<span class="dialog-label">HOTEL OS <span>· ДЕМО</span></span>
+		<span class="dialog-label">HOTEL UPWORK <span>· ДЕМО</span></span>
 		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
 	</div>
 	<div id="dialog-content">
@@ -585,7 +585,7 @@
 				}
 				@case ('deactivate-hotel') {
 					<h2>Деактивувати готель?</h2>
-					<p>Ця дія доступна лише Owner і вимагає підтвердження з підтримкою Hotel OS.</p>
+					<p>Ця дія доступна лише Owner і вимагає підтвердження з підтримкою Hotel Upwork.</p>
 					<div class="dialog-actions">
 						<button class="button secondary" (click)="closeDialog()">Зрозуміло</button>
 					</div>

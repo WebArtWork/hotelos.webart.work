@@ -12,7 +12,8 @@ import {
 	signal,
 	viewChild,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { PLAN_ORDER, PLANS, setStoredPlan, type Plan } from '../../shared/plan';
 
 interface ParallaxTarget {
 	el: HTMLElement;
@@ -49,7 +50,7 @@ const PROMPT_RESPONSES: Record<PromptKey, { question: string; paragraphs: string
 	},
 };
 
-const THEME_KEY = 'hotelos_theme';
+const THEME_KEY = 'hotelup_theme';
 
 @Component({
 	selector: 'app-landing',
@@ -62,6 +63,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 	private readonly _hostEl = inject(ElementRef<HTMLElement>);
 	private readonly _ngZone = inject(NgZone);
 	private readonly _isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+	private readonly _router = inject(Router);
 
 	protected readonly dialogRef = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
 	protected readonly modalKind = signal<ModalKind>(null);
@@ -162,6 +164,13 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 	protected readonly cleanReady = signal(false);
 
 	protected readonly isDark = signal(this._readInitialTheme() === 'dark');
+
+	protected readonly plans = PLAN_ORDER.map((key) => PLANS[key]);
+
+	protected choosePlan(plan: Plan): void {
+		setStoredPlan(plan);
+		this._router.navigateByUrl('/login');
+	}
 
 	protected goToApp(): void {
 		window.location.href = '/dashboard/';

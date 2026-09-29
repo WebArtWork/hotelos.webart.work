@@ -1,6 +1,6 @@
 # gemini-gem/: службові нотатки (не завантажувати в Gem)
 
-Ця папка містить конфігурацію Gemini Gem «Hotel OS Помічник», довідкового бота для персоналу
+Ця папка містить конфігурацію Gemini Gem «Hotel Upwork Помічник», довідкового бота для персоналу
 готелю. Сам README не завантажується в Gem.
 
 ## Що куди вставляти в Gem
@@ -38,7 +38,7 @@
 ## Посилання та якорі
 
 Angular-версія не має `id`-якорів на секціях CRM-сторінок, тому посилання ведуть на саму
-сторінку (`https://hotelos.webart.work/payments`). Робочі якорі є лише:
+сторінку (`https://hotelupwork.webart.work/payments`). Робочі якорі є лише:
 - на головній: `#product #features #calendar #crm #booking #payments #housekeeping #messages
   #sales #ai #hotels #pricing`;
 - у Налаштуваннях: хеші з `HASH_TO_SECTION` у `settings.component.ts`.

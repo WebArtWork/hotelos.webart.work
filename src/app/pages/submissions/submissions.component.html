@@ -1,0 +1,275 @@
+<app-shell activeNav="submissions" greetingTitle="Заявки" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="page-heading">
+		<div>
+			<div class="breadcrumb">Робочий простір <span>/</span> Заявки</div>
+			<h1>Заявки з сайтів</h1>
+			<p>Форми з ваших сайтів в одному списку.</p>
+		</div>
+		<div class="page-actions">
+			<button class="button primary" (click)="openConnect()"><app-icon name="plus" />Підключити сайт</button>
+		</div>
+	</div>
+
+	<div class="kpis">
+		<div class="kpi gold">
+			<small>Нові заявки</small>
+			<b>{{ counts().new }}</b>
+			<span>Чекають на першу відповідь</span>
+		</div>
+		<div class="kpi">
+			<small>В роботі</small>
+			<b>{{ counts().inProgress }}</b>
+			<span>Є відповідальний, чекаємо рішення</span>
+		</div>
+		<div class="kpi">
+			<small>Конверсія в бронювання</small>
+			<b>{{ counts().conversion }}%</b>
+			<span>{{ bookings(counts().booked) }} з опрацьованих заявок</span>
+		</div>
+		<div class="kpi">
+			<small>Перша відповідь</small>
+			<b>24 хв</b>
+			<span>Середній час за вересень</span>
+		</div>
+	</div>
+
+	<div class="table-card">
+		<div class="toolbar">
+			<div class="tabs" role="tablist" aria-label="Статус заявки">
+				@for (t of TABS; track t.key) {
+					<button
+						type="button"
+						role="tab"
+						[attr.aria-selected]="tab() === t.key"
+						[class.active]="tab() === t.key"
+						(click)="tab.set(t.key)"
+					>
+						{{ t.label }} <span>{{ tabCount(t.key) }}</span>
+					</button>
+				}
+			</div>
+			<div class="filters">
+				<label class="search">
+					<app-icon name="search" />
+					<input
+						type="search"
+						placeholder="Ім'я, телефон, email або текст"
+						aria-label="Пошук заявок"
+						[ngModel]="query()"
+						(ngModelChange)="query.set($event)"
+					/>
+				</label>
+				<select class="plain" aria-label="Сайт" [ngModel]="site()" (ngModelChange)="site.set($event)">
+					<option value="all">Усі сайти</option>
+					@for (s of SITES; track s.domain) {
+						<option [value]="s.domain">{{ s.domain }}</option>
+					}
+				</select>
+			</div>
+		</div>
+
+		@if (visible().length) {
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>Надійшла</th>
+							<th>Контакт</th>
+							<th>Форма · сайт</th>
+							<th>Дати</th>
+							<th>Статус</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (s of visible(); track s.id) {
+							<tr [class.unread]="s.status === 'new'" (click)="open(s.id)">
+								<td>{{ time(s.received) }}</td>
+								<td class="name-cell">
+									<button type="button" class="row-link" (click)="open(s.id); $event.stopPropagation()">{{ s.name }}</button>
+									<small>{{ s.phone || s.email }}</small>
+								</td>
+								<td><b>{{ s.form }}</b><small>{{ s.site }}</small></td>
+								<td>{{ dates(s) }}@if (s.guests) {<small>{{ guests(s.guests) }} · {{ s.roomType }}</small>}</td>
+								<td><span class="status" [attr.data-status]="s.status">{{ STATUS_LABEL[s.status] }}</span></td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+
+			<div class="cards">
+				@for (s of visible(); track s.id) {
+					<button type="button" class="sub-card" [class.unread]="s.status === 'new'" (click)="open(s.id)">
+						<span class="sub-card-top">
+							<b>{{ s.name }}</b>
+							<span class="status" [attr.data-status]="s.status">{{ STATUS_LABEL[s.status] }}</span>
+						</span>
+						<span class="sub-card-meta">{{ s.form }} · {{ time(s.received) }}</span>
+						@if (s.checkIn) {
+							<span class="sub-card-meta">{{ dates(s) }} · {{ guests(s.guests ?? 0) }}</span>
+						}
+					</button>
+				}
+			</div>
+		} @else {
+			<div class="empty-state">
+				<h2>Заявок немає</h2>
+				<p>У цьому статусі або за цим пошуком заявок не знайдено.</p>
+			</div>
+		}
+	</div>
+</app-shell>
+
+<div class="side-scrim" [hidden]="!selected()" (click)="closePanel()"></div>
+<aside class="side-panel" [class.open]="!!selected()" aria-label="Деталі заявки">
+	<div class="side-panel-head">
+		<span class="dialog-label">ЗАЯВКА <span>· №{{ selected()?.id }}</span></span>
+		<button class="icon-button" aria-label="Закрити" (click)="closePanel()"><app-icon name="close" /></button>
+	</div>
+	<div class="side-panel-body">
+		@if (selected(); as s) {
+			<h2 class="panel-title">{{ s.name }}</h2>
+			<p class="panel-sub">
+				<span class="status" [attr.data-status]="s.status">{{ STATUS_LABEL[s.status] }}</span>
+				{{ s.form }} · {{ s.site }} · {{ time(s.received) }}
+			</p>
+
+			<div class="contact-actions">
+				@if (s.phone) {
+					<a class="button secondary" [href]="'tel:' + s.phone.replaceAll(' ', '')"><app-icon name="phone" />{{ s.phone }}</a>
+				}
+				@if (s.email) {
+					<a class="button secondary" [href]="'mailto:' + s.email"><app-icon name="send" />{{ s.email }}</a>
+				}
+			</div>
+
+			@if (s.checkIn) {
+				<h5>Проживання</h5>
+				<dl class="info-grid">
+					<dt>Дати</dt>
+					<dd>{{ dates(s) }}</dd>
+					<dt>Гостей</dt>
+					<dd>{{ s.guests }}</dd>
+					<dt>Тип номера</dt>
+					<dd>{{ s.roomType }}</dd>
+				</dl>
+			}
+
+			<h5>Повідомлення</h5>
+			<p class="message">{{ s.message || 'Гість не залишив повідомлення.' }}</p>
+
+			<h5>Історія</h5>
+			<ol class="history">
+				@for (h of s.history; track $index) {
+					<li><small>{{ h.time }}</small>{{ h.text }}</li>
+				}
+			</ol>
+		}
+	</div>
+	@if (selected(); as s) {
+		<div class="side-panel-foot">
+			@switch (s.status) {
+				@case ('new') {
+					<button class="button primary" (click)="takeIntoWork(s)">Взяти в роботу</button>
+					<button class="button secondary" (click)="createBooking(s)">Створити бронювання</button>
+					<button class="text-action" (click)="markSpam(s)">Це спам</button>
+				}
+				@case ('inProgress') {
+					<button class="button primary" (click)="createBooking(s)">Створити бронювання</button>
+					<button class="button secondary" (click)="askClose(s)">Закрити заявку</button>
+				}
+				@case ('booked') {
+					<p class="form-note">Бронювання створено з цієї заявки.</p>
+				}
+				@case ('closed') {
+					<button class="button secondary" (click)="restore(s)">Повернути в нові</button>
+				}
+				@case ('spam') {
+					<button class="button secondary" (click)="restore(s)">Це не спам</button>
+				}
+				@default never;
+			}
+		</div>
+	}
+</aside>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL UPWORK <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('connect') {
+				<h2>Підключити сайт</h2>
+				<p>
+					Ваш сайт надсилає форми в Hotel Upwork через API. Передайте розробнику сайту адресу і ключ нижче,
+					і заявки з'являться в цьому списку.
+				</p>
+
+				<h5>Адреса для заявок</h5>
+				<div class="code-row">
+					<code>POST https://api.hotelup.work/v1/submissions</code>
+					<button class="text-action" (click)="copy('Адресу')">Копіювати</button>
+				</div>
+
+				<h5>API-ключ</h5>
+				@if (canManageApi) {
+					<div class="code-row">
+						<code>{{ keyVisible() ? 'hup_live_8f3k2m9q4x7v1c6b' : 'hup_live_••••••••••••c6b' }}</code>
+						<button class="text-action" (click)="keyVisible.set(!keyVisible())">{{ keyVisible() ? 'Сховати' : 'Показати' }}</button>
+						<button class="text-action" (click)="copy('Ключ')">Копіювати</button>
+					</div>
+					<button class="text-action" (click)="rotateKey()">Створити новий ключ</button>
+				} @else {
+					<p class="form-note">Ключ бачать Власник і Менеджер. Попросіть їх передати його розробнику сайту.</p>
+				}
+
+				<h5>Приклад запиту</h5>
+				<pre><code>{{ '{' }}
+  "form": "booking",
+  "site": "grandhotel.ua",
+  "name": "Марія Коваль",
+  "phone": "+380674501290",
+  "checkIn": "2026-10-03",
+  "checkOut": "2026-10-05",
+  "guests": 2,
+  "message": "Номер з видом на фортецю"
+{{ '}' }}</code></pre>
+
+				<h5>Підключені сайти</h5>
+				<div class="result-list">
+					@for (s of SITES; track s.domain) {
+						<div class="result-item">
+							<span><b>{{ s.domain }}</b><small>{{ s.forms }}</small></span>
+							<small>{{ s.last }}</small>
+						</div>
+					}
+				</div>
+			}
+			@case ('close') {
+				<h2>Закрити заявку №{{ view!.id }}</h2>
+				<p>Вкажіть причину. Вона залишиться в історії заявки.</p>
+				<div class="demo-form">
+					<label class="full">
+						Причина
+						<select [ngModel]="closeReason()" (ngModelChange)="closeReason.set($event)">
+							@for (r of CLOSE_REASONS; track r) {
+								<option [value]="r">{{ r }}</option>
+							}
+						</select>
+					</label>
+				</div>
+				<div class="dialog-actions">
+					<button class="button primary" (click)="confirmClose(view!.id)">Закрити заявку</button>
+					<button class="button secondary" (click)="closeDialog()">Скасувати</button>
+				</div>
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

@@ -1,0 +1,114 @@
+<header>
+	<a class="brand" routerLink="/" aria-label="Hotel Upwork, головна сторінка">
+		<span class="mark">H</span>
+		<span>Hotel <strong>Upwork</strong><small>Система управління готелем</small></span>
+	</a>
+	<nav aria-label="Головна навігація">
+		<a routerLink="/">Продукт</a>
+		<a routerLink="/pricing" aria-current="page">Ціни</a>
+	</nav>
+	<div class="header-actions">
+		<a class="login" routerLink="/login">Увійти ↗</a>
+	</div>
+</header>
+
+<main>
+	<section class="intro">
+		<p class="eyebrow">ТАРИФИ</p>
+		<h1>Почніть безкоштовно. Платіть, коли готель росте.</h1>
+		<p>
+			Календар бронювань і заявки з ваших сайтів безкоштовні назавжди. Решту модулів вмикаєте тоді,
+			коли вони справді потрібні.
+		</p>
+	</section>
+
+	<section class="plans" aria-label="Тарифи">
+		@for (p of plans; track p.key) {
+			<article class="plan" [class.recommended]="p.recommended">
+				@if (p.recommended) {
+					<span class="recommend">РЕКОМЕНДОВАНИЙ</span>
+				}
+				<h2>{{ p.name }}</h2>
+				<p class="tagline">{{ p.tagline }}</p>
+				<div class="price">{{ p.price }}<span>{{ p.period }}</span></div>
+				<p class="limits">{{ p.limits }}</p>
+				<button type="button" class="btn" [class.gold]="p.recommended" [class.outline]="!p.recommended" (click)="choose(p.key)">
+					{{ p.cta }} <span aria-hidden="true">↗</span>
+				</button>
+				<ul class="checks">
+					@for (h of p.highlights; track h) {
+						<li>{{ h }}</li>
+					}
+				</ul>
+			</article>
+		}
+	</section>
+
+	<section class="compare" aria-labelledby="compare-title">
+		<h2 id="compare-title">Порівняння тарифів</h2>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col"><span class="sr-only">Можливість</span></th>
+						@for (p of plans; track p.key) {
+							<th scope="col">{{ p.name }}<small>{{ p.price }} {{ p.period }}</small></th>
+						}
+					</tr>
+				</thead>
+				@for (g of compare; track g.title) {
+					<tbody>
+						<tr class="group">
+							<th scope="rowgroup" [attr.colspan]="plans.length + 1">{{ g.title }}</th>
+						</tr>
+						@for (row of g.rows; track row.label) {
+							<tr>
+								<th scope="row">
+									{{ row.label }}
+									@if (row.hint) {
+										<small>{{ row.hint }}</small>
+									}
+								</th>
+								@for (p of plans; track p.key) {
+									@let value = cell(row, p.key);
+									<td [class.yes]="value === '✓'">
+										@if (value === '✓') {
+											<span aria-hidden="true">✓</span><span class="sr-only">Входить</span>
+										} @else if (value) {
+											{{ value }}
+										} @else {
+											<span class="no" aria-hidden="true">—</span><span class="sr-only">Не входить</span>
+										}
+									</td>
+								}
+							</tr>
+						}
+					</tbody>
+				}
+			</table>
+		</div>
+	</section>
+
+	<section class="faq" aria-labelledby="faq-title">
+		<h2 id="faq-title">Часті запитання</h2>
+		@for (item of faq; track item.q) {
+			<details>
+				<summary>{{ item.q }}</summary>
+				<p>{{ item.a }}</p>
+			</details>
+		}
+	</section>
+
+	<section class="final">
+		<h2>Спробуйте Hotel Upwork на своєму готелі.</h2>
+		<p>Start безкоштовний, картка не потрібна.</p>
+		<button type="button" class="btn gold" (click)="choose('start')">Почати безкоштовно <span aria-hidden="true">↗</span></button>
+	</section>
+</main>
+
+<footer>
+	<span>© 2026 Hotel Upwork</span>
+	<a routerLink="/">Головна</a>
+	<a href="/privacy/">Політика конфіденційності</a>
+	<a href="/cookies/">Cookies</a>
+</footer>

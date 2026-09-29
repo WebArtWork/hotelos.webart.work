@@ -34,8 +34,8 @@
 - Відповіді AI — це заготовлені відповіді на основі даних сторінки. Відповідь «найчастіше бронюють» фіксована.
 
 ### Посилання
-- https://hotelos.webart.work/rooms
-- Для входу в CRM потрібна авторизація: https://hotelos.webart.work/login → екран «Тестовий вхід» → оберіть роль.
+- https://hotelupwork.webart.work/rooms
+- Для входу в CRM потрібна авторизація: https://hotelupwork.webart.work/login → екран «Тестовий вхід» → оберіть роль.
 
 ## Прибирання — /housekeeping
 
@@ -78,6 +78,6 @@
 - На картках зайнятих номерів видно ім'я гостя та позначку «🔕 Не турбувати».
 
 ### Посилання
-- https://hotelos.webart.work/housekeeping
-- https://hotelos.webart.work/team (кнопка «Команда», лише для Власника й Менеджера)
-- Для входу в CRM потрібна авторизація: https://hotelos.webart.work/login → екран «Тестовий вхід» → оберіть роль.
+- https://hotelupwork.webart.work/housekeeping
+- https://hotelupwork.webart.work/team (кнопка «Команда», лише для Власника й Менеджера)
+- Для входу в CRM потрібна авторизація: https://hotelupwork.webart.work/login → екран «Тестовий вхід» → оберіть роль.
