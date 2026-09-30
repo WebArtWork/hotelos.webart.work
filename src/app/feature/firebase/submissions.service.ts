@@ -33,7 +33,15 @@ export interface LeadSubmission {
 	checkOut?: string;
 	guests?: number;
 	roomType?: string;
+	/** Service requests (sauna, SPA, events…): the day, optional HH:mm and chosen option. */
+	date?: string;
+	time?: string;
+	service?: string;
+	/** Hostels: one entry per guest. */
+	genders?: Gender[];
 }
+
+export type Gender = 'female' | 'male';
 
 export interface SubmissionHistoryEntry {
 	time: string;
@@ -53,6 +61,10 @@ export interface SubmissionRecord {
 	checkOut: string;
 	guests: number | null;
 	roomType: string;
+	date: string;
+	time: string;
+	service: string;
+	genders: Gender[];
 	status: SubmissionStatus;
 	history: SubmissionHistoryEntry[];
 	receivedAt: Date | null;
@@ -118,6 +130,10 @@ export class SubmissionsService {
 						checkOut: data['checkOut'] ?? '',
 						guests: typeof data['guests'] === 'number' ? data['guests'] : null,
 						roomType: data['roomType'] ?? '',
+						date: data['date'] ?? '',
+						time: data['time'] ?? '',
+						service: data['service'] ?? '',
+						genders: Array.isArray(data['genders']) ? (data['genders'] as Gender[]) : [],
 						status: (data['status'] as SubmissionStatus) ?? 'new',
 						history: (data['history'] as SubmissionHistoryEntry[]) ?? [],
 						receivedAt: createdAt?.toDate() ?? null,

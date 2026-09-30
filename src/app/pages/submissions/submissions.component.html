@@ -114,7 +114,16 @@
 										<code class="form-id">{{ s.formId }}</code>
 									}
 								</td>
-								<td>{{ dates(s) }}@if (s.guests) {<small>{{ guests(s.guests) }}@if (s.roomType) { · {{ s.roomType }}}</small>}</td>
+								<td>
+									{{ dates(s) }}
+									@if (s.guests || s.service) {
+										<small
+											>@if (s.guests) {{{ guests(s.guests) }}}@if (s.genders) { ({{ genderSummary(s.genders) }})}@if (s.roomType || s.service) {
+												· {{ s.roomType || s.service }}
+											}</small
+										>
+									}
+								</td>
 								<td><span class="status" [attr.data-status]="s.status">{{ STATUS_LABEL[s.status] }}</span></td>
 							</tr>
 						}
@@ -130,7 +139,7 @@
 							<span class="status" [attr.data-status]="s.status">{{ STATUS_LABEL[s.status] }}</span>
 						</span>
 						<span class="sub-card-meta">{{ s.form }} · {{ time(s.received) }}</span>
-						@if (s.checkIn) {
+						@if (s.checkIn || s.date) {
 							<span class="sub-card-meta">{{ dates(s) }}@if (s.guests) { · {{ guests(s.guests) }}}</span>
 						}
 					</button>
@@ -180,8 +189,24 @@
 					<dd>{{ dates(s) }}</dd>
 					<dt>Гостей</dt>
 					<dd>{{ s.guests ?? '—' }}</dd>
+					@if (s.genders) {
+						<dt>Стать гостей</dt>
+						<dd>{{ genderSummary(s.genders) }}</dd>
+					}
 					<dt>Тип номера</dt>
 					<dd>{{ s.roomType ?? '—' }}</dd>
+				</dl>
+			} @else if (s.date) {
+				<h5>Послуга</h5>
+				<dl class="info-grid">
+					<dt>Дата</dt>
+					<dd>{{ dates(s) }}</dd>
+					@if (s.service) {
+						<dt>Що саме</dt>
+						<dd>{{ s.service }}</dd>
+					}
+					<dt>Людей</dt>
+					<dd>{{ s.guests ?? '—' }}</dd>
 				</dl>
 			}
 

@@ -321,7 +321,9 @@ created there. Submissions contain no payment data.
 **Submission data contract** (enforced by `firestore.rules`, written by `SubmissionsService` shape):
 
 - Required from the visitor: `phone` only. Optional: `name`, `email`, `message`, `checkIn`,
-  `checkOut` (`YYYY-MM-DD`), `guests` (1–50), `roomType`. Any other field is rejected.
+  `checkOut` (`YYYY-MM-DD`), `guests` (1–50), `roomType`; for service requests `date`
+  (`YYYY-MM-DD`), `time` (`HH:mm`), `service` (chosen option); for hostels `genders` (one
+  `female`/`male` per guest). Any other field is rejected.
 - Set by the site: `hotelId` (must be an existing `hotels/{id}`), `formId` (stable slug per form,
   e.g. `stay-request`; never renamed once live), `formName` (label shown in the CRM) and `site`
   (the site's public address from its `CNAME`, e.g. `https://kleopatra.webart.work/`, so local
@@ -329,7 +331,8 @@ created there. Submissions contain no payment data.
   never shown.
 - A submission without a name is listed by its phone number.
 - **"ID форми" column** links to the form: submission `site` + `#` + `formId`, with the site's
-  host underneath. Convention: on the website, the `<form>` element's `id` equals its `formId`.
+  host underneath. Convention: on the website, the section holding the form has `id` equal to its `formId`,
+  so the link scrolls to the start of that section.
   Submissions without `site` show the ID as plain text.
 - Live sites: `kleopatra.webart.work` → `kp-kleopatra`, form `stay-request`.
 

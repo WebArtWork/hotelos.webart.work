@@ -27,7 +27,8 @@ service cloud.firestore {
 
       allow create: if data().keys().hasAll(['phone', 'formId', 'hotelId', 'status', 'createdAt'])
                     && data().keys().hasOnly(['phone', 'formId', 'formName', 'site', 'hotelId', 'name', 'email', 'message',
-                                              'checkIn', 'checkOut', 'guests', 'roomType', 'status', 'history', 'createdAt'])
+                                              'checkIn', 'checkOut', 'guests', 'roomType', 'date', 'time', 'service',
+                                              'genders', 'status', 'history', 'createdAt'])
                     && data().phone is string
                     && data().phone.size() >= 5
                     && data().phone.size() <= 40
@@ -44,6 +45,13 @@ service cloud.firestore {
                     && optString('roomType', 100)
                     && optDate('checkIn')
                     && optDate('checkOut')
+                    // Service requests (sauna, SPA, events…): one date, optional time and option.
+                    && optDate('date')
+                    && (!('time' in data()) || (data().time is string && data().time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')))
+                    && optString('service', 100)
+                    // Hostels: one entry per guest, so dorm beds can be assigned.
+                    && (!('genders' in data()) || (data().genders is list && data().genders.size() <= 50
+                                                   && data().genders.hasOnly(['female', 'male'])))
                     && (!('guests' in data()) || (data().guests is int && data().guests >= 1 && data().guests <= 50))
                     && (!('history' in data()) || data().history.size() == 0)
                     && data().status == 'new'

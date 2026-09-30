@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { HotelService } from '../../feature/firebase/hotel.service';
-import { SubmissionsService } from '../../feature/firebase/submissions.service';
+import { Gender, SubmissionsService } from '../../feature/firebase/submissions.service';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { canCurrent, isLiveSession } from '../../shared/role';
 
@@ -29,6 +29,12 @@ interface Submission {
 	checkOut?: string;
 	guests?: number;
 	roomType?: string;
+	/** Service requests: the day, optional time and chosen option. */
+	date?: string;
+	time?: string;
+	service?: string;
+	/** Hostels: one entry per guest. */
+	genders?: Gender[];
 	message: string;
 	status: Status;
 	history: HistoryEntry[];
@@ -343,6 +349,10 @@ export class SubmissionsComponent {
 						checkOut: r.checkOut || undefined,
 						guests: r.guests ?? undefined,
 						roomType: r.roomType || undefined,
+						date: r.date || undefined,
+						time: r.time || undefined,
+						service: r.service || undefined,
+						genders: r.genders.length ? r.genders : undefined,
 						message: r.message,
 						status: r.status,
 						history: r.history,
@@ -373,6 +383,7 @@ export class SubmissionsComponent {
 	}
 
 	protected dates(s: Submission): string {
+		if (s.date) return s.date.slice(8, 10) + '.' + s.date.slice(5, 7) + (s.time ? `, ${s.time}` : '');
 		if (!s.checkIn || !s.checkOut) return '—';
 		const short = (v: string) => v.slice(8, 10) + '.' + v.slice(5, 7);
 		const nights = Math.round((Date.parse(s.checkOut) - Date.parse(s.checkIn)) / 86_400_000);
@@ -381,6 +392,14 @@ export class SubmissionsComponent {
 
 	protected guests(n: number): string {
 		return plural(n, 'гість', 'гості', 'гостей');
+	}
+
+	/** "2 жін., 1 чол." for hostel requests. */
+	protected genderSummary(genders: Gender[] | undefined): string {
+		if (!genders?.length) return '';
+		const female = genders.filter((g) => g === 'female').length;
+		const male = genders.length - female;
+		return [female && `${female} жін.`, male && `${male} чол.`].filter(Boolean).join(', ');
 	}
 
 	protected bookings(n: number): string {
