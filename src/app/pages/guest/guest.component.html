@@ -1,0 +1,364 @@
+<app-shell activeNav="guests" greetingTitle="Профіль гостя" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+	<div class="breadcrumb"><a href="/guests/">Гості</a><span>/</span>{{ name() }}</div>
+
+	<div class="page-heading">
+		<div>
+			<div class="heading-top">
+				<h1>{{ name() }}</h1>
+				@for (t of tags(); track t) {
+					<span class="tag-chip" [class.gold]="t === 'VIP' || t === 'Постійний гість'">{{ t }}</span>
+				}
+			</div>
+			<p class="heading-sub"><span>{{ phone() }}</span><a [href]="'mailto:' + email()">{{ email() }}</a></p>
+		</div>
+		<div class="page-actions">
+			<button class="button secondary" (click)="openDialog({ kind: 'message' })">Надіслати повідомлення</button>
+			<button class="button secondary" (click)="openDialog({ kind: 'edit' })">Редагувати</button>
+			<button class="button primary" (click)="goToNewBooking()">+ Нове бронювання</button>
+			<div class="more-wrap">
+				<button class="button secondary" aria-label="Більше дій" (click)="toggleMoreMenu()">⋯</button>
+				@if (moreMenuOpen()) {
+					<div class="more-menu">
+						<button (click)="closeMoreMenu(); openDialog({ kind: 'add-note' })">Додати нотатку</button>
+						<button (click)="closeMoreMenu(); openDialog({ kind: 'add-tag' })">Додати тег</button>
+						<button (click)="closeMoreMenu(); openDialog({ kind: 'merge' })">Об’єднати профіль</button>
+						<button class="destructive" (click)="closeMoreMenu(); openDialog({ kind: 'delete' })">Видалити гостя</button>
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+
+	<div class="quick-row">
+		<button (click)="goToNewBooking()">+ Нове бронювання</button>
+		<button (click)="openDialog({ kind: 'message' })">Написати</button>
+		<button (click)="callGuest()">Подзвонити</button>
+		<button (click)="openDialog({ kind: 'add-note' })">Додати нотатку</button>
+	</div>
+
+	<div class="grid">
+		<div class="col-main">
+			<section class="card">
+				<div class="profile-summary">
+					<div class="profile-left">
+						<span class="avatar-lg">{{ initials(name()) }}</span>
+						<div>
+							<h2>{{ name() }}</h2>
+							<p>{{ phone() }}</p>
+							<p><a [href]="'mailto:' + email()">{{ email() }}</a></p>
+							<p>Перший візит: <b>{{ firstVisit() }}</b></p>
+							<p>Останній візит: <b>{{ lastVisit() }}</b></p>
+						</div>
+					</div>
+					<div class="metrics-row">
+						<div><b>{{ stays() }}</b><span>Проживання</span></div>
+						<div><b>{{ totalNights() }}</b><span>Ночей</span></div>
+						<div title="Сума завершених проживань, без вирахування повернень і без урахування майбутніх передоплат">
+							<b>{{ money(totalSpent()) }}</b><span>Витрачено</span>
+						</div>
+						<div><b>{{ upcomingCount() }}</b><span>Майбутнє бронювання</span></div>
+					</div>
+				</div>
+			</section>
+
+			<section class="status-card">
+				@if (nextStay(); as ns) {
+					<h2>Наступний заїзд</h2>
+					<div class="stay-facts">
+						{{ ns.start }}–{{ ns.end }} · {{ ns.room }} · {{ ns.type }}<br />
+						{{ ns.guests }} гості · {{ money(ns.total) }}<br />
+						Статус: <b>{{ ns.status }}</b>
+					</div>
+					<button class="button primary" style="margin-top: 12px" (click)="goToBooking()">Відкрити бронювання</button>
+				} @else {
+					<div class="status-empty">
+						Немає активних бронювань<br />
+						<button class="button primary" style="margin-top: 12px" (click)="goToNewBooking()">+ Створити бронювання</button>
+					</div>
+				}
+			</section>
+
+			<section class="card">
+				<h2>Історія проживань</h2>
+				<div class="stay-summary-row">
+					<div><b>{{ stays() }}</b><span>Проживань</span></div>
+					<div><b>{{ totalNights() }}</b><span>Всього ночей</span></div>
+					<div><b>{{ avgNights() }} ночі</b><span>Сер. тривалість</span></div>
+					<div><b>{{ money(avgCheck()) }}</b><span>Сер. чек</span></div>
+					<div><b>{{ favoriteType() }}</b><span>Улюблений тип</span></div>
+				</div>
+				<div style="margin-top: 16px">
+					@for (h of history(); track h.bookingId) {
+						<div class="history-card">
+							<div>
+								<h3>{{ h.dates }}</h3>
+								<div class="h-facts">{{ h.room }} · {{ h.type }} · {{ h.nights }} ночі · {{ h.guests }} гості</div>
+								<div class="h-facts">Джерело: {{ h.source }} · <span class="pill ready">{{ h.payment }}</span></div>
+							</div>
+							<div class="h-right">
+								<b>{{ money(h.total) }}</b>
+								<span class="pill">{{ h.status }}</span><br />
+								<button class="text-action" (click)="goToBooking()">Відкрити →</button>
+							</div>
+						</div>
+					} @empty {
+						<p class="empty-note">Гість ще не завершував проживання у вашому готелі.</p>
+					}
+				</div>
+			</section>
+
+			<section class="card">
+				<h2>Побажання гостя <button class="text-action" (click)="openDialog({ kind: 'add-pref' })">+ Додати</button></h2>
+				<p class="card-sub">Ці побажання можна використовувати під час наступного бронювання.</p>
+				<div class="tags">
+					@for (p of preferences(); track p) {
+						<span>{{ p }}</span>
+					} @empty {
+						<p class="empty-note">Побажання можна додати вручну або вони з’являться після бронювань.</p>
+					}
+				</div>
+				<div class="pref-cards">
+					<div><small>Тип номера</small><b>{{ favoriteType() }}</b></div>
+					<div><small>Час заїзду</small><b>{{ history().length ? 'після 18:00' : '—' }}</b></div>
+					<div><small>Додаткові послуги</small><b>Сніданок</b></div>
+				</div>
+			</section>
+
+			<section class="card">
+				<h2>Внутрішні нотатки <button class="text-action" (click)="openDialog({ kind: 'add-note' })">+ Додати нотатку</button></h2>
+				<p class="card-sub">Бачить лише персонал.</p>
+				@for (n of notes(); track n.date + n.text) {
+					<div class="note-card" [class.important]="n.important">
+						<b>{{ n.date }}</b>
+						<p>{{ n.text }}</p>
+						<small>Додав(ла): {{ n.by }}</small>
+					</div>
+				} @empty {
+					<p class="empty-note">Важлива інформація про гостя з’являтиметься тут.</p>
+				}
+			</section>
+
+			<section class="card">
+				<h2>Комунікація <button class="text-action" (click)="openDialog({ kind: 'all-messages' })">Вся історія ↗</button></h2>
+				<div class="timeline">
+					@for (m of messages(); track m.date) {
+						<div class="timeline-item">
+							<span class="t-date">{{ m.date }}</span>
+							<b style="flex: 1">{{ m.text }}</b>
+							<span class="t-state">Надіслано</span>
+						</div>
+					}
+				</div>
+				<div class="dialog-actions">
+					<button class="button primary" (click)="openDialog({ kind: 'message' })">Надіслати повідомлення</button>
+				</div>
+			</section>
+
+			<section class="card">
+				<h2>Історія оплат <button class="text-action" (click)="openDialog({ kind: 'all-payments' })">Відкрити всі оплати ↗</button></h2>
+				<div class="payment-summary-row">
+					<div><b>{{ money(totalSpent()) }}</b><span>Фактично отримано</span></div>
+					<div><b>0 ₴</b><span>Повернено</span></div>
+					<div><b>0 ₴</b><span>Очікується оплата</span></div>
+				</div>
+				@for (p of payments(); track p.bookingId) {
+					<div class="timeline-item">
+						<span class="t-date">{{ p.date }}</span>
+						<div><b>{{ money(p.amount) }}</b><small>Бронювання #{{ p.bookingId }} · {{ p.method }}</small></div>
+					</div>
+				}
+			</section>
+
+			<section class="card">
+				<h2>Як гість нас знаходив</h2>
+				@for (s of sources(); track s.name) {
+					<div class="source-row"><span>{{ s.name }}</span><b>{{ s.count }} бронювання</b></div>
+				}
+				<p class="card-sub" style="margin-top: 12px">
+					Перше джерело: <b>{{ firstSourceName() }}</b> · Останнє: <b>{{ lastSourceName() }}</b>
+				</p>
+			</section>
+
+			<section class="card">
+				<h2>Теги <button class="text-action" (click)="openDialog({ kind: 'add-tag' })">+ Додати тег</button></h2>
+				<div class="tags">
+					@for (t of tags(); track t) {
+						<span>{{ t }}</span>
+					}
+					<span class="tag-add" role="button" tabindex="0" (click)="openDialog({ kind: 'add-tag' })">+ Додати тег</span>
+				</div>
+			</section>
+
+			<section class="card">
+				<h2>Історія активності</h2>
+				<div class="timeline">
+					@for (a of activity(); track a.date + a.text) {
+						<div class="timeline-item">
+							<span class="t-date">{{ a.date }}</span>
+							<div>{{ a.text }}</div>
+						</div>
+					}
+				</div>
+			</section>
+		</div>
+
+		<div class="col-side">
+			<div class="ai-card">
+				<b class="ai-title"><app-icon name="spark" />Hotel AI</b>
+				<h3>Що варто знати про цього гостя</h3>
+				<button class="ai-q" (click)="aiAnswer('summary')">Підсумуй історію гостя</button>
+				<button class="ai-q" (click)="aiAnswer('prefs')">Які в нього побажання?</button>
+				<button class="ai-q" (click)="aiAnswer('last')">Коли він був востаннє?</button>
+				<button class="ai-q" (click)="aiAnswer('spent')">Скільки він витратив?</button>
+				<button class="ai-q" (click)="aiAnswer('offer')">Напиши пропозицію для повторного бронювання</button>
+				@if (aiAnswerHtml()) {
+					<div class="ai-answer-box">
+						<div [innerHTML]="aiAnswerHtml()"></div>
+						@if (aiAnswerShowsOffer()) {
+							<button (click)="useAiOfferMessage()">Використати повідомлення</button>
+						}
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+</app-shell>
+
+<dialog #dialogEl (click)="onDialogClick($event)" (close)="closeDialog()">
+	<div class="dialog-head">
+		<span class="dialog-label">HOTEL UPWORK <span>· ДЕМО</span></span>
+		<button class="icon-button" aria-label="Закрити вікно" (click)="closeDialog()"><app-icon name="close" /></button>
+	</div>
+	<div id="dialog-content">
+		@let view = dialogView();
+		@switch (view?.kind) {
+			@case ('add-note') {
+				<h2>Додати нотатку</h2>
+				<form class="demo-form" (ngSubmit)="submitNote(textInput.value, importantInput.checked)">
+					<label class="full">
+						Напишіть важливу інформацію про гостя
+						<textarea #textInput name="text" required maxlength="400"></textarea>
+					</label>
+					<label class="checkbox full"><input #importantInput type="checkbox" name="important" />Позначити як важливе</label>
+					<button class="button primary full" type="submit">Зберегти</button>
+				</form>
+			}
+			@case ('add-tag') {
+				<h2>Додати тег</h2>
+				<form class="demo-form" (ngSubmit)="submitTag(tagSelect.value)">
+					<label class="full">
+						Тег
+						<select #tagSelect name="tag">
+							@for (t of tagOptions; track t) {
+								<option [value]="t">{{ t }}</option>
+							}
+						</select>
+					</label>
+					<button class="button primary full" type="submit">Додати тег</button>
+				</form>
+			}
+			@case ('add-pref') {
+				<h2>Додати побажання</h2>
+				<form class="demo-form" (ngSubmit)="submitPreference(prefInput.value)">
+					<label class="full">Побажання<input #prefInput name="pref" required maxlength="40" /></label>
+					<button class="button primary full" type="submit">Додати</button>
+				</form>
+			}
+			@case ('merge') {
+				<h2>Об’єднати профілі?</h2>
+				<p>
+					Знайдено схожий профіль — це записи <b>однієї людини</b> під різним написанням імені, а не просто спільний номер
+					телефону:
+				</p>
+				<div class="detail-grid">
+					<div><small>Профіль 1 (залишиться)</small><b>{{ name() }}</b><br /><small>{{ phone() }}</small></div>
+					<div><small>Профіль 2 (буде видалено)</small><b>Anna Kovalenko</b><br /><small>anna.k&#64;example.com</small></div>
+				</div>
+				<label class="full" style="display: block; margin-top: 10px">
+					<input type="checkbox" checked style="width: auto; margin-right: 6px" />Додати anna.k&#64;example.com як другий контакт
+					до профілю 1
+				</label>
+				<p class="form-note">
+					Залишиться профіль 1 з іменем «{{ name() }}» та вказаним телефоном. Історія проживань, повідомлення, нотатки й теги
+					обох профілів об’єднаються в один запис — це <b>не створює нових бронювань чи оплат</b> і не збільшує суму
+					витраченого, лише показує обидві історії разом. Дію дозволено лише Owner / Manager, подія об’єднання лишиться в
+					журналі дій гостя з можливістю звернутися в підтримку, якщо об’єднано помилково.
+				</p>
+				<div class="dialog-actions">
+					<button class="button primary" (click)="confirmMerge()">Об’єднати</button>
+					<button class="button secondary" (click)="closeDialog()">Скасувати</button>
+				</div>
+			}
+			@case ('delete') {
+				<h2>Видалити гостя?</h2>
+				<div class="notice danger">Профіль має історію бронювань ({{ stays() }}). Booking history повинна залишитися для фінансових записів.</div>
+				<p class="form-note">Рекомендуємо архівувати гостя замість повного видалення.</p>
+				<div class="dialog-actions">
+					<button class="button primary" (click)="confirmArchive()">Архівувати гостя</button>
+					<button class="button secondary destructive" (click)="confirmDeleteAnyway()">Все одно видалити</button>
+				</div>
+			}
+			@case ('edit') {
+				<h2>Редагувати профіль</h2>
+				<form
+					class="demo-form"
+					(ngSubmit)="submitEdit(firstInput.value, lastInput.value, phoneInput.value, emailInput.value, tagsInput.value)"
+				>
+					<label>Ім’я<input #firstInput name="first" [value]="name().split(' ')[0]" required /></label>
+					<label>Прізвище<input #lastInput name="last" [value]="name().split(' ').slice(1).join(' ')" /></label>
+					<label>Телефон<input #phoneInput name="phone" [value]="phone()" required /></label>
+					<label>Email<input #emailInput name="email" type="email" [value]="email()" /></label>
+					<label class="full">Теги (через кому)<input #tagsInput name="tags" [value]="tags().join(', ')" /></label>
+					<button class="button primary full" type="submit">Зберегти зміни</button>
+				</form>
+			}
+			@case ('message') {
+				<h2>Повідомлення гостю</h2>
+				<p>Отримувач: {{ name() }}</p>
+				<div class="template-row">
+					<button [class.active]="messageChannel() === 'email'" (click)="setMessageChannel('email')">Email</button>
+					<button [class.active]="messageChannel() === 'sms'" (click)="setMessageChannel('sms')">SMS</button>
+				</div>
+				<div class="template-row">
+					<button [class.active]="messageTemplate() === 'confirm'" (click)="setMessageTemplate('confirm')">Підтвердження</button>
+					<button [class.active]="messageTemplate() === 'before'" (click)="setMessageTemplate('before')">Перед заїздом</button>
+					<button [class.active]="messageTemplate() === 'returning'" (click)="setMessageTemplate('returning')">Повернення</button>
+					<button [class.active]="messageTemplate() === 'custom'" (click)="setMessageTemplate('custom')">Власне повідомлення</button>
+				</div>
+				<form class="demo-form" (ngSubmit)="submitMessage(messageInput.value)">
+					<label class="full">
+						Текст повідомлення
+						<textarea #messageInput name="message" required maxlength="600" [ngModel]="messageText()" (ngModelChange)="messageText.set($event)" [ngModelOptions]="{ standalone: true }"></textarea>
+					</label>
+					<button type="button" class="button secondary full" (click)="generateAiMessage()">✦ Створити текст через AI</button>
+					<button class="button primary full" type="submit">Надіслати</button>
+				</form>
+			}
+			@case ('all-messages') {
+				<h2>Історія повідомлень</h2>
+				<div class="timeline">
+					@for (m of messages(); track m.date) {
+						<div class="timeline-item">
+							<span class="t-date">{{ m.date }}</span>
+							<b style="flex: 1">{{ m.text }}</b>
+							<span class="t-state">Надіслано</span>
+						</div>
+					}
+				</div>
+			}
+			@case ('all-payments') {
+				<h2>Усі оплати</h2>
+				@for (p of payments(); track p.bookingId) {
+					<div class="timeline-item">
+						<span class="t-date">{{ p.date }}</span>
+						<div><b>{{ money(p.amount) }}</b><small>Бронювання #{{ p.bookingId }} · {{ p.method }}</small></div>
+					</div>
+				}
+			}
+		}
+	</div>
+</dialog>
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

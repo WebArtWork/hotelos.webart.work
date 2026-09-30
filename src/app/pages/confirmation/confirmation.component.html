@@ -1,0 +1,417 @@
+@if (showDemoBar) {
+	<div class="flex flex-wrap items-center justify-center gap-2 bg-[#222326] px-3.5 py-2 text-[10.5px] text-[#c9cacd]">
+		<span>Демо: стан бронювання</span>
+		<select
+			class="rounded-md border border-[#3b3b40] bg-[#2b2c30] px-2 py-1 text-[10.5px] text-[#f6f6f7]"
+			[ngModel]="view()"
+			(ngModelChange)="setView($event)"
+		>
+			<option value="new">Щойно підтверджено</option>
+			<option value="return">Повторний перегляд</option>
+			<option value="paid">Оплачено повністю</option>
+			<option value="pending">Перевіряємо оплату</option>
+			<option value="failed">Оплату не завершено</option>
+			<option value="staying">Гість заселився</option>
+			<option value="done">Проживання завершено</option>
+			<option value="cancelled">Скасовано</option>
+			<option value="invalid">Недійсне посилання</option>
+		</select>
+	</div>
+}
+
+<header class="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--border)] bg-[var(--white)] px-6 py-4">
+	<a routerLink="/" class="flex items-center gap-2.5 text-base font-extrabold">
+		<span class="grid size-[30px] place-items-center rounded-[7px] bg-[var(--ink)] text-sm text-[var(--gold)]">G</span>
+		Grand Hotel
+	</a>
+	<button type="button" class="btn secondary" (click)="openContactModal()">Зв’язатися</button>
+</header>
+
+<main class="mx-auto max-w-[1000px] px-5 pb-[120px] pt-7">
+	@switch (view()) {
+		@case ('invalid') {
+			<div class="py-16 text-center">
+				<h2 class="mb-2.5 text-[22px]">Не вдалося відкрити бронювання</h2>
+				<p class="mb-5 text-[13px] text-[var(--muted)]">Посилання недійсне або більше не доступне.</p>
+				<a class="btn primary" [href]="telHref()">Зв’язатися з готелем</a>
+			</div>
+		}
+
+		@case ('cancelled') {
+			<div class="mb-6.5 text-center">
+				<div class="mx-auto mb-4 grid size-[60px] place-items-center rounded-full bg-[var(--white)] text-[var(--danger)]">
+					<app-icon name="close" />
+				</div>
+				<h1 class="mb-1.5 text-[26px] tracking-[-0.5px]">Бронювання скасовано</h1>
+				<p class="my-0.5 text-[13.5px] text-[var(--muted)]">Це бронювання більше не активне.</p>
+				<div class="mt-2 text-xs text-[var(--muted)]">Номер бронювання #{{ booking.id }}</div>
+				<span class="mt-2.5 inline-block rounded-[20px] bg-[var(--white)] px-3 py-1.25 text-[11px] font-extrabold text-[#9d9ea3]">Скасовано</span>
+			</div>
+			<div class="grid items-start gap-5 md:grid-cols-[1.4fr_1fr]">
+				<div>
+					<div class="card">
+						<h2>Бронювання</h2>
+						<div class="grid grid-cols-2 gap-3.5">
+							<div><small>Дати</small><b class="block text-base">{{ booking.start }}–{{ booking.end }}</b></div>
+							<div><small>Номер</small><b class="block text-base">{{ booking.roomType }}</b></div>
+						</div>
+					</div>
+					@if (booking.paid > 0) {
+						<div class="card">
+							<h2>Повернення</h2>
+							<b class="block text-xl">{{ money(booking.paid) }}</b>
+							<span class="status-pill confirmed mt-2">Повернення виконано</span>
+						</div>
+					}
+				</div>
+				<div>
+					<ng-container [ngTemplateOutlet]="contactCard" />
+				</div>
+			</div>
+			<div class="mt-2 flex flex-wrap justify-center gap-2.5">
+				<a class="btn primary" routerLink="/new-booking">Створити нове бронювання</a>
+				<a class="btn secondary" [href]="telHref()">Зв’язатися з готелем</a>
+			</div>
+		}
+
+		@case ('done') {
+			<div class="mb-6.5 text-center">
+				<div class="mx-auto mb-4 grid size-[60px] place-items-center rounded-full bg-[var(--silver)] text-[#7a7b80]">
+					<app-icon name="check" />
+				</div>
+				<h1 class="mb-1.5 text-[26px] tracking-[-0.5px]">Дякуємо, що гостювали у нас</h1>
+				<p class="my-0.5 text-[13.5px] text-[var(--muted)]">Сподіваємося, вам сподобалося проживання в {{ hotel.name }}.</p>
+				<div class="mt-2 text-xs text-[var(--muted)]">Номер бронювання #{{ booking.id }}</div>
+				<span class="mt-2.5 inline-block rounded-[20px] bg-[var(--silver)] px-3 py-1.25 text-[11px] font-extrabold text-[#5c5d61]">Завершено</span>
+			</div>
+			<div class="grid items-start gap-5 md:grid-cols-[1.4fr_1fr]">
+				<div>
+					<div class="card">
+						<h2>Проживання</h2>
+						<div class="grid grid-cols-2 gap-3.5">
+							<div><small>Дати</small><b class="block text-base">{{ booking.start }}–{{ booking.end }}</b></div>
+							<div><small>Номер</small><b class="block text-base">{{ booking.roomType }}</b></div>
+						</div>
+					</div>
+					<ng-container [ngTemplateOutlet]="timelineCard" />
+				</div>
+				<div>
+					<ng-container [ngTemplateOutlet]="contactCard" />
+				</div>
+			</div>
+			<div class="mt-2 flex flex-wrap justify-center gap-2.5">
+				<a class="btn primary" routerLink="/book">Забронювати знову</a>
+				<button type="button" class="btn secondary" (click)="leaveReview()">Залишити відгук</button>
+			</div>
+		}
+
+		@default {
+			<div class="status-header">
+				<div class="status-icon" [class.gold]="headerKind() === 'staying'">
+					@if (headerKind() === 'staying') {
+						<app-icon name="spark" />
+					} @else {
+						<app-icon name="check" />
+					}
+				</div>
+				@if (headerKind() === 'confirmed') {
+					<h1>Бронювання підтверджено</h1>
+					<p>Дякуємо, {{ booking.guestFirst }}!<br />Ми очікуємо вас у {{ hotel.name }}.</p>
+				} @else if (headerKind() === 'staying') {
+					<h1>Гарного відпочинку!</h1>
+					<p>Ви зараз проживаєте в {{ hotel.name }}.</p>
+				} @else {
+					<h1>Ваше бронювання</h1>
+					<p>{{ hotel.name }}<br />{{ booking.start }}–{{ booking.end }} {{ booking.year }}</p>
+				}
+				<div class="booking-number">Номер бронювання #{{ booking.id }}</div>
+				<span class="status-pill" [class.confirmed]="headerKind() !== 'staying'" [class.staying]="headerKind() === 'staying'">
+					{{ headerKind() === 'staying' ? 'Заїхав' : 'Підтверджено' }}
+				</span>
+			</div>
+
+			<div class="grid items-start gap-5 md:grid-cols-[1.4fr_1fr]">
+				<div>
+					<div class="card">
+						<h2>Деталі проживання</h2>
+						<div class="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+							<div><small>Заїзд</small><b class="block text-base">{{ booking.start }}</b><span class="text-[11px] text-[var(--muted)]">після {{ hotel.checkIn }}</span></div>
+							<div><small>Виїзд</small><b class="block text-base">{{ booking.end }}</b><span class="text-[11px] text-[var(--muted)]">до {{ hotel.checkOut }}</span></div>
+							<div><small>Тривалість</small><b class="block text-base">{{ booking.nights }} ночі</b></div>
+							<div><small>Гості</small><b class="block text-base">{{ booking.adults }} дорослих</b></div>
+						</div>
+					</div>
+
+					<div class="card">
+						<h2>Номер</h2>
+						<div class="grid gap-4 sm:grid-cols-[150px_1fr]">
+							<figure class="m-0 min-w-0">
+								<div class="flex h-[150px] items-center justify-center rounded-lg bg-[var(--silver)] text-[11px] text-[var(--muted)] sm:h-[110px]">
+									{{ booking.roomType }}
+								</div>
+								<figcaption class="mt-1.5 text-[11px] text-[var(--muted)]">Ілюстративне фото · Згенеровано AI</figcaption>
+							</figure>
+							<div>
+								<h3 class="mb-1 text-base">{{ booking.roomType }}{{ booking.roomNumber ? ' · ' + booking.roomNumber : '' }}</h3>
+								<div class="mb-2 text-[11.5px] text-[var(--muted)]">До {{ booking.capacity }} гостей · {{ booking.area }} м² · {{ booking.beds }}</div>
+								<div class="flex flex-wrap gap-1.5">
+									@for (feature of booking.features; track feature) {
+										<span class="rounded-[14px] bg-[var(--silver)] px-2.5 py-1 text-[10.5px] text-[#4c4d53]">{{ feature }}</span>
+									}
+								</div>
+								<button type="button" class="btn secondary mt-3" (click)="roomDetails()">Детальніше про номер</button>
+							</div>
+						</div>
+					</div>
+
+					@if (view() === 'staying') {
+						<div class="card">
+							<h2>Інформація про проживання</h2>
+							<div class="grid grid-cols-2 gap-3 text-[12.5px]">
+								<div><small>Wi-Fi</small>{{ hotel.wifi }}</div>
+								<div><small>Сніданок</small>{{ hotel.breakfast }}</div>
+								<div><small>Рецепція</small>{{ hotel.reception }}</div>
+								<div><small>Check-out</small>до {{ hotel.checkOut }}</div>
+							</div>
+						</div>
+					} @else {
+						<div class="card">
+							<h2>Перед заїздом</h2>
+							<div class="flex flex-wrap items-center justify-between gap-2.5">
+								<div><small>Час заселення</small><b class="text-[15px]">Після {{ hotel.checkIn }}</b></div>
+							</div>
+							<div class="mt-3 flex flex-wrap items-center justify-between gap-2.5">
+								<div><small>Орієнтовний час прибуття</small><b class="text-[15px]">{{ arrivalTime() || 'Час ще не вказано' }}</b></div>
+								<button type="button" class="btn secondary" (click)="openArrivalModal()">
+									{{ arrivalTime() ? 'Змінити час прибуття' : 'Повідомити час прибуття' }}
+								</button>
+							</div>
+							<p class="mt-3.5 text-xs text-[var(--muted)]">
+								Рецепція працює з {{ hotel.reception }}. Після прибуття зверніться на рецепцію та назвіть номер бронювання: <b>#{{ booking.id }}</b>.
+							</p>
+						</div>
+					}
+
+					<div class="card">
+						<h2>Ваші побажання</h2>
+						@if (prefs().length) {
+							<div class="mb-2.5 flex flex-wrap gap-2">
+								@for (pref of prefs(); track pref) {
+									<span class="rounded-2xl bg-[var(--silver)] px-2.5 py-1 text-[11px] text-[#4c4d53]">{{ pref }}</span>
+								}
+							</div>
+						}
+						<p class="pay-note">Ми врахуємо побажання, якщо це буде можливо.</p>
+						<button type="button" class="btn secondary" (click)="openRequestModal()">Додати побажання</button>
+					</div>
+
+					@if (showModifyAndUpcoming()) {
+						<div class="card">
+							<h2>Що буде далі</h2>
+							<div class="border-t-0 py-2.5 text-[12.5px]">
+								<b class="mb-0.5 block text-xs">За день до приїзду</b>
+								<span class="text-[var(--muted)]">Ми надішлемо нагадування та інформацію про заселення.</span>
+							</div>
+							<div class="border-t border-[var(--line)] py-2.5 text-[12.5px]">
+								<b class="mb-0.5 block text-xs">У день заїзду</b>
+								<span class="text-[var(--muted)]">За потреби уточнимо час вашого прибуття.</span>
+							</div>
+						</div>
+					}
+				</div>
+
+				<div>
+					<div class="card">
+						<h2>Оплата</h2>
+						<div class="mb-3.5 grid grid-cols-3 gap-2.5">
+							<div class="rounded-lg bg-[var(--white)] p-3 text-center"><b class="block text-base">{{ money(booking.total) }}</b><small>Загальна сума</small></div>
+							<div class="rounded-lg bg-[var(--white)] p-3 text-center"><b class="block text-base">{{ money(effectivePaid()) }}</b><small>Оплачено</small></div>
+							<div class="rounded-lg bg-[var(--white)] p-3 text-center"><b class="block text-base">{{ money(paymentKind() === 'failed' || paymentKind() === 'pending' ? booking.total : balance()) }}</b><small>Залишок</small></div>
+						</div>
+						<span
+							class="status-pill"
+							[class.confirmed]="balance() <= 0 && paymentKind() !== 'failed' && paymentKind() !== 'pending'"
+							[class.failed]="paymentKind() === 'failed'"
+							[class.partial]="!(balance() <= 0 && paymentKind() !== 'failed' && paymentKind() !== 'pending') && paymentKind() !== 'failed'"
+						>
+							{{ paymentStatusLabel() }}
+						</span>
+						<p class="pay-note">{{ paymentNote() }}</p>
+						@if (paymentKind() === 'pending') {
+							<button type="button" class="btn secondary mt-3" (click)="refreshPaymentStatus()">Оновити статус</button>
+						} @else if (paymentKind() === 'failed') {
+							<div class="action-row">
+								<button type="button" class="btn primary" (click)="payBalance()">Спробувати оплатити ще раз</button>
+								<button type="button" class="btn secondary" (click)="openContactModal()">Зв’язатися з готелем</button>
+							</div>
+						} @else if (balance() > 0) {
+							<button type="button" class="btn primary full mt-3" (click)="payBalance()">Оплатити {{ money(balance()) }}</button>
+							<p class="pay-note">Безпечна онлайн-оплата.</p>
+						}
+					</div>
+
+					<div class="card">
+						<h2>Як нас знайти</h2>
+						<p class="mb-3 text-[13px]"><b>{{ hotel.name }}</b><br />{{ hotel.address }}</p>
+						<div class="action-row">
+							<button type="button" class="btn secondary" (click)="openMap()">Відкрити карту</button>
+							<button type="button" class="btn secondary" (click)="openMap()">Прокласти маршрут</button>
+						</div>
+					</div>
+
+					<ng-container [ngTemplateOutlet]="contactCard" />
+
+					<div class="card">
+						<h2>Правила бронювання</h2>
+						<div class="grid grid-cols-2 gap-3 text-[12.5px]">
+							<div><small>Заселення</small>після {{ hotel.checkIn }}</div>
+							<div><small>Виїзд</small>до {{ hotel.checkOut }}</div>
+							<div><small>Скасування</small>{{ booking.cancellation }}</div>
+							<div><small>Передоплата</small>{{ money(booking.deposit) }}</div>
+						</div>
+						<button type="button" class="mt-3 text-[11px] font-bold text-[var(--gold-ink)]" (click)="fullRules()">Повні правила →</button>
+					</div>
+
+					@if (showModifyAndUpcoming()) {
+						<div class="card">
+							<h2>Хочете змінити бронювання?</h2>
+							<p class="pay-note">Змінити дати, номер або кількість гостей можна лише через готель.</p>
+							<button type="button" class="btn secondary" (click)="openContactModal()">Зв’язатися з готелем</button>
+						</div>
+					}
+				</div>
+			</div>
+
+			@if (view() === 'return' || view() === 'new') {
+				<div class="action-row">
+					<button type="button" class="btn secondary" (click)="addToCalendar()">Додати до календаря</button>
+					<button type="button" class="btn secondary" (click)="saveConfirmation()">Зберегти підтвердження</button>
+					<button type="button" class="btn secondary" (click)="share()">Поділитися</button>
+				</div>
+			} @else if (view() === 'staying') {
+				<div class="action-row">
+					<button type="button" class="btn secondary" (click)="messageHotel()">Написати готелю</button>
+				</div>
+			}
+		}
+	}
+</main>
+
+@if (showStickyPay()) {
+	<div class="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3.5 border-t border-[var(--border)] bg-[var(--white)] px-5 py-3 shadow-[0_-8px_24px_#00000008]">
+		<span class="text-xs text-[var(--muted)]">Залишок: <b class="text-[var(--ink)]">{{ money(balance()) }}</b></span>
+		<button type="button" class="btn primary" (click)="payBalance()">Оплатити {{ money(balance()) }}</button>
+	</div>
+}
+
+<footer class="py-5 text-center text-[10.5px] text-[#a8a9ad]">Працює на Hotel Upwork</footer>
+
+@if (modal(); as kind) {
+	<div class="fixed inset-0 z-40 flex items-center justify-center bg-[#20212460] p-4 backdrop-blur-[3px]" (click)="closeModal()">
+		<div class="w-full max-w-[460px] rounded-xl border border-[var(--border)] bg-[var(--white)] shadow-[0_30px_100px_#0003]" (click)="$event.stopPropagation()">
+			<div class="flex items-center justify-between border-b border-[var(--border)] px-5 py-3.5">
+				<b class="text-xs">{{ hotel.name }}</b>
+				<button type="button" class="btn secondary min-h-[30px] px-2.5 py-1.5" (click)="closeModal()">✕</button>
+			</div>
+			<div class="p-5.5">
+				@switch (kind) {
+					@case ('arrival') {
+						<h2 class="mb-3 text-[19px]">Коли ви плануєте приїхати?</h2>
+						<div class="mb-3.5 grid grid-cols-2 gap-2">
+							@for (option of arrivalOptions; track option) {
+								<button
+									type="button"
+									class="rounded-lg border border-[var(--border)] bg-[var(--white)] p-2.75 text-left text-xs"
+									[class.selected]="pickedArrivalOption() === option"
+									(click)="pickArrivalOption(option)"
+								>
+									{{ option }}
+								</button>
+							}
+						</div>
+						<label class="mb-1.5 block text-[11.5px] text-[var(--muted)]">Або точний час</label>
+						<input type="time" class="mb-3.5 w-full rounded-lg border border-[var(--border)] p-2.25 text-[13px]" [(ngModel)]="exactArrivalTime" name="exactArrivalTime" />
+						<button type="button" class="btn primary full" (click)="saveArrival()">Зберегти</button>
+					}
+					@case ('request') {
+						<h2 class="mb-3 text-[19px]">Додаткове побажання</h2>
+						<div class="mb-3.5 flex flex-wrap gap-2">
+							@for (tag of requestTags; track tag) {
+								<button
+									type="button"
+									class="rounded-[20px] border border-[var(--border)] bg-[var(--white)] px-3 py-1.75 text-[11.5px] text-[#4c4d53]"
+									[class.active]="activeReqTags().has(tag)"
+									(click)="toggleReqTag(tag)"
+								>
+									{{ tag }}
+								</button>
+							}
+						</div>
+						<textarea
+							class="mb-3.5 min-h-[70px] w-full rounded-lg border border-[var(--border)] p-2.75 text-[13px]"
+							placeholder="Напишіть побажання"
+							[(ngModel)]="requestText"
+							name="requestText"
+						></textarea>
+						<button type="button" class="btn primary full" (click)="saveRequest()">Надіслати</button>
+					}
+					@case ('contact') {
+						<h2 class="mb-3 text-[19px]">Потрібна допомога?</h2>
+						<p class="mb-3.5 text-[12.5px] text-[var(--muted)]">Якщо плани змінилися або маєте питання — зв’яжіться з нами.</p>
+						<div class="action-row">
+							<a class="btn primary" [href]="telHref()">Зателефонувати</a>
+							<button type="button" class="btn secondary" (click)="messageHotel()">Написати</button>
+						</div>
+						<div class="contact-block mt-3.5">
+							<b>{{ hotel.phone }}</b><br />{{ hotel.email }}
+						</div>
+					}
+				}
+			</div>
+		</div>
+	</div>
+}
+
+@if (toastMessage()) {
+	<div class="fixed bottom-6 left-1/2 z-[90] max-w-[calc(100%-32px)] -translate-x-1/2 rounded-lg border border-[#d5c7a6] bg-[#222326] px-5.5 py-3.25 text-center text-[13px] text-[#fafaf8] shadow-[0_6px_35px_#0002]" role="status">
+		{{ toastMessage() }}
+	</div>
+}
+
+<ng-template #contactCard>
+	<div class="card">
+		<h2>Потрібна допомога?</h2>
+		<p class="pay-note">Якщо плани змінилися або маєте питання — зв’яжіться з нами.</p>
+		<div class="action-row">
+			<a class="btn secondary" [href]="telHref()">Зателефонувати</a>
+			<button type="button" class="btn secondary" (click)="messageHotel()">Написати</button>
+		</div>
+		<div class="contact-block">
+			<b>{{ hotel.phone }}</b><br />{{ hotel.email }}
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #timelineCard>
+	<div class="card">
+		<h2>Статус бронювання</h2>
+		<div class="flex flex-col gap-2">
+			<div class="flex items-center gap-2.5 text-[12.5px] text-[#3a3a3c]">
+				<span class="size-4 shrink-0 rounded-full border-2 border-[var(--green)] bg-[var(--green)]"></span>Бронювання створено
+			</div>
+			<div class="flex items-center gap-2.5 text-[12.5px]" [class]="timelinePaidDone() ? 'text-[#3a3a3c]' : 'text-[var(--muted)]'">
+				<span
+					class="size-4 shrink-0 rounded-full border-2"
+					[class]="timelinePaidDone() ? 'border-[var(--green)] bg-[var(--green)]' : 'border-[var(--border)]'"
+				></span>
+				Передоплату отримано
+			</div>
+			<div class="flex items-center gap-2.5 text-[12.5px] text-[var(--muted)]">
+				<span class="size-4 shrink-0 rounded-full border-2 border-[var(--border)]"></span>Заїзд · {{ booking.start }}
+			</div>
+			<div class="flex items-center gap-2.5 text-[12.5px] text-[var(--muted)]">
+				<span class="size-4 shrink-0 rounded-full border-2 border-[var(--border)]"></span>Виїзд · {{ booking.end }}
+			</div>
+		</div>
+	</div>
+</ng-template>

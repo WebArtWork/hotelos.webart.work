@@ -1,6 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { Router, Routes } from '@angular/router';
+import { buildAbsoluteUrl } from '@wawjs/ngx-default';
+import { companyProfile } from './feature/company/company.data';
 import { defaultPageFor, getStoredRole } from './shared/role';
 import { roleGuard } from './shared/role.guard';
 
@@ -13,6 +15,7 @@ export const routes: Routes = [
 				titleSuffix: '',
 				description:
 					'Hotel Upwork: бронювання, гості, оплати, прибирання та комунікація в одній простій системі для незалежних готелів.',
+				image: buildAbsoluteUrl(companyProfile.siteUrl, '/og-landing.jpg'),
 			},
 		},
 		loadComponent: () =>
@@ -26,6 +29,7 @@ export const routes: Routes = [
 				titleSuffix: '',
 				description:
 					'Тарифи Hotel Upwork: безкоштовний Start з календарем і заявками з сайтів, Pro для щоденної роботи готелю та Enterprise з автоматизаціями, аналітикою і AI.',
+				image: buildAbsoluteUrl(companyProfile.siteUrl, '/og-pricing.jpg'),
 			},
 		},
 		loadComponent: () => import('./pages/pricing/pricing.component').then((m) => m.PricingComponent),
@@ -41,6 +45,18 @@ export const routes: Routes = [
 			},
 		},
 		loadComponent: () => import('./pages/login/login.component').then((m) => m.LoginComponent),
+	},
+	{
+		path: 'demo',
+		data: {
+			meta: {
+				title: 'Демо-режим · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: перегляньте систему в демо-режимі за роллю та тарифом.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () => import('./pages/demo/demo.component').then((m) => m.DemoComponent),
 	},
 	{
 		path: 'dashboard',
@@ -216,6 +232,135 @@ export const routes: Routes = [
 			},
 		},
 		loadComponent: () => import('./pages/settings/settings.component').then((m) => m.SettingsComponent),
+	},
+	{
+		path: 'search',
+		canActivate: [roleGuard],
+		data: {
+			meta: {
+				title: 'Пошук · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: пошук гостей, бронювань, номерів та оплат.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () => import('./pages/search/search.component').then((m) => m.SearchComponent),
+	},
+	{
+		path: 'notifications',
+		canActivate: [roleGuard],
+		data: {
+			meta: {
+				title: 'Сповіщення · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: сповіщення про бронювання, оплати та завдання персоналу.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () =>
+			import('./pages/notifications/notifications.component').then((m) => m.NotificationsComponent),
+	},
+	{
+		path: 'profile',
+		canActivate: [roleGuard],
+		data: {
+			meta: {
+				title: 'Профіль · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: особисті дані, пароль та сповіщення вашого профілю.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () => import('./pages/profile/profile.component').then((m) => m.ProfileComponent),
+	},
+	{
+		path: 'guest',
+		canActivate: [roleGuard],
+		data: {
+			meta: {
+				title: 'Гість · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: профіль гостя, історія проживань, оплати та повідомлення.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () => import('./pages/guest/guest.component').then((m) => m.GuestComponent),
+	},
+	{
+		path: 'new-booking',
+		canActivate: [roleGuard],
+		data: {
+			meta: {
+				title: 'Нове бронювання · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: створення нового бронювання, вибір номера, гостя та оплати.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () =>
+			import('./pages/new-booking/new-booking.component').then((m) => m.NewBookingComponent),
+	},
+	{
+		path: 'booking',
+		canActivate: [roleGuard],
+		data: {
+			meta: {
+				title: 'Деталі бронювання · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: деталі бронювання, оплати, гості та історія змін.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () => import('./pages/booking/booking.component').then((m) => m.BookingComponent),
+	},
+	{
+		path: 'book',
+		canActivate: [roleGuard],
+		data: {
+			meta: {
+				title: 'Пошук доступності · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: пошук вільних номерів за датами та створення бронювання.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () => import('./pages/book/book.component').then((m) => m.BookComponent),
+	},
+	{
+		path: 'confirmation',
+		data: {
+			meta: {
+				title: 'Підтвердження бронювання · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: підтвердження бронювання, дані заїзду та оплата для гостя.',
+				robots: 'noindex, nofollow',
+			},
+		},
+		loadComponent: () =>
+			import('./pages/confirmation/confirmation.component').then((m) => m.ConfirmationComponent),
+	},
+	{
+		path: 'privacy',
+		data: {
+			meta: {
+				title: 'Політика конфіденційності · Hotel Upwork',
+				titleSuffix: '',
+				description:
+					'Hotel Upwork: які персональні дані ми обробляємо, навіщо та як ви можете керувати ними.',
+			},
+		},
+		loadComponent: () => import('./pages/privacy/privacy.component').then((m) => m.PrivacyComponent),
+	},
+	{
+		path: 'cookies',
+		data: {
+			meta: {
+				title: 'Політика щодо cookies · Hotel Upwork',
+				titleSuffix: '',
+				description: 'Hotel Upwork: які файли cookie ми використовуємо та як ними керувати.',
+			},
+		},
+		loadComponent: () => import('./pages/cookies/cookies.component').then((m) => m.CookiesComponent),
 	},
 	{
 		path: '**',

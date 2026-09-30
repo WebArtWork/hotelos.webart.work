@@ -1,0 +1,55 @@
+<div class="shell">
+	<div class="form-side">
+		<div class="form-wrap">
+			<a class="brand" routerLink="/">
+				<span class="mark">H</span>
+				<span>Hotel <b>Upwork</b><small>Система управління готелем</small></span>
+			</a>
+
+			<h1>Демо-режим</h1>
+			<p class="sub">Оберіть тариф готелю та роль, щоб побачити Hotel Upwork з її погляду.</p>
+
+			<div class="plan-pick" role="radiogroup" aria-label="Тариф готелю">
+				@for (p of plans; track p.key) {
+					<button
+						type="button"
+						role="radio"
+						[attr.aria-checked]="demoPlan() === p.key"
+						[class.selected]="demoPlan() === p.key"
+						(click)="setDemoPlan(p.key)"
+					>
+						<b>{{ p.name }}</b><small>{{ p.price }} {{ p.period }}</small>
+					</button>
+				}
+			</div>
+
+			<div class="role-pick-grid">
+				@for (r of demoRoles; track r) {
+					<button type="button" class="role-pick" [disabled]="!roleOnPlan(r)" (click)="reviewAs(r)">
+						{{ roleLabel[r] }}
+						@if (!roleOnPlan(r)) {
+							<small>Доступно з тарифу Pro</small>
+						}
+					</button>
+				}
+			</div>
+
+			<p class="bottom-note"><a routerLink="/pricing">Порівняти тарифи</a></p>
+			<div class="link-row">
+				<button type="button" routerLink="/login">Повернутися до входу</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="visual-side">
+		<h2>Менше рутини.<br />Більше контролю над готелем.</h2>
+		<p>Бронювання, гості, оплати, прибирання та комунікація в одному місці.</p>
+		<div class="mock-card">
+			<b>Сьогодні в Grand Hotel</b>
+			<div class="mock-row"><span>Заїздів сьогодні</span><b>7</b></div>
+			<div class="mock-row"><span>Номерів зайнято</span><b>22 / 28</b></div>
+			<div class="mock-row"><span>Дохід сьогодні</span><b>38 400 ₴</b></div>
+			<div class="mock-row"><span>Hotel AI</span><span class="mock-pill">Готово допомогти</span></div>
+		</div>
+	</div>
+</div>

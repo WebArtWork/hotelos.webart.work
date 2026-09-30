@@ -1,0 +1,47 @@
+<app-shell activeNav="">
+	<div class="page-heading">
+		<h1>Пошук</h1>
+		<p>Знайдіть гостя, бронювання, номер або платіж за іменем, номером кімнати чи телефоном.</p>
+	</div>
+
+	<label class="search-box">
+		<app-icon name="search" />
+		<input
+			type="text"
+			placeholder="Наприклад: Ірина Шевченко, 205, +380 97…"
+			autocomplete="off"
+			[ngModel]="query()"
+			(ngModelChange)="search($event)"
+		/>
+	</label>
+
+	<div class="recent-tags">
+		@for (recent of recentQueries; track recent) {
+			<button type="button" (click)="pickRecent(recent)">{{ recent }}</button>
+		}
+	</div>
+
+	<div class="search-groups">
+		@if (noResults()) {
+			<div class="search-empty">
+				<h3>Нічого не знайдено</h3>
+				<p>Спробуйте інший запит — ім’я гостя, номер кімнати чи номер бронювання.</p>
+			</div>
+		} @else {
+			@for (group of groups(); track group.group) {
+				<div class="search-group">
+					<h3>{{ group.group }}</h3>
+					@for (item of group.items; track item.title) {
+						<a class="search-result" [routerLink]="item.href">
+							<span class="r-icon"><app-icon [name]="item.icon" /></span>
+							<span class="r-body">
+								<b>{{ item.title }}</b>
+								<span>{{ item.sub }}</span>
+							</span>
+						</a>
+					}
+				</div>
+			}
+		}
+	</div>
+</app-shell>

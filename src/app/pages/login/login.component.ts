@@ -1,105 +1,22 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { getStoredPlan, PLAN_ORDER, PLAN_ROLES, PLANS, setStoredPlan, type Plan } from '../../shared/plan';
-import { defaultPageFor, ROLE_LABEL, setStoredRole, type Role } from '../../shared/role';
+import { FirebaseError } from 'firebase/app';
+import { AuthService } from '../../feature/firebase/auth.service';
+import { defaultPageFor, setStoredRole } from '../../shared/role';
 
-type Screen =
-	| 'login'
-	| 'forgot'
-	| 'checkEmail'
-	| 'newPassword'
-	| 'resetSuccess'
-	| 'resetExpired'
-	| 'invitation'
-	| 'invitationExpired'
-	| 'invitationUsed'
-	| 'invitationCancelled'
-	| 'createAccount'
-	| 'accountCreated'
-	| 'welcome'
-	| 'joinConfirm'
-	| 'hotelSwitcher'
-	| 'sessionExpired'
-	| 'accountDisabled'
-	| 'noHotelAccess'
-	| 'rateLimit'
-	| 'genericError'
-	| 'testLogin';
+type Screen = 'login' | 'forgot' | 'checkEmail';
 
-interface RoleCapabilities {
-	can: string[];
-	cannot: string[];
-	cta: string;
-}
-
-const INVITE = {
-	hotel: 'Grand Hotel',
-	inviter: 'Олександр Гончар',
-	role: 'reception' as Role,
-	email: 'iryna@example.com',
-	first: 'Ірина',
-	last: 'Петренко',
+const AUTH_ERROR_MESSAGE: Record<string, string> = {
+	'auth/invalid-email': 'Введіть правильну email-адресу.',
+	'auth/invalid-credential': 'Email або пароль неправильні.',
+	'auth/user-disabled': 'Цей доступ деактивовано.',
+	'auth/too-many-requests': 'Забагато спроб входу. Спробуйте пізніше або відновіть пароль.',
 };
 
-const ROLE_CAPS: Record<Role, RoleCapabilities> = {
-	reception: {
-		can: [
-			'працювати з календарем',
-			'створювати бронювання',
-			'заселяти та виселяти гостей',
-			'працювати з CRM гостей',
-			'додавати оплати',
-			'відповідати на повідомлення',
-		],
-		cannot: ['налаштування готелю', 'управління командою', 'критичні фінансові налаштування'],
-		cta: 'Почати роботу',
-	},
-	manager: {
-		can: ['Dashboard', 'Calendar', 'Бронювання', 'Гості', 'Оплати', 'Прибирання', 'Повідомлення', 'Продажі'],
-		cannot: ['критичні налаштування безпеки', 'деактивація готелю'],
-		cta: 'Відкрити Dashboard',
-	},
-	housekeeping: {
-		can: [
-			'бачити призначені номери',
-			'починати прибирання',
-			'відмічати номер готовим',
-			'повідомляти про проблеми',
-		],
-		cannot: ['гостьові дані та оплати', 'фінансову інформацію', 'налаштування готелю'],
-		cta: 'Відкрити мої задачі',
-	},
-	owner: {
-		can: ['повний доступ до Hotel Upwork', 'управління готелем та командою', 'фінансові та критичні налаштування'],
-		cannot: [],
-		cta: 'Відкрити Dashboard',
-	},
-	sales: {
-		can: ['аналітику продажів та джерел бронювань', 'кампанії та канали', 'бачити календар та бронювання'],
-		cannot: ['фінансові налаштування', 'управління командою', 'прибирання'],
-		cta: 'Відкрити продажі',
-	},
-	accountant: {
-		can: ['оплати, рахунки та депозити', 'повернення коштів', 'фінансову аналітику'],
-		cannot: ['календар та бронювання', 'управління командою', 'прибирання'],
-		cta: 'Відкрити оплати',
-	},
-	maintenance: {
-		can: ['бачити номери з несправностями', 'відмічати ремонт виконаним', 'повідомляти про проблеми'],
-		cannot: ['гостьові дані та оплати', 'фінансову інформацію', 'налаштування готелю'],
-		cta: 'Відкрити прибирання',
-	},
-};
-
-function passwordChecks(pw: string) {
-	return { len: pw.length >= 8, letter: /[a-zA-Z]/.test(pw), digit: /[0-9]/.test(pw) };
-}
-
-function passwordStrength(pw: string): 'weak' | 'normal' | 'strong' {
-	const c = passwordChecks(pw);
-	const score = [c.len, c.letter, c.digit, pw.length >= 12].filter(Boolean).length;
-	return score <= 2 ? 'weak' : score === 3 ? 'normal' : 'strong';
+function authErrorMessage(error: unknown): string {
+	if (error instanceof FirebaseError) return AUTH_ERROR_MESSAGE[error.code] ?? 'Не вдалося увійти. Спробуйте ще раз.';
+	return 'Не вдалося увійти. Спробуйте ще раз.';
 }
 
 @Component({
@@ -110,15 +27,9 @@ function passwordStrength(pw: string): 'weak' | 'normal' | 'strong' {
 })
 export class LoginComponent {
 	private readonly _router = inject(Router);
+	private readonly _auth = inject(AuthService);
 
-	protected readonly invite = INVITE;
-	protected readonly roleLabel = ROLE_LABEL;
-
-	/** Demo state/role switcher bar — hidden for client-facing demos, kept for internal use. */
-	protected readonly showDemoBar = false;
-
-	protected readonly screen = signal<Screen>('testLogin');
-	protected readonly demoRole = signal<Role>('reception');
+	protected readonly screen = signal<Screen>('login');
 
 	protected readonly loginEmail = signal('');
 	protected readonly loginPassword = signal('');
@@ -130,73 +41,18 @@ export class LoginComponent {
 	protected readonly rememberMe = signal(false);
 
 	protected readonly forgotEmail = signal('');
-
-	protected readonly newPassword1 = signal('');
-	protected readonly newPassword2 = signal('');
-	protected readonly newPassword1Visible = signal(false);
-	protected readonly newPasswordMatchError = signal(false);
-	protected readonly newPasswordChecks = computed(() => passwordChecks(this.newPassword1()));
-	protected readonly newPasswordStrength = computed(() => passwordStrength(this.newPassword1()));
-
-	protected readonly caFirst = signal(INVITE.first);
-	protected readonly caLast = signal(INVITE.last);
-	protected readonly caPassword1 = signal('');
-	protected readonly caPassword2 = signal('');
-	protected readonly caPassword1Visible = signal(false);
-	protected readonly caTerms = signal(false);
-	protected readonly caPasswordChecks = computed(() => passwordChecks(this.caPassword1()));
-
-	protected readonly welcomeCaps = computed<RoleCapabilities>(() => ROLE_CAPS[this.demoRole()]);
-	protected readonly welcomeName = computed(() =>
-		this.demoRole() === INVITE.role ? INVITE.first : 'Олександре',
-	);
-
-	protected readonly toastMessage = signal('');
-	private _toastTimer?: ReturnType<typeof setTimeout>;
-
-	protected readonly testLoginRoles: Role[] = ['owner', 'manager', 'reception', 'housekeeping', 'sales', 'accountant', 'maintenance'];
+	protected readonly forgotBusy = signal(false);
 
 	protected goto(screen: Screen): void {
+		this.loginError.set('');
 		this.screen.set(screen);
 	}
 
-	protected readonly plans = PLAN_ORDER.map((key) => PLANS[key]);
-	protected readonly demoPlan = signal<Plan>(getStoredPlan());
-
-	protected setDemoPlan(plan: Plan): void {
-		this.demoPlan.set(plan);
-		setStoredPlan(plan);
+	protected togglePasswordVisibility(): void {
+		this.loginPasswordVisible.update((v) => !v);
 	}
 
-	protected roleOnPlan(role: Role): boolean {
-		return PLAN_ROLES[this.demoPlan()].includes(role);
-	}
-
-	protected testLoginAs(role: Role): void {
-		if (!this.roleOnPlan(role)) return;
-		setStoredRole(role);
-		this._goHome(role);
-	}
-
-	private _goHome(role: Role): void {
-		this._navigate('/' + (defaultPageFor(role) ?? 'login'));
-	}
-
-	private _navigate(url: string): void {
-		this._router.navigateByUrl(url.replace(/\/$/, '') || '/');
-	}
-
-	protected onDemoStateChange(value: string): void {
-		this.goto(value as Screen);
-	}
-
-	protected togglePasswordVisibility(field: 'login' | 'newPassword' | 'createAccount'): void {
-		if (field === 'login') this.loginPasswordVisible.update((v) => !v);
-		if (field === 'newPassword') this.newPassword1Visible.update((v) => !v);
-		if (field === 'createAccount') this.caPassword1Visible.update((v) => !v);
-	}
-
-	protected submitLogin(): void {
+	protected async submitLogin(): Promise<void> {
 		const email = this.loginEmail().trim();
 		const password = this.loginPassword();
 
@@ -215,82 +71,34 @@ export class LoginComponent {
 		}
 		if (bad) return;
 
-		if (email === 'locked@example.com') {
-			this.goto('rateLimit');
-			return;
-		}
-
 		this.loginBusy.set(true);
-		setTimeout(() => {
+		try {
+			await this._auth.login(email, password);
+			// Every Firebase-authenticated account is CRM staff; the Owner assigns the
+			// real role on the Team page. Until that page writes a per-user role, treat
+			// every signed-in account as Owner so all pages stay reachable.
+			setStoredRole('owner');
+			this._router.navigateByUrl('/' + (defaultPageFor('owner') ?? ''));
+		} catch (error) {
+			this.loginError.set(authErrorMessage(error));
+		} finally {
 			this.loginBusy.set(false);
-			if (email === 'fail@example.com') {
-				this.loginError.set('Не вдалося увійти. Email або пароль неправильні.');
-				return;
-			}
-			setStoredRole(this.demoRole());
-			this._goHome(this.demoRole());
-		}, 700);
-	}
-
-	protected submitForgot(): void {
-		this.goto('checkEmail');
-	}
-
-	protected submitNewPassword(): void {
-		const p1 = this.newPassword1();
-		const p2 = this.newPassword2();
-		const c = passwordChecks(p1);
-
-		this.newPasswordMatchError.set(false);
-
-		if (!c.len || !c.letter || !c.digit) {
-			this.showToast('Пароль не відповідає вимогам');
-			return;
 		}
-		if (p1 !== p2) {
-			this.newPasswordMatchError.set(true);
-			return;
+	}
+
+	protected async submitForgot(): Promise<void> {
+		const email = this.forgotEmail().trim();
+		if (!/^\S+@\S+\.\S+$/.test(email)) return;
+
+		this.forgotBusy.set(true);
+		try {
+			await this._auth.sendPasswordReset(email);
+		} catch {
+			// Firebase already reports "user not found" here; show the same neutral
+			// confirmation either way so the flow can't be used to enumerate accounts.
+		} finally {
+			this.forgotBusy.set(false);
+			this.goto('checkEmail');
 		}
-		this.goto('resetSuccess');
-	}
-
-	protected submitCreateAccount(): void {
-		const p1 = this.caPassword1();
-		const p2 = this.caPassword2();
-		const c = passwordChecks(p1);
-
-		if (!this.caTerms()) {
-			this.showToast('Підтвердьте погодження з умовами використання');
-			return;
-		}
-		if (!c.len || !c.letter || !c.digit) {
-			this.showToast('Пароль не відповідає вимогам');
-			return;
-		}
-		if (p1 !== p2) {
-			this.showToast('Паролі не збігаються');
-			return;
-		}
-		this.goto('accountCreated');
-	}
-
-	protected selectHotel(href: string): void {
-		setStoredRole(this.demoRole());
-		this._navigate(href);
-	}
-
-	protected addHotel(): void {
-		this.showToast('Створення нового готелю ще у розробці в демо');
-	}
-
-	protected openWelcomeCta(): void {
-		setStoredRole(this.demoRole());
-		this._goHome(this.demoRole());
-	}
-
-	private showToast(text: string): void {
-		this.toastMessage.set(text);
-		clearTimeout(this._toastTimer);
-		this._toastTimer = setTimeout(() => this.toastMessage.set(''), 4200);
 	}
 }

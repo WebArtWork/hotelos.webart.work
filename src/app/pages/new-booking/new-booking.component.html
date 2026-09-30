@@ -1,0 +1,522 @@
+<app-shell activeNav="calendar">
+	<div class="breadcrumb text-xs text-[var(--muted)] mb-3">
+		<a routerLink="/calendar">Календар</a><span class="mx-2 text-[#bbb]">/</span>Нове бронювання
+	</div>
+
+	<div class="page-heading flex justify-between items-start gap-5 flex-wrap">
+		<div>
+			<h1>Нове бронювання</h1>
+			<p class="text-xs text-[var(--muted)] m-0">Оберіть дати, номер та додайте гостя.</p>
+		</div>
+		<div class="page-actions flex gap-2.5 shrink-0">
+			<a class="button secondary" routerLink="/calendar">Скасувати</a>
+			<button class="button primary" type="button" [disabled]="!isValid()" (click)="submit()">Створити бронювання</button>
+		</div>
+	</div>
+
+	<form (ngSubmit)="submit()">
+		<div class="grid grid-cols-12 gap-5 mt-6 items-start">
+			<div class="col-span-12 lg:col-span-8 flex flex-col gap-5">
+				<!-- Dates -->
+				<section class="card">
+					<h2>Коли гість проживатиме?</h2>
+					<p class="card-sub">Оберіть заїзд та виїзд.</p>
+					<div class="flex gap-4 flex-wrap">
+						<div class="date-field flex-1 min-w-[160px]">
+							<label for="f-start">Заїзд</label>
+							<input
+								id="f-start"
+								type="date"
+								required
+								[ngModel]="start()"
+								(ngModelChange)="onStartChange($event)"
+								name="start"
+							/>
+						</div>
+						<div class="date-field flex-1 min-w-[160px]">
+							<label for="f-end">Виїзд</label>
+							<input
+								id="f-end"
+								type="date"
+								required
+								class="invalid-input"
+								[class.invalid]="nights() <= 0"
+								[ngModel]="end()"
+								(ngModelChange)="onEndChange($event)"
+								name="end"
+							/>
+						</div>
+					</div>
+					@if (nightsNote()) {
+						<span class="nights-note">{{ nightsNote() }}</span>
+					}
+					@if (nights() <= 0) {
+						<p class="field-error show">Виїзд має бути після заїзду.</p>
+					}
+				</section>
+
+				<!-- Guests count -->
+				<section class="card">
+					<h2>Гості</h2>
+					<p class="card-sub">Система підбере номери за місткістю.</p>
+					<div class="flex gap-8 flex-wrap">
+						<div class="stepper">
+							<label>Дорослі</label>
+							<button type="button" (click)="stepAdults(-1)">−</button>
+							<b>{{ adults() }}</b>
+							<button type="button" (click)="stepAdults(1)">+</button>
+						</div>
+						<div class="stepper">
+							<label>Діти</label>
+							<button type="button" (click)="stepChildren(-1)">−</button>
+							<b>{{ children() }}</b>
+							<button type="button" (click)="stepChildren(1)">+</button>
+						</div>
+					</div>
+				</section>
+
+				<!-- Rooms -->
+				<section class="card">
+					<h2>Оберіть номер</h2>
+					<p class="card-sub">
+						@if (nights() > 0) {
+							{{ availableRooms().length ? 'Доступно ' + availableRooms().length + ' номер' + (availableRooms().length === 1 ? '' : availableRooms().length < 5 ? 'и' : 'ів') + ' на вибрані дати.' : 'На ці дати немає вільних номерів.' }}
+						}
+					</p>
+					@if (nights() > 0) {
+						@if (availableRooms().length) {
+							<div class="room-cards">
+								@for (r of availableRooms(); track r.number) {
+									<div class="room-card" [class.selected]="selectedRoom()?.number === r.number" (click)="selectRoom(r)">
+										<div>
+											<h3>{{ r.number }} · {{ r.type }}</h3>
+											<div class="room-facts">До {{ r.capacity }} гостей · {{ r.beds }} · {{ r.amenity }}</div>
+										</div>
+										<div class="room-price">
+											<b>{{ money(r.price) }} / ніч</b>
+											<small>{{ nights() }} ночі · {{ money(r.price * nights()) }}</small>
+										</div>
+										<button type="button">{{ selectedRoom()?.number === r.number ? 'Обрано' : 'Обрати' }}</button>
+									</div>
+								}
+							</div>
+						} @else {
+							<div class="room-empty">
+								<h3>На ці дати немає вільних номерів</h3>
+								<p>Спробуйте інші дати.</p>
+								<div class="alt-dates">
+									@for (alt of altDates(); track alt.start) {
+										<button type="button" (click)="selectAltDates(alt.start, alt.end)">
+											<b>{{ Number(alt.start.slice(-2)) }}–{{ Number(alt.end.slice(-2)) }} вересня</b>
+											{{ alt.count }} номери доступні
+										</button>
+									}
+								</div>
+							</div>
+						}
+					}
+					@if (errRoom() && validationErrors().includes('room')) {
+						<p class="field-error show">Оберіть номер зі списку доступних.</p>
+					}
+				</section>
+
+				<!-- Guest -->
+				<section class="card">
+					<h2>Хто бронює?</h2>
+					<p class="card-sub">Знайдіть існуючого гостя або створіть нового.</p>
+
+					@if (selectedGuest(); as g) {
+						<div class="guest-selected">
+							<div>
+								<b>{{ g.name }}</b>
+								<span>{{ g.phone }}{{ g.email ? ' · ' + g.email : '' }} · {{ g.stays }} проживання</span>
+							</div>
+							<button type="button" class="text-action" (click)="changeGuest()">Змінити гостя</button>
+						</div>
+					} @else if (guestMode() === 'new') {
+						<div class="new-guest-form">
+							<label
+								>Ім'я *<input
+									required
+									[ngModel]="newGuestData().name"
+									(ngModelChange)="updateNewGuest('name', $event)"
+									name="ngName"
+							/></label>
+							<label
+								>Прізвище<input
+									[ngModel]="newGuestData().surname"
+									(ngModelChange)="updateNewGuest('surname', $event)"
+									name="ngSurname"
+							/></label>
+							<label
+								>Телефон *<input
+									required
+									[ngModel]="newGuestData().phone"
+									(ngModelChange)="updateNewGuest('phone', $event)"
+									name="ngPhone"
+							/></label>
+							<label
+								>Email<input
+									type="email"
+									[ngModel]="newGuestData().email"
+									(ngModelChange)="updateNewGuest('email', $event)"
+									name="ngEmail"
+							/></label>
+							<button type="button" class="text-action full" (click)="backToSearch()">← Пошук існуючого гостя</button>
+						</div>
+					} @else {
+						<div class="guest-search">
+							<input
+								placeholder="Ім'я або номер телефону"
+								[ngModel]="guestQuery()"
+								(ngModelChange)="onGuestQueryChange($event)"
+								name="guestQuery"
+							/>
+						</div>
+						<div class="guest-results">
+							@if (guestQuery().trim()) {
+								@if (guestResults().length) {
+									@for (g of guestResults(); track g.name) {
+										<button type="button" class="guest-result" (click)="pickGuest(g)">
+											<span
+												><b>{{ g.name }}</b
+												><small>{{ g.phone }} · {{ g.stays }} попередні проживання · {{ money(g.spent) }} витрачено</small></span
+											>
+											<span class="text-action">Обрати →</span>
+										</button>
+									}
+								} @else {
+									<p class="form-note">Гостя не знайдено. Створіть нового.</p>
+								}
+							}
+						</div>
+						<button type="button" class="button secondary mt-3" (click)="startNewGuest()">+ Створити нового гостя</button>
+					}
+					@if (errGuest() && validationErrors().includes('guest')) {
+						<p class="field-error show">Вкажіть ім'я гостя та телефон або email — потрібен хоча б один контакт.</p>
+					}
+				</section>
+
+				<!-- Price -->
+				<section class="card">
+					<h2>Вартість бронювання</h2>
+					@if (selectedRoom(); as r) {
+						<div class="price-line">
+							<span
+								>{{ r.number }} · {{ r.type }}<br /><small>{{ money(r.price) }} × {{ nights() }} ночі</small></span
+							>
+							<b>{{ money(basePrice()) }}</b>
+						</div>
+						<div class="price-line"><span>Додаткові послуги</span><b>0 ₴</b></div>
+					} @else {
+						<p class="form-note">Оберіть номер, щоб побачити вартість.</p>
+					}
+					<div class="price-total"><span>Разом</span><b>{{ money(finalPrice()) }}</b></div>
+					@if (priceDiscount() !== 0) {
+						<p class="discount-note">
+							{{ priceDiscount() > 0 ? 'Знижка: ' : 'Надбавка: ' }}{{ money(Math.abs(priceDiscount())) }}{{ priceReason() ? ' · ' + priceReason() : '' }}
+						</p>
+					}
+					<button type="button" class="text-action" (click)="openPriceModal()">Змінити ціну →</button>
+				</section>
+
+				<!-- Payment -->
+				<section class="card">
+					<h2>Умови оплати</h2>
+					<p class="card-sub">Скільки гість повинен внести зараз — не те, що вже отримано.</p>
+					<div class="pay-options">
+						<div class="pay-option" [class.selected]="payment() === 'none'" (click)="selectPayment('none')">
+							<b>Без оплати зараз</b><span>Гість оплатить під час заселення.</span>
+						</div>
+						<div class="pay-option" [class.selected]="payment() === 'deposit'" (click)="selectPayment('deposit')">
+							<b>Потрібна передоплата</b><span>Частина суми вноситься зараз, залишок — при заселенні.</span>
+						</div>
+						<div class="pay-option" [class.selected]="payment() === 'full'" (click)="selectPayment('full')">
+							<b>Потрібна повна оплата</b><span>Уся сума вноситься зараз, під час бронювання.</span>
+						</div>
+					</div>
+					@if (payment() === 'deposit') {
+						<div class="deposit-fields">
+							<label
+								>Сума передоплати<input
+									type="number"
+									min="1"
+									[ngModel]="depositAmount()"
+									(ngModelChange)="onDepositAmountChange($event)"
+									name="depositAmount"
+							/></label>
+							<label
+								>Спосіб оплати
+								<select [(ngModel)]="depositMethod" name="depositMethod">
+									<option>Готівка</option>
+									<option>Картка на місці</option>
+									<option>Банківський переказ</option>
+									<option>Оплата онлайн (за посиланням)</option>
+									<option>Інше</option>
+								</select>
+							</label>
+						</div>
+					}
+					<p class="pay-summary" [innerHTML]="paymentSummary()"></p>
+				</section>
+
+				<!-- Source -->
+				<section class="card">
+					<h2>Звідки прийшов гість?</h2>
+					<div class="flex gap-4 flex-wrap">
+						<div class="date-field flex-1 min-w-[160px]">
+							<label for="f-channel">Канал бронювання</label>
+							<select
+								class="plain"
+								id="f-channel"
+								required
+								[ngModel]="channel()"
+								(ngModelChange)="onChannelChange($event)"
+								name="channel"
+							>
+								<option value="">Оберіть канал</option>
+								<optgroup label="Прямі (без комісії платформам)">
+									<option>Сайт готелю</option>
+									<option>Телефон</option>
+									<option>Email</option>
+									<option>Месенджер</option>
+									<option>Walk-in</option>
+								</optgroup>
+								<optgroup label="Сторонні платформи">
+									<option>Booking.com</option>
+								</optgroup>
+								<option>Інше</option>
+							</select>
+							<p class="help text-[10px] text-[var(--muted)] mt-1.5">
+								«Прямі» рахуються разом як пряме бронювання — незалежно від того, дзвінком, поштою чи в месенджері домовились.
+							</p>
+							@if (errChannel() && validationErrors().includes('channel')) {
+								<p class="field-error show">Оберіть канал бронювання.</p>
+							}
+						</div>
+						<div class="date-field flex-1 min-w-[160px]">
+							<label for="f-discovery">Звідки дізнався(лась) (необов'язково)</label>
+							<select class="plain" id="f-discovery" [ngModel]="discovery()" (ngModelChange)="onDiscoveryChange($event)" name="discovery">
+								<option value="">Невідомо</option>
+								<option>Instagram</option>
+								<option>Google</option>
+								<option>Facebook</option>
+								<option>Інше</option>
+							</select>
+						</div>
+					</div>
+				</section>
+
+				<!-- Arrival -->
+				<section class="card">
+					<h2>Очікуваний час прибуття</h2>
+					<p class="card-sub">Цю інформацію можна додати пізніше.</p>
+					<div class="flex gap-3 items-center flex-wrap">
+						<label class="flex gap-1.5 items-center text-xs">
+							<input type="checkbox" [ngModel]="arrivalUnknown()" (ngModelChange)="onArrivalUnknownChange($event)" name="arrivalUnknown" />
+							Невідомо
+						</label>
+						<input
+							type="time"
+							class="plain max-w-[140px]"
+							[disabled]="arrivalUnknown()"
+							[(ngModel)]="arrivalTime"
+							name="arrivalTime"
+						/>
+					</div>
+				</section>
+
+				<!-- Preferences -->
+				<section class="card">
+					<h2>Побажання гостя</h2>
+					<div class="tags-pick">
+						@for (p of prefOptions; track p) {
+							<button type="button" [class.active]="prefs().includes(p)" (click)="togglePref(p)">{{ p }}</button>
+						}
+						@for (p of prefs(); track p) {
+							@if (!prefOptions.includes(p)) {
+								<button type="button" class="active" (click)="togglePref(p)">{{ p }}</button>
+							}
+						}
+						<button type="button" (click)="openOtherPrefModal()">+ Інше</button>
+					</div>
+				</section>
+
+				<!-- Note -->
+				<section class="card">
+					<h2>Внутрішня нотатка</h2>
+					<textarea class="plain" maxlength="500" placeholder="Наприклад: гість попросив зателефонувати в день заїзду." [(ngModel)]="note" name="note"></textarea>
+					<p class="card-sub mt-2 mb-0">Цю інформацію бачить лише персонал.</p>
+				</section>
+
+				<!-- Confirmation -->
+				<section class="card">
+					<div class="confirm-toggle">
+						<div>
+							<h2 class="mb-0.5">Надіслати підтвердження гостю</h2>
+							<p class="card-sub m-0">Гість отримає повідомлення після створення бронювання.</p>
+						</div>
+						<span
+							class="switch"
+							[class.on]="confirmSend()"
+							role="switch"
+							[attr.aria-checked]="confirmSend()"
+							tabindex="0"
+							(click)="toggleConfirmSend()"
+							(keydown.enter)="toggleConfirmSend()"
+							(keydown.space)="toggleConfirmSend()"
+						></span>
+					</div>
+					@if (confirmSend()) {
+						<div class="msg-preview">{{ messagePreview() }}</div>
+						<button type="button" class="text-action mt-2.5" (click)="openMessageModal()">Редагувати повідомлення →</button>
+					}
+				</section>
+			</div>
+
+			<div class="col-span-12 lg:col-span-4">
+				<div class="summary-card sticky top-28">
+					<h2>Бронювання</h2>
+					<div>
+						<div class="summary-line"><span>Гість</span><b>{{ guestName() || '—' }}</b></div>
+						<div class="summary-line">
+							<span>Підтвердження надішлемо на</span>
+							<b>{{ guestPhone().trim() ? 'SMS · ' + guestPhone() : guestEmail().trim() ? 'Email · ' + guestEmail() : '— (бронювання без контакту)' }}</b>
+						</div>
+						<div class="summary-line"><span>Проживання</span><b>{{ nights() > 0 ? shortDate(start()) + ' – ' + shortDate(end()) : '—' }}</b></div>
+						<div class="summary-line"><span>Ночей</span><b>{{ nights() > 0 ? nights() : '—' }}</b></div>
+						<div class="summary-line"><span>Гостей</span><b>{{ adults() }} дорослих{{ children() ? ', ' + children() + ' дітей' : '' }}</b></div>
+						<div class="summary-line"><span>Номер</span><b>{{ selectedRoom() ? selectedRoom()!.number + ' · ' + selectedRoom()!.type : '—' }}</b></div>
+						<div class="summary-line"><span>Ціна</span><b>{{ money(finalPrice()) }}</b></div>
+						<div class="summary-line"><span>Оплачено</span><b>{{ money(paidAmount()) }}</b></div>
+						<div class="summary-line"><span>Залишок</span><b>{{ money(remaining()) }}</b></div>
+						<div class="summary-line"><span>Канал</span><b>{{ channel() || '—' }}</b></div>
+						<div class="summary-line"><span>Джерело</span><b>{{ discovery() || 'Невідомо' }}</b></div>
+					</div>
+					<button class="button primary" type="submit" [disabled]="!isValid()">Створити бронювання</button>
+					<p class="summary-note">Після створення номер буде заблоковано на вибрані дати.</p>
+				</div>
+			</div>
+		</div>
+	</form>
+
+	<div class="workspace-footer flex justify-between text-[9px] text-[#a0a1a7] gap-2.5 py-5">
+		<span>Hotel Upwork · Нове бронювання</span>
+		<span>Демонстраційні дані · 17.09.2026</span>
+	</div>
+</app-shell>
+
+<!-- Change price dialog -->
+@if (priceModalOpen()) {
+	<dialog open (click)="closePriceModal()">
+		<div class="dialog-head">
+			<span class="dialog-label">HOTEL UPWORK <span>· ДЕМО</span></span>
+			<button class="icon-button" aria-label="Закрити вікно" (click)="closePriceModal()"><app-icon name="close" /></button>
+		</div>
+		<div id="dialog-content" (click)="$event.stopPropagation()">
+			<h2>Змінити ціну</h2>
+			<form class="demo-form" (ngSubmit)="submitPrice(priceFinal.valueAsNumber, priceReasonSelect.value, priceNoteInput.value)">
+				<label class="full">Стандартна ціна<input [value]="money(basePrice())" disabled /></label>
+				<label class="full">Фінальна ціна, ₴<input #priceFinal name="final" type="number" min="1" [value]="finalPrice()" /></label>
+				<label class="full"
+					>Причина
+					<select #priceReasonSelect name="reason">
+						<option>Знижка</option>
+						<option>Постійний гість</option>
+						<option>Спецпропозиція</option>
+						<option>Власна ціна</option>
+					</select>
+				</label>
+				<label class="full">Нотатка (необов'язково)<input #priceNoteInput name="note" maxlength="100" /></label>
+				<button class="button primary full" type="submit">Зберегти ціну</button>
+			</form>
+		</div>
+	</dialog>
+}
+
+<!-- Edit message dialog -->
+@if (messageModalOpen()) {
+	<dialog open (click)="closeMessageModal()">
+		<div class="dialog-head">
+			<span class="dialog-label">HOTEL UPWORK <span>· ДЕМО</span></span>
+			<button class="icon-button" aria-label="Закрити вікно" (click)="closeMessageModal()"><app-icon name="close" /></button>
+		</div>
+		<div id="dialog-content" (click)="$event.stopPropagation()">
+			<h2>Редагувати повідомлення</h2>
+			<form class="demo-form" (ngSubmit)="submitMessage(messageText.value)">
+				<label class="full">Текст повідомлення<textarea #messageText name="message" maxlength="600">{{ messagePreview() }}</textarea></label>
+				<button class="button primary full" type="submit">Зберегти текст</button>
+			</form>
+		</div>
+	</dialog>
+}
+
+<!-- Other preference dialog -->
+@if (otherPrefModalOpen()) {
+	<dialog open (click)="closeOtherPrefModal()">
+		<div class="dialog-head">
+			<span class="dialog-label">HOTEL UPWORK <span>· ДЕМО</span></span>
+			<button class="icon-button" aria-label="Закрити вікно" (click)="closeOtherPrefModal()"><app-icon name="close" /></button>
+		</div>
+		<div id="dialog-content" (click)="$event.stopPropagation()">
+			<h2>Додати побажання</h2>
+			<form class="demo-form" (ngSubmit)="submitOtherPref(prefInput.value)">
+				<label class="full">Побажання<input #prefInput name="pref" required maxlength="40" /></label>
+				<button class="button primary full" type="submit">Додати</button>
+			</form>
+		</div>
+	</dialog>
+}
+
+<!-- Unavailable room dialog -->
+@if (unavailableModalOpen()) {
+	<dialog open (click)="closeUnavailableModal()">
+		<div class="dialog-head">
+			<span class="dialog-label">HOTEL UPWORK <span>· ДЕМО</span></span>
+			<button class="icon-button" aria-label="Закрити вікно" (click)="closeUnavailableModal()"><app-icon name="close" /></button>
+		</div>
+		<div id="dialog-content" (click)="$event.stopPropagation()">
+			<h2>Номер щойно став недоступним</h2>
+			<p>{{ selectedRoom()?.number }} · {{ selectedRoom()?.type }} вже заброньовано на частину вибраних дат.</p>
+			<div class="room-cards">
+				@for (r of alternativeRooms(); track r.number) {
+					<div class="room-card" (click)="pickAlternativeRoom(r)">
+						<div>
+							<h3>{{ r.number }} · {{ r.type }}</h3>
+							<div class="room-facts">До {{ r.capacity }} гостей</div>
+						</div>
+						<button type="button">Обрати</button>
+					</div>
+				} @empty {
+					<p class="form-note">Вільних альтернатив немає.</p>
+				}
+			</div>
+		</div>
+	</dialog>
+}
+
+<!-- Success dialog -->
+@if (successModalOpen()) {
+	<dialog open>
+		<div class="dialog-head">
+			<span class="dialog-label">HOTEL UPWORK <span>· ДЕМО</span></span>
+		</div>
+		<div id="dialog-content">
+			<h2>Бронювання створено</h2>
+			<div class="detail-grid">
+				<div><small>Гість</small><b>{{ guestName() }}</b></div>
+				<div><small>Дати</small><b>{{ Number(start().slice(-2)) }}–{{ Number(end().slice(-2)) }} вер.</b></div>
+				<div><small>Номер</small><b>{{ selectedRoom()?.number }} · {{ selectedRoom()?.type }}</b></div>
+			</div>
+			<p>Сума: <b>{{ money(finalPrice()) }}</b></p>
+			<div class="dialog-actions">
+				<button class="button primary" type="button" (click)="goToCalendar()">Повернутися до календаря</button>
+				<button class="button secondary" type="button" (click)="createAnother()">Створити ще одне</button>
+			</div>
+		</div>
+	</dialog>
+}
+
+@if (toastMessage()) {
+	<div class="toast" role="status">{{ toastMessage() }}</div>
+}

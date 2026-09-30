@@ -1,0 +1,150 @@
+<header>
+	<a class="brand" routerLink="/" aria-label="Hotel Upwork, головна сторінка">
+		<span class="mark">H</span>
+		<span>Hotel <strong>Upwork</strong></span>
+	</a>
+	<nav aria-label="Юридичні документи">
+		<a routerLink="/privacy">Конфіденційність</a>
+		<a routerLink="/cookies" aria-current="page">Cookies</a>
+		<a routerLink="/">На головну</a>
+	</nav>
+</header>
+
+<main class="mx-auto max-w-[760px] px-[5%] py-16">
+	<p class="mb-2 text-sm text-[var(--muted)]">Останнє оновлення: {{ lastUpdated }}</p>
+	<h1 class="mb-4 text-[2.5rem] leading-tight tracking-tight">Політика щодо файлів cookie</h1>
+	<p class="mb-8 text-lg leading-relaxed text-[var(--muted)]">
+		Ця Політика пояснює, які файли cookie та подібні технології використовує Hotel Upwork, навіщо, і як ви
+		можете керувати ними у своєму браузері.
+	</p>
+
+	<div class="mb-10 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 text-sm leading-relaxed text-[var(--muted)]">
+		Це демонстраційний сайт продукту Hotel Upwork. Перелік нижче відповідає реальному переліку cookie, які
+		використовує саме цей прототип; для продакшн-версії з підключеною аналітикою чи маркетингом перелік
+		потрібно буде доповнити відповідно до фактично доданих сервісів.
+	</div>
+
+	<nav class="mb-12 rounded-lg border border-[var(--border)] p-5" aria-label="Зміст">
+		<b class="mb-3 block">Зміст</b>
+		<ol class="list-decimal space-y-2 pl-5 text-sm">
+			<li><a class="hover:text-[var(--gold-ink)]" href="#what">Що таке cookie</a></li>
+			<li><a class="hover:text-[var(--gold-ink)]" href="#types">Які cookie ми використовуємо</a></li>
+			<li><a class="hover:text-[var(--gold-ink)]" href="#table">Перелік cookie</a></li>
+			<li><a class="hover:text-[var(--gold-ink)]" href="#third-party">Сторонні cookie</a></li>
+			<li><a class="hover:text-[var(--gold-ink)]" href="#manage">Як керувати cookie</a></li>
+			<li><a class="hover:text-[var(--gold-ink)]" href="#changes">Зміни цієї Політики</a></li>
+			<li><a class="hover:text-[var(--gold-ink)]" href="#contact">Контакти</a></li>
+		</ol>
+	</nav>
+
+	<article class="space-y-12">
+		<section id="what">
+			<h2 class="mb-3 text-2xl font-semibold">1. Що таке cookie</h2>
+			<p class="leading-relaxed">
+				Файл cookie — це невеликий текстовий файл, який сайт зберігає у вашому браузері. Cookie дозволяють
+				сайту "запам'ятовувати" ваші дії або налаштування (наприклад, стан входу) під час наступних
+				відвідувань, а також працювати з локальним сховищем браузера (<code>localStorage</code>) для
+				подібних цілей.
+			</p>
+		</section>
+
+		<section id="types">
+			<h2 class="mb-3 text-2xl font-semibold">2. Які cookie ми використовуємо</h2>
+			<h3 class="mb-2 mt-4 text-lg font-semibold">2.1 Необхідні (завжди активні)</h3>
+			<p class="leading-relaxed">
+				Ці файли потрібні для базової роботи сервісу — наприклад, для підтримання вашої сесії після входу в
+				кабінет готелю. Без них Hotel Upwork не зможе функціонувати, тому вони не потребують окремої згоди.
+			</p>
+			<h3 class="mb-2 mt-4 text-lg font-semibold">2.2 Функціональні</h3>
+			<p class="leading-relaxed">
+				Запам'ятовують ваші налаштування інтерфейсу (наприклад, обраний вигляд календаря чи згорнуті групи
+				номерів), щоб не налаштовувати їх щоразу заново.
+			</p>
+			<h3 class="mb-2 mt-4 text-lg font-semibold">2.3 Аналітичні</h3>
+			<p class="leading-relaxed">
+				На момент публікації цієї сторінки Hotel Upwork <b>не використовує</b> сторонніх аналітичних або
+				рекламних cookie. Якщо це зміниться в майбутньому, ми оновимо цю Політику та за потреби запитаємо
+				вашу згоду.
+			</p>
+		</section>
+
+		<section id="table">
+			<h2 class="mb-3 text-2xl font-semibold">3. Перелік cookie</h2>
+			<div class="overflow-x-auto rounded-lg border border-[var(--border)]">
+				<table class="w-full border-collapse text-left text-sm">
+					<thead>
+						<tr class="bg-[var(--surface)]">
+							<th class="border-b border-[var(--border)] p-3">Назва</th>
+							<th class="border-b border-[var(--border)] p-3">Тип</th>
+							<th class="border-b border-[var(--border)] p-3">Призначення</th>
+							<th class="border-b border-[var(--border)] p-3">Термін дії</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (row of cookieTable; track row.name) {
+							<tr>
+								<td class="border-b border-[var(--border)] p-3"><code>{{ row.name }}</code></td>
+								<td class="border-b border-[var(--border)] p-3">{{ row.type }}</td>
+								<td class="border-b border-[var(--border)] p-3">{{ row.purpose }}</td>
+								<td class="border-b border-[var(--border)] p-3">{{ row.duration }}</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+			<p class="mt-3 text-sm text-[var(--muted)]">
+				Примітка: цей прототип є статичною демонстраційною версією без бекенду, тому облікові cookie тут не
+				встановлюються насправді — таблиця відображає, які cookie використовуватиме продакшн-версія сервісу.
+			</p>
+		</section>
+
+		<section id="third-party">
+			<h2 class="mb-3 text-2xl font-semibold">4. Сторонні cookie</h2>
+			<p class="leading-relaxed">
+				Наш сайт підвантажує шрифт Manrope з Google Fonts. Google Fonts може отримувати технічну інформацію
+				про запит (наприклад, IP-адресу) для доставки шрифту, але не встановлює власних рекламних чи
+				трекінгових cookie в межах цього використання. Ми не використовуємо сторонні рекламні мережі чи
+				пікселі відстеження.
+			</p>
+		</section>
+
+		<section id="manage">
+			<h2 class="mb-3 text-2xl font-semibold">5. Як керувати cookie</h2>
+			<p class="mb-3 leading-relaxed">
+				Ви можете видалити або заблокувати cookie через налаштування свого браузера. Майте на увазі:
+				блокування необхідних cookie може призвести до неможливості увійти в кабінет Hotel Upwork або втрати
+				активної сесії.
+			</p>
+			<ul class="list-disc space-y-1 pl-5 text-sm">
+				<li>Google Chrome: Налаштування → Конфіденційність і безпека → Файли cookie</li>
+				<li>Safari: Налаштування → Конфіденційність</li>
+				<li>Firefox: Налаштування → Приватність та захист</li>
+				<li>Microsoft Edge: Налаштування → Файли cookie та дозволи сайтів</li>
+			</ul>
+		</section>
+
+		<section id="changes">
+			<h2 class="mb-3 text-2xl font-semibold">6. Зміни цієї Політики</h2>
+			<p class="leading-relaxed">
+				Якщо ми додамо нові категорії cookie (наприклад, аналітику), ця сторінка буде оновлена, а дата
+				вгорі — змінена. За потреби ми запитаємо вашу згоду перед активацією нових не обов'язкових cookie.
+			</p>
+		</section>
+
+		<section id="contact">
+			<h2 class="mb-3 text-2xl font-semibold">7. Контакти</h2>
+			<div class="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 text-sm leading-relaxed">
+				<b class="block">Hotel Upwork</b>
+				<span>Email: privacy&#64;hotelup.work</span><br />
+				<span>Питання щодо cookie також можна надсилати на цю адресу з темою "Питання щодо cookie".</span>
+			</div>
+		</section>
+	</article>
+</main>
+
+<footer>
+	<span>© 2026 Hotel Upwork</span>
+	<a routerLink="/">Головна</a>
+	<a routerLink="/privacy">Політика конфіденційності</a>
+	<a routerLink="/cookies" aria-current="page">Cookies</a>
+</footer>

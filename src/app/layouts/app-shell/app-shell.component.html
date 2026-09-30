@@ -65,8 +65,8 @@
 			<span>{{ greetingSubtitle() }}</span>
 		</div>
 		<div class="top-actions">
-			<a class="icon-button" aria-label="Пошук" href="/search/"><app-icon name="search" /></a>
-			<a class="icon-button notification-button" aria-label="Сповіщення, 4 нових" href="/notifications/">
+			<a class="icon-button" aria-label="Пошук" routerLink="/search"><app-icon name="search" /></a>
+			<a class="icon-button notification-button" aria-label="Сповіщення, 4 нових" routerLink="/notifications">
 				<app-icon name="bell" /><i></i>
 			</a>
 			<button class="icon-button" [attr.aria-label]="isDark() ? 'Увімкнути світлу тему' : 'Увімкнути темну тему'" (click)="toggleTheme()">
@@ -76,7 +76,7 @@
 			@if (showAi()) {
 				<a class="ai-button" routerLink="/ai"><app-icon name="spark" />Hotel AI</a>
 			}
-			<a class="profile" href="/profile/" aria-label="Профіль Олександра">ОК</a>
+			<a class="profile" routerLink="/profile" aria-label="Профіль Олександра">ОК</a>
 		</div>
 	</header>
 	<main id="main" tabindex="-1">

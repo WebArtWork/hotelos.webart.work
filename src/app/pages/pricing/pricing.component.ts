@@ -99,6 +99,6 @@ export class PricingComponent {
 
 	protected choose(plan: Plan): void {
 		setStoredPlan(plan);
-		this._router.navigateByUrl('/login');
+		this._router.navigateByUrl('/demo');
 	}
 }

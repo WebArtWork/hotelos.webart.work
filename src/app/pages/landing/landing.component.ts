@@ -169,11 +169,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
 	protected choosePlan(plan: Plan): void {
 		setStoredPlan(plan);
-		this._router.navigateByUrl('/login');
+		this._router.navigateByUrl('/demo');
 	}
 
 	protected goToApp(): void {
-		window.location.href = '/dashboard/';
+		this._router.navigateByUrl('/demo');
 	}
 
 	protected openCalendarModal(): void {

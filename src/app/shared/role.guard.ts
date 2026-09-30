@@ -10,7 +10,7 @@ export const roleGuard: CanActivateFn = (route) => {
 
 	const router = inject(Router);
 	const role = getStoredRole();
-	if (!role) return router.parseUrl('/login');
+	if (!role) return router.parseUrl('/demo');
 
 	const plan = getStoredPlan();
 	const home = defaultPageFor(role, plan);

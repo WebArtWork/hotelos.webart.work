@@ -1,0 +1,435 @@
+<app-shell activeNav="calendar">
+	<div class="mb-5 flex items-center justify-between gap-5">
+		<div>
+			<div class="mb-1 text-xs uppercase tracking-wide text-[var(--muted)]">Робочий простір <span>/</span> Пряме бронювання</div>
+			<h1 class="text-2xl font-extrabold tracking-tight">Нове бронювання</h1>
+			<p class="flex items-center gap-2 text-sm text-[var(--muted)]"><app-icon name="calendar" />Пошук дат і номерів для гостя</p>
+		</div>
+	</div>
+
+	<div class="mx-auto max-w-4xl pb-16">
+		@switch (screen()) {
+			@case ('search') {
+				<section>
+					<div class="mb-6 overflow-hidden rounded-xl">
+						<img class="block h-[220px] w-full rounded-xl object-cover" src="/assets/images/hotel/exterior.webp" alt="Ілюстративний фасад бутик-готелю та брукований внутрішній дворик" width="1536" height="1024" loading="eager" />
+						<p class="mt-2 text-xs text-[var(--muted)]">Демонстраційний готель · Фото згенеровані AI</p>
+						<div class="mt-3">
+							<h2 class="mb-1 text-xl font-extrabold tracking-tight">{{ hotel.name }}</h2>
+							<p class="mb-1 text-sm text-[var(--muted)]">Кам’янець-Подільський</p>
+							<p class="mb-3 text-sm">Бутик-готель у центрі міста.</p>
+							<div class="flex flex-wrap gap-2">
+								@for (info of ['Check-in після 14:00', 'Check-out до 11:00', 'Wi-Fi', 'Паркінг', 'Сніданок']; track info) {
+									<span class="rounded-full bg-[var(--surface)] px-3 py-1.5 text-[11px] font-semibold">{{ info }}</span>
+								}
+							</div>
+						</div>
+					</div>
+
+					<div class="mb-1 flex flex-wrap justify-center gap-4 text-center text-[11.5px] text-[var(--muted)]">
+						<span>✓ Пряме бронювання у готелі</span>
+						<span title="Термін підтвердження залежить від тарифу й обраного способу оплати">✓ Миттєве підтвердження*</span>
+						<span>✓ Без прихованих платежів</span>
+					</div>
+					<p class="mx-auto mb-5 max-w-lg text-center text-[10px] text-[var(--muted)]">
+						* Для тарифів без передоплати бронювання підтверджується одразу. Для тарифів з передоплатою підтвердження надходить після успішної оплати.
+					</p>
+
+					<div class="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-[var(--border)] bg-[var(--white)] p-4 shadow-sm sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+						<label class="block">
+							<span class="mb-1.5 block text-[9.5px] font-bold uppercase tracking-wide text-[var(--muted)]">Заїзд</span>
+							<input type="date" class="w-full rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm font-bold" [ngModel]="start()" (ngModelChange)="setStart($event)" />
+						</label>
+						<label class="block">
+							<span class="mb-1.5 block text-[9.5px] font-bold uppercase tracking-wide text-[var(--muted)]">Виїзд</span>
+							<input type="date" class="w-full rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm font-bold" [ngModel]="end()" (ngModelChange)="setEnd($event)" />
+						</label>
+						<div class="relative block">
+							<span class="mb-1.5 block text-[9.5px] font-bold uppercase tracking-wide text-[var(--muted)]">Гості</span>
+							<button type="button" class="w-full rounded-lg border border-[var(--border)] px-3 py-2.5 text-left text-sm font-bold" (click)="toggleGuestPopover()">
+								{{ guestDisplay() }}
+							</button>
+							@if (guestPopoverOpen()) {
+								<div class="absolute top-full z-20 mt-1.5 w-[220px] rounded-lg border border-[var(--border)] bg-[var(--white)] p-4 shadow-xl">
+									<div class="mb-3 flex items-center justify-between">
+										<span class="text-sm">Дорослі</span>
+										<div class="flex items-center gap-2">
+											<button type="button" class="h-[26px] w-[26px] rounded-md border border-[var(--border)] font-bold" (click)="adjustGuests('adults', -1)">−</button>
+											<b>{{ adults() }}</b>
+											<button type="button" class="h-[26px] w-[26px] rounded-md border border-[var(--border)] font-bold" (click)="adjustGuests('adults', 1)">+</button>
+										</div>
+									</div>
+									<div class="mb-3 flex items-center justify-between">
+										<span class="text-sm">Діти</span>
+										<div class="flex items-center gap-2">
+											<button type="button" class="h-[26px] w-[26px] rounded-md border border-[var(--border)] font-bold" (click)="adjustGuests('children', -1)">−</button>
+											<b>{{ children() }}</b>
+											<button type="button" class="h-[26px] w-[26px] rounded-md border border-[var(--border)] font-bold" (click)="adjustGuests('children', 1)">+</button>
+										</div>
+									</div>
+									<button type="button" class="w-full rounded-md bg-[var(--ink)] py-2 text-xs font-bold text-[var(--white)]" (click)="closeGuestPopover()">Готово</button>
+								</div>
+							}
+						</div>
+						<button type="button" class="rounded-lg bg-[var(--gold)] px-5 py-3 text-[13px] font-extrabold text-[#241f16] hover:bg-[#d3b06b]" (click)="search()">Знайти номер</button>
+					</div>
+
+					@if (hasSearched()) {
+						@if (searchError()) {
+							<p class="mb-5 text-xs text-[#a24b3f]">{{ searchError() }}</p>
+						} @else {
+							<h2 class="mb-1 text-xl font-extrabold tracking-tight">Доступні номери</h2>
+							<p class="mb-4 text-[12.5px] text-[var(--muted)]">
+								{{ shortDate(start()) }} – {{ shortDate(end()) }} · {{ nights() }} ночі · {{ guestDisplay() }}
+							</p>
+							<div class="mb-3.5 flex justify-end">
+								<select class="rounded-lg border border-[var(--border)] px-2.5 py-2 text-xs" [ngModel]="sort()" (ngModelChange)="sort.set($event)">
+									<option value="rec">Рекомендовані</option>
+									<option value="asc">Нижча ціна</option>
+									<option value="desc">Вища ціна</option>
+								</select>
+							</div>
+							<div class="flex flex-col gap-4">
+								@for (room of sortedRooms(); track room.id) {
+									<div class="grid grid-cols-1 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--white)] sm:grid-cols-[220px_1fr]">
+										<img class="h-[170px] w-full object-cover sm:h-full sm:min-h-[150px]" src="/assets/images/hotel/{{ room.id === 'standard' ? 'exterior' : room.id === 'lux' ? 'suite-bedroom' : 'lobby' }}.webp" [alt]="room.name" width="1536" height="1024" loading="lazy" />
+										<div class="flex flex-col gap-2 p-5">
+											<h3 class="text-lg font-bold">{{ room.name }}</h3>
+											<div class="text-xs text-[var(--muted)]">До {{ room.capacity }} гостей · {{ room.area }} м² · {{ room.beds }}</div>
+											<div class="flex flex-wrap gap-1.5">
+												@for (f of room.features; track f) {
+													<span class="rounded-full bg-[var(--surface)] px-2.5 py-1 text-[10.5px]">{{ f }}</span>
+												}
+											</div>
+											<div class="mt-auto flex flex-wrap items-end justify-between gap-2.5">
+												<div>
+													<b class="block text-xs font-semibold text-[var(--muted)]">{{ money(room.price) }} / ніч</b>
+													<b class="text-xl font-extrabold">{{ money(room.price * nights()) }}</b>
+													<small class="block text-[10.5px] text-[var(--muted)]">за {{ nights() }} ночі</small>
+												</div>
+												<div class="flex gap-2.5">
+													<button type="button" class="rounded-lg border border-[var(--border)] px-4 py-2.5 text-xs font-bold" (click)="viewDetails(room.id)">Детальніше</button>
+													<button type="button" class="rounded-lg bg-[var(--gold)] px-4 py-2.5 text-xs font-bold text-[#241f16] hover:bg-[#d3b06b]" (click)="selectRoom(room.id)">Обрати номер</button>
+												</div>
+											</div>
+										</div>
+									</div>
+								} @empty {
+									<p class="text-xs text-[var(--muted)]">Немає номерів для такої кількості гостей.</p>
+								}
+							</div>
+						}
+					}
+
+					<div class="mt-9 border-t border-[var(--border)] py-9">
+						<h2 class="mb-1 text-xl font-extrabold tracking-tight">Про {{ hotel.name }}</h2>
+						<p class="mb-3.5 text-[12.5px] text-[var(--muted)]">Затишний бутик-готель у самому центрі Кам’янця-Подільського, за кілька хвилин ходьби від старого міста.</p>
+						<div class="mb-3.5 flex flex-wrap gap-2">
+							@for (info of ['Адреса: Кам’янець-Подільський', 'Check-in: 14:00', 'Check-out: 11:00', '+380 67 123 45 67', 'info@grandhotel.example']; track info) {
+								<span class="rounded-full bg-[var(--surface)] px-3 py-1.5 text-[11.5px] font-semibold">{{ info }}</span>
+							}
+						</div>
+						<div class="grid grid-cols-3 gap-2 sm:grid-cols-5">
+							@for (img of ['exterior', 'lobby', 'breakfast', 'exterior', 'suite-bedroom']; track $index) {
+								<img class="h-[70px] w-full rounded-lg object-cover" src="/assets/images/hotel/{{ img }}.webp" alt="" width="1536" height="1024" loading="lazy" />
+							}
+						</div>
+					</div>
+
+					<div class="border-t border-[var(--border)] py-9">
+						<h2 class="mb-1 text-xl font-extrabold tracking-tight">Розташування</h2>
+						<div class="mt-2 text-[12.5px] text-[var(--muted)]">Кам’янець-Подільський, центр міста · <a href="tel:{{ hotel.phone }}" class="font-bold text-[var(--gold-ink)] underline">Прокласти маршрут ↗</a></div>
+					</div>
+
+					<div class="border-t border-[var(--border)] py-9">
+						<h2 class="mb-1 text-xl font-extrabold tracking-tight">Питання та відповіді</h2>
+						@for (faq of [
+							['Коли можна заселитися?', 'Після 14:00.'],
+							['Коли потрібно виїхати?', 'До 11:00.'],
+							['Чи потрібна передоплата?', 'Залежить від обраного тарифу — можна оплатити при заселенні, внести передоплату або оплатити повністю онлайн.'],
+							['Чи можна скасувати бронювання?', cancellationNote + ' Умови залежать від обраного тарифу.'],
+						]; track faq[0]) {
+							<div class="border-t border-[var(--border)] py-3.5 first:border-t-0">
+								<h4 class="mb-1 text-sm font-bold">{{ faq[0] }}</h4>
+								<p class="text-xs text-[var(--muted)]">{{ faq[1] }}</p>
+							</div>
+						}
+					</div>
+				</section>
+			}
+
+			@case ('room-details') {
+				@let room = detailsRoom();
+				@if (room) {
+					<section>
+						<button type="button" class="mb-4 flex items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-2.5 text-xs font-bold" (click)="backToResults()">
+							<app-icon name="left" />Назад до результатів
+						</button>
+						<div class="mb-4 grid grid-cols-3 gap-2">
+							<img class="h-[150px] w-full rounded-lg object-cover sm:h-[150px]" src="/assets/images/hotel/exterior.webp" alt="" width="1536" height="1024" loading="lazy" />
+							<img class="h-[150px] w-full rounded-lg object-cover sm:h-[150px]" src="/assets/images/hotel/lobby.webp" alt="" width="1536" height="1024" loading="lazy" />
+							<img class="h-[150px] w-full rounded-lg object-cover sm:h-[150px]" src="/assets/images/hotel/suite-bedroom.webp" alt="" width="1536" height="1024" loading="lazy" />
+						</div>
+						<h1 class="mb-1.5 text-2xl font-extrabold tracking-tight">{{ room.name }}</h1>
+						<p class="mb-3.5 text-xs text-[var(--muted)]">До {{ room.capacity }} гостей · {{ room.area }} м² · {{ room.beds }} · ванна кімната</p>
+						<p class="mb-[18px] text-[13px]">{{ room.desc }}</p>
+						<h4 class="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Зручності</h4>
+						<div class="mb-5 flex flex-wrap gap-1.5">
+							@for (f of room.features; track f) {
+								<span class="rounded-full bg-[var(--surface)] px-2.5 py-1 text-[10.5px]">{{ f }}</span>
+							}
+						</div>
+						<h4 class="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Умови проживання</h4>
+						<div class="mb-5 flex flex-wrap gap-2">
+							<span class="rounded-full bg-[var(--surface)] px-3 py-1.5 text-[11.5px] font-semibold">Check-in після {{ hotel.checkIn }}</span>
+							<span class="rounded-full bg-[var(--surface)] px-3 py-1.5 text-[11.5px] font-semibold">Check-out до {{ hotel.checkOut }}</span>
+							<span class="rounded-full bg-[var(--surface)] px-3 py-1.5 text-[11.5px] font-semibold">Паління заборонено</span>
+							<span class="rounded-full bg-[var(--surface)] px-3 py-1.5 text-[11.5px] font-semibold">Тварини за правилами готелю</span>
+						</div>
+						<div class="mb-5 rounded-xl border border-[var(--border)] bg-[var(--white)] p-5">
+							<div class="flex justify-between border-t border-[var(--border)] py-2.5 text-sm first:border-t-0"><span>Стандартний тариф</span><b class="font-bold">{{ money(room.price) }} / ніч</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2.5 text-sm"><span>{{ nights() }} ночі</span><b class="font-bold">{{ money(room.price * nights()) }}</b></div>
+							<p class="mt-2.5 text-[11.5px] text-[var(--muted)]">{{ cancellationNote }}</p>
+						</div>
+						<button type="button" class="w-full rounded-lg bg-[var(--gold)] py-3 text-[13px] font-extrabold text-[#241f16] hover:bg-[#d3b06b]" (click)="selectRoom(room.id)">Обрати</button>
+					</section>
+				}
+			}
+
+			@case ('guest') {
+				<section class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
+					<div>
+						<button type="button" class="mb-4 flex items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-2.5 text-xs font-bold" (click)="backToResults()">
+							<app-icon name="left" />Назад
+						</button>
+						<div class="mb-[18px] rounded-lg border border-[var(--gold)] bg-[var(--gold-light)] px-3.5 py-2.5 text-center text-xs text-[var(--gold-ink)]">
+							Номер зарезервовано для вас ще: <b>{{ holdLabel() }}</b>
+						</div>
+						<h1 class="mb-1.5 text-2xl font-extrabold tracking-tight">Ваші дані</h1>
+						<p class="mb-5 text-[12.5px] text-[var(--muted)]">Потрібні лише контакти для підтвердження бронювання.</p>
+						<div class="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<label class="flex flex-col gap-1.5 text-xs font-semibold">
+								Ім’я *
+								<input class="rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm" required [ngModel]="guest().first" (ngModelChange)="updateGuest('first', $event)" />
+							</label>
+							<label class="flex flex-col gap-1.5 text-xs font-semibold">
+								Прізвище
+								<input class="rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm" [ngModel]="guest().last" (ngModelChange)="updateGuest('last', $event)" />
+							</label>
+							<label class="flex flex-col gap-1.5 text-xs font-semibold">
+								Телефон *
+								<input class="rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm" required [ngModel]="guest().phone" (ngModelChange)="updateGuest('phone', $event)" />
+							</label>
+							<label class="flex flex-col gap-1.5 text-xs font-semibold">
+								Email
+								<input type="email" class="rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm" [ngModel]="guest().email" (ngModelChange)="updateGuest('email', $event)" />
+							</label>
+						</div>
+						<h4 class="mb-2.5 mt-5 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Побажання</h4>
+						<div class="mb-4 flex flex-wrap gap-2">
+							@for (pref of prefOptions; track pref) {
+								<button
+									type="button"
+									class="rounded-full border px-3.5 py-2 text-[11.5px]"
+									[class]="prefs().includes(pref) ? 'border-[var(--gold)] bg-[var(--gold-light)] font-bold text-[var(--gold-ink)]' : 'border-[var(--border)] bg-[var(--white)]'"
+									(click)="togglePref(pref)"
+								>
+									{{ pref }}
+								</button>
+							}
+						</div>
+						<label class="mb-1.5 block text-xs font-semibold">Інші побажання</label>
+						<textarea
+							class="mb-1.5 min-h-[60px] w-full rounded-lg border border-[var(--border)] p-2.5 text-sm"
+							placeholder="Наприклад: приїдемо трохи раніше"
+							[ngModel]="guest().note"
+							(ngModelChange)="updateGuest('note', $event)"
+						></textarea>
+						<p class="mb-5 text-[11px] text-[var(--muted)]">Виконання побажань залежить від можливості готелю.</p>
+						<h4 class="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Орієнтовний час приїзду</h4>
+						<select class="mb-6 rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm" [ngModel]="arrival()" (ngModelChange)="arrival.set($event)">
+							<option value="unknown">Не знаю</option>
+							<option value="before14">До 14:00</option>
+							<option value="14-18">14:00–18:00</option>
+							<option value="18-22">18:00–22:00</option>
+							<option value="after22">Після 22:00</option>
+						</select>
+						@if (guestFormError()) {
+							<p class="mb-3 text-xs text-[#a24b3f]" role="alert">{{ guestFormError() }}</p>
+						}
+						<button type="button" class="w-full rounded-lg bg-[var(--gold)] py-3 text-[13px] font-extrabold text-[#241f16] hover:bg-[#d3b06b]" (click)="submitGuestForm()">Продовжити</button>
+					</div>
+					<div class="sticky top-24 rounded-xl border border-[var(--border)] bg-[var(--white)] p-5">
+						<ng-container [ngTemplateOutlet]="summary" />
+					</div>
+				</section>
+			}
+
+			@case ('payment') {
+				<section class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
+					<div>
+						<button type="button" class="mb-4 flex items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-2.5 text-xs font-bold" (click)="backToGuest()">
+							<app-icon name="left" />Назад
+						</button>
+						<div class="mb-[18px] rounded-lg border border-[var(--gold)] bg-[var(--gold-light)] px-3.5 py-2.5 text-center text-xs text-[var(--gold-ink)]">
+							Номер зарезервовано для вас ще: <b>{{ holdLabel() }}</b>
+						</div>
+						<h1 class="mb-5 text-2xl font-extrabold tracking-tight">Оплата</h1>
+						<div class="mb-4 flex flex-col gap-2.5">
+							<div class="cursor-pointer rounded-lg border p-3.5" [class]="payment() === 'later' ? 'border-[var(--gold)] bg-[var(--gold-light)]' : 'border-[var(--border)]'" (click)="choosePayment('later')">
+								<b class="block text-sm">Без оплати зараз</b><span class="text-[11.5px] text-[var(--muted)]">Оплата при заселенні.</span>
+							</div>
+							<div class="cursor-pointer rounded-lg border p-3.5" [class]="payment() === 'deposit' ? 'border-[var(--gold)] bg-[var(--gold-light)]' : 'border-[var(--border)]'" (click)="choosePayment('deposit')">
+								<b class="block text-sm">Передоплата</b><span class="text-[11.5px] text-[var(--muted)]">Наприклад: {{ money(depositAmount()) }}</span>
+							</div>
+							<div class="cursor-pointer rounded-lg border p-3.5" [class]="payment() === 'full' ? 'border-[var(--gold)] bg-[var(--gold-light)]' : 'border-[var(--border)]'" (click)="choosePayment('full')">
+								<b class="block text-sm">Повна оплата</b><span class="text-[11.5px] text-[var(--muted)]">{{ money(totalPrice()) }}</span>
+							</div>
+						</div>
+						@if (payment() === 'deposit') {
+							<div class="mb-3">
+								<label class="mb-1.5 block text-[11.5px] text-[var(--muted)]">Сума передоплати</label>
+								<input type="number" class="w-40 rounded-lg border border-[var(--border)] p-2.5 text-sm" min="1" [max]="totalPrice()" [ngModel]="depositAmount()" (ngModelChange)="depositAmount.set($event)" />
+							</div>
+							<p class="mb-2 text-[11.5px] text-[var(--muted)]">Залишок можна оплатити під час заселення.</p>
+						}
+						<div class="my-[18px] flex items-start gap-2.5 text-xs">
+							<input type="checkbox" class="mt-0.5" [ngModel]="termsAccepted()" (ngModelChange)="termsAccepted.set($event)" id="terms-check" />
+							<label for="terms-check">Я погоджуюся з <a href="#" class="underline">правилами бронювання</a> та <a href="#" class="underline">умовами скасування</a>.</label>
+						</div>
+						@if (paymentFormError()) {
+							<p class="mb-3 text-xs text-[#a24b3f]" role="alert">{{ paymentFormError() }}</p>
+						}
+						<button type="button" class="w-full rounded-lg bg-[var(--gold)] py-3 text-[13px] font-extrabold text-[#241f16] hover:bg-[#d3b06b]" (click)="submitPaymentForm()">
+							{{ payment() === 'later' ? 'Підтвердити бронювання' : 'Перейти до оплати' }}
+						</button>
+					</div>
+					<div class="sticky top-24 rounded-xl border border-[var(--border)] bg-[var(--white)] p-5">
+						<ng-container [ngTemplateOutlet]="summary" />
+					</div>
+				</section>
+			}
+
+			@case ('review') {
+				@let room = selectedRoom();
+				@if (room) {
+					<section>
+						<button type="button" class="mb-4 flex items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-2.5 text-xs font-bold" (click)="backToPayment()">
+							<app-icon name="left" />Назад
+						</button>
+						<h1 class="mb-4 text-2xl font-extrabold tracking-tight">Перевірте бронювання</h1>
+						<div class="rounded-xl border border-[var(--border)] bg-[var(--white)] p-5">
+							<div class="flex justify-between border-t border-[var(--border)] py-2.5 text-sm first:border-t-0"><span>Готель</span><b class="font-bold">{{ hotel.name }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2.5 text-sm"><span>Дати</span><b class="font-bold">{{ start().slice(-2) }}–{{ end().slice(-2) }} вересня · {{ nights() }} ночі</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2.5 text-sm"><span>Гостей</span><b class="font-bold">{{ guestDisplay() }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2.5 text-sm"><span>Номер</span><b class="font-bold">{{ room.name }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2.5 text-sm"><span>Гість</span><b class="font-bold">{{ (guest().first + ' ' + guest().last).trim() || '—' }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2.5 text-sm"><span>Телефон</span><b class="font-bold">{{ guest().phone || '—' }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2.5 text-sm"><span>Оплата зараз</span><b class="font-bold">{{ money(paidNow()) }}</b></div>
+							@if (paidNow() < totalPrice()) {
+								<div class="flex justify-between border-t border-[var(--border)] py-2.5 text-sm"><span>Залишок</span><b class="font-bold">{{ money(totalPrice() - paidNow()) }}</b></div>
+							}
+							<div class="mt-2 flex justify-between border-t border-[var(--border)] pt-3.5 text-base font-extrabold"><span>Загальна сума</span><span>{{ money(totalPrice()) }}</span></div>
+						</div>
+						<button type="button" class="mt-5 w-full rounded-lg bg-[var(--gold)] py-3 text-[13px] font-extrabold text-[#241f16] hover:bg-[#d3b06b]" (click)="confirmBooking()">Підтвердити бронювання</button>
+					</section>
+				}
+			}
+
+			@case ('success') {
+				@let room = selectedRoom();
+				@if (room) {
+					<section class="pt-10 text-center">
+						<div class="mx-auto mb-[18px] grid h-16 w-16 place-items-center rounded-full bg-[var(--green-bg)] text-[var(--green)]"><app-icon name="check" /></div>
+						<h1 class="mb-2 text-2xl font-extrabold">Бронювання підтверджено</h1>
+						<p class="mb-1 text-[13px] text-[var(--muted)]">Дякуємо, {{ guest().first }}!</p>
+						<p class="mb-1 text-[13px] text-[var(--muted)]">Ми очікуємо вас у {{ hotel.name }}.</p>
+						<p class="mb-6 text-xs text-[var(--muted)]">Номер бронювання #{{ bookingId() }}</p>
+						<div class="mx-auto mb-6 max-w-md rounded-xl border border-[var(--border)] bg-[var(--white)] p-5 text-left">
+							<div class="flex justify-between border-t border-[var(--border)] py-2 text-sm first:border-t-0"><span>Заїзд</span><b class="font-bold">{{ shortDate(start()) }}, після {{ hotel.checkIn }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2 text-sm"><span>Виїзд</span><b class="font-bold">{{ shortDate(end()) }}, до {{ hotel.checkOut }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2 text-sm"><span>Номер</span><b class="font-bold">{{ room.name }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2 text-sm"><span>Гості</span><b class="font-bold">{{ guestDisplay() }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2 text-sm"><span>Загальна сума</span><b class="font-bold">{{ money(totalPrice()) }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2 text-sm"><span>Оплачено</span><b class="font-bold">{{ money(paidNow()) }}</b></div>
+							<div class="flex justify-between border-t border-[var(--border)] py-2 text-sm"><span>Залишок</span><b class="font-bold">{{ money(totalPrice() - paidNow()) }}</b></div>
+						</div>
+						<div class="flex flex-wrap justify-center gap-2.5">
+							<button type="button" class="rounded-lg bg-[var(--gold)] px-5 py-3 text-xs font-bold text-[#241f16]" (click)="retrySearch()">Переглянути бронювання</button>
+							<a class="rounded-lg border border-[var(--border)] px-5 py-3 text-xs font-bold" href="tel:{{ hotel.phone }}">Зв’язатися з готелем</a>
+						</div>
+					</section>
+				}
+			}
+
+			@case ('no-availability') {
+				<section class="pt-10 text-center">
+					@if (!noAvailabilityAlt()) {
+						<h2 class="mb-2 text-xl font-extrabold">На ці дати немає вільних номерів</h2>
+						<p class="mb-5 text-[13px] text-[var(--muted)]">Спробуйте змінити дати або кількість гостей.</p>
+						<div class="mb-5 flex flex-wrap justify-center gap-3">
+							<button type="button" class="rounded-lg border border-[var(--border)] p-3.5 text-left text-xs" (click)="changeDates(altDates().a[0], altDates().a[1])">
+								<b class="block text-sm">{{ altDates().a[0].slice(-2) }}–{{ altDates().a[1].slice(-2) }} вересня</b>2 варіанти
+							</button>
+							<button type="button" class="rounded-lg border border-[var(--border)] p-3.5 text-left text-xs" (click)="changeDates(altDates().b[0], altDates().b[1])">
+								<b class="block text-sm">{{ altDates().b[0].slice(-2) }}–{{ altDates().b[1].slice(-2) }} вересня</b>3 варіанти
+							</button>
+						</div>
+						<button type="button" class="rounded-lg border border-[var(--border)] px-4 py-2.5 text-xs font-bold" (click)="backToResults()">Змінити дати</button>
+					} @else {
+						<h2 class="mb-2 text-xl font-extrabold">Цей номер щойно забронювали</h2>
+						<p class="mb-5 text-[13px] text-[var(--muted)]">Поки ви оформлювали бронювання, доступність змінилася. Ось інші варіанти:</p>
+						<div class="flex flex-col gap-4 text-left">
+							@for (room of altRooms(); track room.id) {
+								<div class="grid grid-cols-[220px_1fr] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--white)]">
+									<img class="h-full min-h-[150px] w-full object-cover" src="/assets/images/hotel/exterior.webp" alt="" width="1536" height="1024" loading="lazy" />
+									<div class="flex flex-col gap-2 p-5">
+										<h3 class="text-lg font-bold">{{ room.name }}</h3>
+										<div class="text-xs text-[var(--muted)]">До {{ room.capacity }} гостей</div>
+										<div class="mt-auto flex items-end justify-between gap-2.5">
+											<b class="text-xl font-extrabold">{{ money(room.price * nights()) }}</b>
+											<button type="button" class="rounded-lg bg-[var(--gold)] px-4 py-2.5 text-xs font-bold text-[#241f16]" (click)="selectRoom(room.id)">Обрати</button>
+										</div>
+									</div>
+								</div>
+							}
+						</div>
+					}
+				</section>
+			}
+
+			@case ('error') {
+				<section class="pt-12 text-center">
+					<h2 class="mb-2 text-xl font-extrabold">Не вдалося перевірити доступність</h2>
+					<p class="mb-5 text-[13px] text-[var(--muted)]">Спробуйте ще раз або зв’яжіться з готелем.</p>
+					<div class="flex flex-wrap justify-center gap-2.5">
+						<button type="button" class="rounded-lg bg-[var(--gold)] px-5 py-3 text-xs font-bold text-[#241f16]" (click)="retrySearch()">Спробувати ще раз</button>
+						<a class="rounded-lg border border-[var(--border)] px-5 py-3 text-xs font-bold" href="tel:{{ hotel.phone }}">Зателефонувати</a>
+					</div>
+				</section>
+			}
+		}
+	</div>
+</app-shell>
+
+@if (showStickyBar()) {
+	<div class="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3.5 border-t border-[var(--border)] bg-[var(--white)] px-5 py-3 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
+		<div class="text-xs text-[var(--muted)]">
+			{{ start().slice(-2) }}–{{ end().slice(-2) }} вересня · {{ selectedRoom()!.name }}
+			<b class="block text-[15px] text-[var(--ink)]">{{ money(totalPrice()) }}</b>
+		</div>
+		<button type="button" class="rounded-lg bg-[var(--gold)] px-5 py-3 text-[13px] font-extrabold text-[#241f16]" (click)="continueFromStickyBar()">Продовжити</button>
+	</div>
+}
+
+<ng-template #summary>
+	<h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Ваше бронювання</h4>
+	<div class="flex justify-between border-t border-[var(--border)] py-1.5 text-sm first:border-t-0"><span>Готель</span><b class="font-bold">{{ hotel.name }}</b></div>
+	<div class="flex justify-between border-t border-[var(--border)] py-1.5 text-sm"><span>Дати</span><b class="font-bold">{{ start().slice(-2) }}–{{ end().slice(-2) }} вересня</b></div>
+	<div class="flex justify-between border-t border-[var(--border)] py-1.5 text-sm"><span>Ночей</span><b class="font-bold">{{ nights() }}</b></div>
+	<div class="flex justify-between border-t border-[var(--border)] py-1.5 text-sm"><span>Гостей</span><b class="font-bold">{{ guestDisplay() }}</b></div>
+	<div class="flex justify-between border-t border-[var(--border)] py-1.5 text-sm"><span>Номер</span><b class="font-bold">{{ selectedRoom()?.name || '—' }}</b></div>
+	<div class="flex justify-between border-t border-[var(--border)] py-1.5 text-sm"><span>Проживання</span><b class="font-bold">{{ money(totalPrice()) }}</b></div>
+	<div class="flex justify-between border-t border-[var(--border)] py-1.5 text-sm"><span>Додатково</span><b class="font-bold">0 ₴</b></div>
+	<div class="mt-2 flex justify-between border-t border-[var(--border)] pt-3 text-base font-extrabold"><span>Разом</span><span>{{ money(totalPrice()) }}</span></div>
+</ng-template>

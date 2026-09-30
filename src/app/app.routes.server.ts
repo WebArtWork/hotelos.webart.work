@@ -14,6 +14,13 @@ const PROTECTED_PATHS = [
 	'ai',
 	'team',
 	'settings',
+	'search',
+	'notifications',
+	'profile',
+	'guest',
+	'new-booking',
+	'booking',
+	'book',
 ];
 
 export const serverRoutes: ServerRoute[] = [
