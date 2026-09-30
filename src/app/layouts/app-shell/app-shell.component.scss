@@ -211,9 +211,149 @@ main {
 	justify-content: center;
 }
 
+.hotel-text {
+	min-width: 0;
+
+	b {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
 .hotel-chevron {
 	margin-left: auto;
 	color: var(--muted);
+	transition: transform 0.15s ease;
+
+	&.open {
+		transform: rotate(180deg);
+	}
+}
+
+// Multi-hotel accounts: the hotel block becomes a trigger with an inline list under it.
+// Inline (not a floating popover) because the sidebar itself scrolls.
+.hotel-switcher {
+	margin: 29px 4px 24px;
+
+	.hotel {
+		margin: 0;
+		width: 100%;
+		background: none;
+		color: inherit;
+		text-align: left;
+		border-radius: 0;
+
+		&:hover {
+			background: var(--surface-hover);
+		}
+	}
+}
+
+.hotel-menu {
+	margin-top: 8px;
+	padding: 6px;
+	background: var(--white);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+}
+
+.hotel-search {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	padding: 0 9px;
+	margin-bottom: 6px;
+	border: 1px solid var(--line);
+	border-radius: 6px;
+	color: var(--muted);
+
+	app-icon {
+		width: 14px;
+		height: 14px;
+		flex: none;
+	}
+
+	input {
+		flex: 1;
+		min-width: 0;
+		min-height: 36px;
+		border: 0;
+		background: none;
+		color: var(--ink);
+		font-size: 12.5px;
+		outline: none;
+	}
+
+	&:focus-within {
+		border-color: var(--gold-border);
+	}
+}
+
+.hotel-options {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: 280px;
+	overflow-y: auto;
+	scrollbar-width: thin;
+}
+
+.hotel-option {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	min-height: 40px;
+	padding: 7px 9px;
+	border-radius: 6px;
+	background: none;
+	color: var(--ink);
+	text-align: left;
+
+	b {
+		display: block;
+		font-size: 12.5px;
+		font-weight: 600;
+		line-height: 1.35;
+	}
+
+	small {
+		display: block;
+		color: var(--muted);
+		font-size: 10.5px;
+	}
+
+	app-icon {
+		width: 15px;
+		height: 15px;
+		margin-left: auto;
+		flex: none;
+		color: var(--gold-text);
+	}
+
+	&:hover {
+		background: var(--surface-hover);
+	}
+
+	&.current {
+		background: var(--gold-bg);
+
+		b {
+			font-weight: 700;
+		}
+	}
+}
+
+.hotel-option-text {
+	min-width: 0;
+}
+
+.hotel-empty {
+	padding: 10px 9px;
+	color: var(--muted);
+	font-size: 12px;
 }
 
 .denied-notice {

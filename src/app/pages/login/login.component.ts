@@ -4,7 +4,6 @@ import { Router, RouterLink } from '@angular/router';
 import { FirebaseError } from 'firebase/app';
 import { AuthService } from '../../feature/firebase/auth.service';
 import { HotelService } from '../../feature/firebase/hotel.service';
-import { setRealHotelId } from '../../shared/hotel';
 import { setRealRole } from '../../shared/role';
 
 type Screen = 'login' | 'forgot' | 'checkEmail';
@@ -78,8 +77,9 @@ export class LoginComponent {
 		try {
 			const user = await this._auth.login(email, password);
 
-			const hotelId = await this._hotel.resolveHotelId(user.uid);
-			if (!hotelId) {
+			// load() also picks the active hotel: the last one used if still accessible, else the first.
+			const hotels = await this._hotel.load(user.uid);
+			if (!hotels.length) {
 				this.loginError.set('Ваш акаунт ще не привʼязано до жодного готелю. Зверніться до адміністратора.');
 				await this._auth.logout();
 				return;
@@ -90,7 +90,6 @@ export class LoginComponent {
 			// store Owner so a returning user isn't asked to log in again next visit.
 			// This is intentionally separate from demo_role (see role.ts) — most pages
 			// don't read it yet, that wiring is follow-up work.
-			setRealHotelId(hotelId);
 			setRealRole('owner');
 			this._router.navigateByUrl('/submissions');
 		} catch (error) {

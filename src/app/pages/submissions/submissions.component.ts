@@ -1,11 +1,11 @@
-import { Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
+import { HotelService } from '../../feature/firebase/hotel.service';
 import { SubmissionsService } from '../../feature/firebase/submissions.service';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { getRealHotelId } from '../../shared/hotel';
-import { canCurrent } from '../../shared/role';
+import { canCurrent, isLiveSession } from '../../shared/role';
 
 type Status = 'new' | 'inProgress' | 'booked' | 'closed' | 'spam';
 
@@ -20,7 +20,10 @@ interface Submission {
 	name: string;
 	phone: string;
 	email: string;
-	site: string;
+	/** Stable form slug from the site; `form` is its display label. */
+	formId: string;
+	/** Page the form was sent from (origin + path), empty for older submissions. */
+	site?: string;
 	form: string;
 	checkIn?: string;
 	checkOut?: string;
@@ -68,8 +71,8 @@ const SEED: Submission[] = [
 		name: 'Марія Коваль',
 		phone: '+380 67 450 12 90',
 		email: 'maria.koval@example.com',
-		site: 'grandhotel.ua',
 		form: 'Бронювання',
+		formId: 'booking',
 		checkIn: '2026-10-03',
 		checkOut: '2026-10-05',
 		guests: 2,
@@ -84,8 +87,8 @@ const SEED: Submission[] = [
 		name: 'Андрій Мельник',
 		phone: '+380 93 218 77 04',
 		email: '',
-		site: 'grandhotel.ua',
 		form: 'Зворотний дзвінок',
+		formId: 'callback',
 		message: 'Передзвоніть, будь ласка, щодо умов проживання з собакою.',
 		status: 'new',
 		history: [{ time: '17.09, 10:15', text: 'Заявка надійшла з форми «Зворотний дзвінок» на grandhotel.ua' }],
@@ -96,8 +99,8 @@ const SEED: Submission[] = [
 		name: 'Olivia Brown',
 		phone: '+44 7700 900 312',
 		email: 'olivia.brown@example.com',
-		site: 'grandhotel.ua',
 		form: 'Запитання',
+		formId: 'question',
 		message: 'Is there a parking spot for a camper van? We plan to stay one night next week.',
 		status: 'new',
 		history: [{ time: '17.09, 08:03', text: 'Заявка надійшла з форми «Запитання» на grandhotel.ua' }],
@@ -108,8 +111,8 @@ const SEED: Submission[] = [
 		name: 'ТОВ «Поділля Тревел»',
 		phone: '+380 50 611 20 45',
 		email: 'events@podillia-travel.example.com',
-		site: 'grandhotel-events.com',
 		form: 'Групове бронювання',
+		formId: 'group-booking',
 		checkIn: '2026-10-24',
 		checkOut: '2026-10-26',
 		guests: 18,
@@ -128,8 +131,8 @@ const SEED: Submission[] = [
 		name: 'Ігор Савчук',
 		phone: '+380 66 902 33 18',
 		email: 'igor.savchuk@example.com',
-		site: 'grandhotel.ua',
 		form: 'Бронювання',
+		formId: 'booking',
 		checkIn: '2026-09-26',
 		checkOut: '2026-09-28',
 		guests: 3,
@@ -148,8 +151,8 @@ const SEED: Submission[] = [
 		name: 'Наталія Гнатюк',
 		phone: '+380 97 115 40 62',
 		email: 'n.hnatiuk@example.com',
-		site: 'grandhotel.ua',
 		form: 'Бронювання',
+		formId: 'booking',
 		checkIn: '2026-09-19',
 		checkOut: '2026-09-20',
 		guests: 2,
@@ -167,8 +170,8 @@ const SEED: Submission[] = [
 		name: 'Василь Литвин',
 		phone: '+380 68 330 71 25',
 		email: '',
-		site: 'grandhotel.ua',
 		form: 'Бронювання',
+		formId: 'booking',
 		checkIn: '2026-09-18',
 		checkOut: '2026-09-21',
 		guests: 2,
@@ -186,8 +189,8 @@ const SEED: Submission[] = [
 		name: 'Best SEO Offer',
 		phone: '',
 		email: 'promo@seo-offer.example.com',
-		site: 'grandhotel.ua',
 		form: 'Запитання',
+		formId: 'question',
 		message: 'We can bring your website to the top of Google in 7 days!!!',
 		status: 'spam',
 		history: [
@@ -209,6 +212,11 @@ function plural(n: number, one: string, few: string, many: string): string {
 	return `${n} ${word}`;
 }
 
+/** `YYYY-MM-DDTHH:mm` in the browser's time zone (toISOString would give UTC). */
+function localIso(date: Date): string {
+	return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
 @Component({
 	selector: 'app-submissions',
 	imports: [AppShellComponent, FormsModule, IconComponent],
@@ -218,26 +226,47 @@ function plural(n: number, one: string, few: string, many: string): string {
 export class SubmissionsComponent {
 	private readonly _router = inject(Router);
 	private readonly _submissionsService = inject(SubmissionsService);
-	private readonly _destroyRef = inject(DestroyRef);
+	private readonly _hotel = inject(HotelService);
 
 	protected readonly TABS = TABS;
 	protected readonly SITES = SITES;
 	protected readonly STATUS_LABEL = STATUS_LABEL;
 	protected readonly CLOSE_REASONS = CLOSE_REASONS;
 	protected readonly canManageApi = canCurrent('manageIntegrations');
+	/** Real account: hide demo-only parts (connect-site dialog, first-response time). */
+	protected readonly live = isLiveSession();
 
-	/** A real, logged-in hotel sees its own live leads; a demo session sees this seed data. */
-	protected readonly hotelId = getRealHotelId();
+	/** A real, logged-in account sees the active hotel's live leads; a demo session sees this seed data. */
+	protected readonly hotelId = this._hotel.activeHotelId;
+	protected readonly hotelSubtitle = computed(() => {
+		const hotel = this._hotel.activeHotel();
+		if (!hotel) return "Grand Hotel · Кам'янець-Подільський";
+		return hotel.city ? `${hotel.name} · ${hotel.city}` : hotel.name;
+	});
 
-	protected readonly submissions = signal<Submission[]>(this.hotelId ? [] : SEED);
+	/** Link to the form on the page it was sent from: the <form> id equals its formId (see CRM.md). */
+	protected formUrl(s: Submission): string | null {
+		return s.site && s.formId ? `${s.site}#${s.formId}` : null;
+	}
+
+	protected siteHost(site: string): string {
+		try {
+			return new URL(site).host;
+		} catch {
+			return site;
+		}
+	}
+
+	protected readonly submissions = signal<Submission[]>(this.hotelId() ? [] : SEED);
 	protected readonly tab = signal<Status | 'all'>('all');
 	protected readonly query = signal('');
-	protected readonly site = signal('all');
+	protected readonly formFilter = signal('all');
 	protected readonly selectedId = signal<string | null>(null);
 	protected readonly dialogView = signal<DialogView>(null);
 	protected readonly closeReason = signal(CLOSE_REASONS[0]);
 	protected readonly keyVisible = signal(false);
 	protected readonly toastMessage = signal('');
+	protected readonly loadError = signal('');
 
 	protected readonly dialogRef = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
 
@@ -258,14 +287,21 @@ export class SubmissionsComponent {
 		};
 	});
 
+	/** Forms that actually sent something, for the filter; hidden while there is only one. */
+	protected readonly formOptions = computed(() => {
+		const forms = new Map<string, string>();
+		for (const s of this.submissions()) forms.set(s.formId, s.form);
+		return [...forms].map(([id, label]) => ({ id, label }));
+	});
+
 	protected readonly visible = computed(() => {
 		const tab = this.tab();
-		const site = this.site();
+		const form = this.formFilter();
 		const q = this.query().trim().toLowerCase();
 		return this.submissions().filter(
 			(s) =>
 				(tab === 'all' ? s.status !== 'spam' : s.status === tab) &&
-				(site === 'all' || s.site === site) &&
+				(form === 'all' || s.formId === form) &&
 				(!q || [s.name, s.phone, s.email, s.message].some((v) => v.toLowerCase().includes(q))),
 		);
 	});
@@ -283,25 +319,42 @@ export class SubmissionsComponent {
 			}
 		});
 
-		if (this.hotelId) {
-			const unsubscribe = this._submissionsService.listen(this.hotelId, (records) => {
+		// Re-subscribe whenever the sidebar switches hotel; the previous hotel's listener is dropped.
+		effect((onCleanup) => {
+			const hotelId = this.hotelId();
+			if (!hotelId) return;
+			this.submissions.set([]);
+			this.selectedId.set(null);
+			this.formFilter.set('all');
+			this.loadError.set('');
+			const unsubscribe = this._submissionsService.listen(hotelId, (records) => {
+				this.loadError.set('');
 				this.submissions.set(
 					records.map((r) => ({
 						id: r.id,
-						received: r.receivedAt?.toISOString() ?? '',
+						received: r.receivedAt ? localIso(r.receivedAt) : '',
 						name: r.name,
 						phone: r.phone,
 						email: r.email,
-						site: r.site,
-						form: r.form,
+						formId: r.formId,
+						site: r.site || undefined,
+						form: r.formName || r.formId,
+						checkIn: r.checkIn || undefined,
+						checkOut: r.checkOut || undefined,
+						guests: r.guests ?? undefined,
+						roomType: r.roomType || undefined,
 						message: r.message,
 						status: r.status,
 						history: r.history,
 					})),
 				);
+			}, (error) => {
+				// Most often a missing composite index: the console message links to create it.
+				console.error('Submissions listener failed', error);
+				this.loadError.set('Не вдалося завантажити заявки. Оновіть сторінку; якщо не допоможе, зверніться до адміністратора.');
 			});
-			this._destroyRef.onDestroy(unsubscribe);
-		}
+			onCleanup(unsubscribe);
+		});
 	}
 
 	protected tabCount(key: Status | 'all'): number {
@@ -314,8 +367,8 @@ export class SubmissionsComponent {
 		const [date, rawTime] = value.split('T');
 		const time = rawTime.slice(0, 5);
 		const [, m, d] = date.split('-');
-		const today = this.hotelId ? new Date().toISOString().slice(0, 10) : '2026-09-17';
-		const yesterday = this.hotelId ? new Date(Date.now() - 86_400_000).toISOString().slice(0, 10) : '2026-09-16';
+		const today = this.hotelId() ? localIso(new Date()).slice(0, 10) : '2026-09-17';
+		const yesterday = this.hotelId() ? localIso(new Date(Date.now() - 86_400_000)).slice(0, 10) : '2026-09-16';
 		return date === today ? `Сьогодні, ${time}` : date === yesterday ? `Вчора, ${time}` : `${d}.${m}, ${time}`;
 	}
 
@@ -400,7 +453,7 @@ export class SubmissionsComponent {
 	}
 
 	private _update(id: string, status: Status, note: string): void {
-		if (this.hotelId) {
+		if (this.hotelId()) {
 			void this._submissionsService.updateStatus(id, status, note);
 			return;
 		}

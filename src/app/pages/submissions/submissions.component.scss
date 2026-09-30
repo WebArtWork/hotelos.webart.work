@@ -662,6 +662,22 @@ tr.unread td.name-cell .row-link::before {
 	color: var(--gold-ink);
 }
 
+.form-id {
+	font: 500 11.5px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+	color: var(--muted);
+	white-space: nowrap;
+}
+
+a.form-id {
+	color: var(--gold-ink);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+
+	&:hover {
+		color: var(--ink);
+	}
+}
+
 .status {
 	display: inline-block;
 	padding: 3px 8px;
@@ -829,9 +845,19 @@ pre {
 	overflow-x: auto;
 }
 
+// Live accounts have no first-response tile yet: three tiles.
+.kpis.live {
+	grid-template-columns: repeat(3, 1fr);
+}
+
 @media (max-width: 1250px) {
-	.kpis {
+	.kpis,
+	.kpis.live {
 		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.kpis.live .kpi:last-child {
+		grid-column: 1 / -1;
 	}
 }
 

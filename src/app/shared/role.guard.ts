@@ -2,22 +2,28 @@ import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { getStoredPlan, planIncludes } from './plan';
-import { defaultPageFor, getDemoRole, getRealRole, isPageAllowed } from './role';
+import { defaultPageFor, getSessionRole, isLiveSession, isPageAllowed, LIVE_PAGES } from './role';
 
 export const roleGuard: CanActivateFn = (route) => {
 	const platformId = inject(PLATFORM_ID);
 	if (!isPlatformBrowser(platformId)) return true;
 
 	const router = inject(Router);
-	// A real, Firebase-authenticated session takes priority over a leftover demo pick.
-	const role = getRealRole() ?? getDemoRole();
+	const role = getSessionRole();
 	if (!role) return router.parseUrl('/demo');
+
+	const path = route.routeConfig?.path ?? '';
+
+	// Real accounts only get pages backed by real data; the rest are demo-only for now.
+	if (isLiveSession()) {
+		if (LIVE_PAGES.includes(path)) return true;
+		return router.createUrlTree(['/' + LIVE_PAGES[0]], { queryParams: { soon: path } });
+	}
 
 	const plan = getStoredPlan();
 	const home = defaultPageFor(role, plan);
 	if (!home) return router.parseUrl('/login');
 
-	const path = route.routeConfig?.path ?? '';
 	if (!isPageAllowed(role, path)) {
 		return router.createUrlTree(['/' + home], { queryParams: { denied: path } });
 	}

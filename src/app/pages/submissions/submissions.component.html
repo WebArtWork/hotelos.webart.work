@@ -1,16 +1,18 @@
-<app-shell activeNav="submissions" greetingTitle="Заявки" greetingSubtitle="Grand Hotel · Кам'янець-Подільський">
+<app-shell activeNav="submissions" greetingTitle="Заявки" [greetingSubtitle]="hotelSubtitle()">
 	<div class="page-heading">
 		<div>
 			<div class="breadcrumb">Робочий простір <span>/</span> Заявки</div>
 			<h1>Заявки з сайтів</h1>
 			<p>Форми з ваших сайтів в одному списку.</p>
 		</div>
-		<div class="page-actions">
-			<button class="button primary" (click)="openConnect()"><app-icon name="plus" />Підключити сайт</button>
-		</div>
+		@if (!live) {
+			<div class="page-actions">
+				<button class="button primary" (click)="openConnect()"><app-icon name="plus" />Підключити сайт</button>
+			</div>
+		}
 	</div>
 
-	<div class="kpis">
+	<div class="kpis" [class.live]="live">
 		<div class="kpi gold">
 			<small>Нові заявки</small>
 			<b>{{ counts().new }}</b>
@@ -26,11 +28,13 @@
 			<b>{{ counts().conversion }}%</b>
 			<span>{{ bookings(counts().booked) }} з опрацьованих заявок</span>
 		</div>
-		<div class="kpi">
-			<small>Перша відповідь</small>
-			<b>24 хв</b>
-			<span>Середній час за вересень</span>
-		</div>
+		@if (!live) {
+			<div class="kpi">
+				<small>Перша відповідь</small>
+				<b>24 хв</b>
+				<span>Середній час за вересень</span>
+			</div>
+		}
 	</div>
 
 	<div class="table-card">
@@ -59,12 +63,14 @@
 						(ngModelChange)="query.set($event)"
 					/>
 				</label>
-				<select class="plain" aria-label="Сайт" [ngModel]="site()" (ngModelChange)="site.set($event)">
-					<option value="all">Усі сайти</option>
-					@for (s of SITES; track s.domain) {
-						<option [value]="s.domain">{{ s.domain }}</option>
-					}
-				</select>
+				@if (formOptions().length > 1) {
+					<select class="plain" aria-label="Форма" [ngModel]="formFilter()" (ngModelChange)="formFilter.set($event)">
+						<option value="all">Усі форми</option>
+						@for (f of formOptions(); track f.id) {
+							<option [value]="f.id">{{ f.label }}</option>
+						}
+					</select>
+				}
 			</div>
 		</div>
 
@@ -75,7 +81,8 @@
 						<tr>
 							<th>Надійшла</th>
 							<th>Контакт</th>
-							<th>Форма · сайт</th>
+							<th>Форма</th>
+							<th>ID форми</th>
 							<th>Дати</th>
 							<th>Статус</th>
 						</tr>
@@ -85,11 +92,29 @@
 							<tr [class.unread]="s.status === 'new'" (click)="open(s.id)">
 								<td>{{ time(s.received) }}</td>
 								<td class="name-cell">
-									<button type="button" class="row-link" (click)="open(s.id); $event.stopPropagation()">{{ s.name }}</button>
-									<small>{{ s.phone || s.email }}</small>
+									<button type="button" class="row-link" (click)="open(s.id); $event.stopPropagation()">{{ s.name || s.phone }}</button>
+									@if (s.name) {
+										<small>{{ s.phone }}</small>
+									}
 								</td>
-								<td><b>{{ s.form }}</b><small>{{ s.site }}</small></td>
-								<td>{{ dates(s) }}@if (s.guests) {<small>{{ guests(s.guests) }} · {{ s.roomType }}</small>}</td>
+								<td><b>{{ s.form }}</b></td>
+								<td>
+									@if (formUrl(s); as url) {
+										<a
+											class="form-id"
+											[href]="url"
+											target="_blank"
+											rel="noopener"
+											[attr.aria-label]="'Відкрити форму ' + s.formId + ' на сайті'"
+											(click)="$event.stopPropagation()"
+											>{{ s.formId }} ↗</a
+										>
+										<small>{{ siteHost(s.site!) }}</small>
+									} @else {
+										<code class="form-id">{{ s.formId }}</code>
+									}
+								</td>
+								<td>{{ dates(s) }}@if (s.guests) {<small>{{ guests(s.guests) }}@if (s.roomType) { · {{ s.roomType }}}</small>}</td>
 								<td><span class="status" [attr.data-status]="s.status">{{ STATUS_LABEL[s.status] }}</span></td>
 							</tr>
 						}
@@ -101,20 +126,25 @@
 				@for (s of visible(); track s.id) {
 					<button type="button" class="sub-card" [class.unread]="s.status === 'new'" (click)="open(s.id)">
 						<span class="sub-card-top">
-							<b>{{ s.name }}</b>
+							<b>{{ s.name || s.phone }}</b>
 							<span class="status" [attr.data-status]="s.status">{{ STATUS_LABEL[s.status] }}</span>
 						</span>
 						<span class="sub-card-meta">{{ s.form }} · {{ time(s.received) }}</span>
 						@if (s.checkIn) {
-							<span class="sub-card-meta">{{ dates(s) }} · {{ guests(s.guests ?? 0) }}</span>
+							<span class="sub-card-meta">{{ dates(s) }}@if (s.guests) { · {{ guests(s.guests) }}}</span>
 						}
 					</button>
 				}
 			</div>
 		} @else {
 			<div class="empty-state">
-				<h2>Заявок немає</h2>
-				<p>У цьому статусі або за цим пошуком заявок не знайдено.</p>
+				@if (loadError()) {
+					<h2>Заявки не завантажились</h2>
+					<p role="alert">{{ loadError() }}</p>
+				} @else {
+					<h2>Заявок немає</h2>
+					<p>У цьому статусі або за цим пошуком заявок не знайдено.</p>
+				}
 			</div>
 		}
 	</div>
@@ -128,10 +158,10 @@
 	</div>
 	<div class="side-panel-body">
 		@if (selected(); as s) {
-			<h2 class="panel-title">{{ s.name }}</h2>
+			<h2 class="panel-title">{{ s.name || s.phone }}</h2>
 			<p class="panel-sub">
 				<span class="status" [attr.data-status]="s.status">{{ STATUS_LABEL[s.status] }}</span>
-				{{ s.form }} · {{ s.site }} · {{ time(s.received) }}
+				{{ s.form }} · {{ time(s.received) }}
 			</p>
 
 			<div class="contact-actions">
@@ -149,9 +179,9 @@
 					<dt>Дати</dt>
 					<dd>{{ dates(s) }}</dd>
 					<dt>Гостей</dt>
-					<dd>{{ s.guests }}</dd>
+					<dd>{{ s.guests ?? '—' }}</dd>
 					<dt>Тип номера</dt>
-					<dd>{{ s.roomType }}</dd>
+					<dd>{{ s.roomType ?? '—' }}</dd>
 				</dl>
 			}
 
@@ -228,10 +258,10 @@
 
 				<h5>Приклад запиту</h5>
 				<pre><code>{{ '{' }}
-  "form": "booking",
-  "site": "grandhotel.ua",
-  "name": "Марія Коваль",
+  "formId": "stay-request",
+  "formName": "Запит на проживання",
   "phone": "+380674501290",
+  "name": "Марія Коваль",
   "checkIn": "2026-10-03",
   "checkOut": "2026-10-05",
   "guests": 2,

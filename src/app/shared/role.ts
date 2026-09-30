@@ -50,6 +50,22 @@ export const PAGE_LABEL: Record<string, string> = {
 	settings: 'Налаштування',
 };
 
+/**
+ * Pages backed by real data (CRM.md → Live pages). A signed-in Firebase account sees only these;
+ * every other page stays demo-only until it is wired to Firestore. Add a path here when it goes live.
+ */
+export const LIVE_PAGES: string[] = ['submissions'];
+
+/** True for a real, Firebase-authenticated session; false in the demo. */
+export function isLiveSession(): boolean {
+	return getRealRole() !== null;
+}
+
+/** A real session takes priority over a leftover demo pick. */
+export function getSessionRole(): Role | null {
+	return getRealRole() ?? getDemoRole();
+}
+
 export function isPageAllowed(role: Role, path: string): boolean {
 	return ROLE_PAGES[role].includes(path);
 }
@@ -101,7 +117,7 @@ export function can(role: Role | null, capability: Capability): boolean {
 
 /** Capability check for the current session role. */
 export function canCurrent(capability: Capability): boolean {
-	return can(getDemoRole(), capability);
+	return can(getSessionRole(), capability);
 }
 
 const ROLE_KEY = 'hotelup_demo_role';
@@ -135,8 +151,8 @@ const REAL_ROLE_KEY = 'hotelup_real_role';
 
 /**
  * The signed-in Firebase user's real role, stored locally so a returning owner doesn't
- * have to log in every visit. Not read by roleGuard or any page yet — every Firebase
- * account is an Owner today, and wiring real accounts into page access is a follow-up.
+ * have to log in every visit. Every Firebase account is an Owner today; its presence marks a
+ * live session (isLiveSession), which limits navigation to LIVE_PAGES.
  */
 export function getRealRole(): Role | null {
 	try {

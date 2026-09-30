@@ -2,11 +2,78 @@
 
 <aside class="sidebar" [class.open]="sidebarOpen()" aria-label="Навігація готелю">
 	<a class="logo" routerLink="/" aria-label="Hotel Upwork, головна сторінка"><span class="logo-mark">H</span>Hotel <b>Upwork</b></a>
-	<div class="hotel">
-		<span class="hotel-icon"><app-icon name="hotel" /></span>
-		<div><b>Grand Hotel</b><small>Кам'янець-Подільський</small></div>
-		<span class="hotel-chevron">⌄</span>
-	</div>
+	@if (hotels().length > 1) {
+		<div class="hotel-switcher" #hotelSwitcher>
+			<button
+				#hotelTrigger
+				type="button"
+				class="hotel"
+				aria-haspopup="true"
+				aria-controls="hotel-menu"
+				[attr.aria-expanded]="hotelMenuOpen()"
+				[attr.aria-label]="'Готель: ' + (activeHotel()?.name ?? 'не вибрано') + '. Змінити готель'"
+				(click)="toggleHotelMenu()"
+			>
+				<span class="hotel-icon"><app-icon name="hotel" /></span>
+				<span class="hotel-text">
+					<b>{{ activeHotel()?.name ?? 'Виберіть готель' }}</b>
+					<small>{{ activeHotel()?.city || hotels().length + ' готелів в акаунті' }}</small>
+				</span>
+				<span class="hotel-chevron" [class.open]="hotelMenuOpen()" aria-hidden="true">⌄</span>
+			</button>
+			@if (hotelMenuOpen()) {
+				<div class="hotel-menu" id="hotel-menu">
+					@if (showHotelSearch()) {
+						<label class="hotel-search">
+							<app-icon name="search" />
+							<input
+								type="search"
+								placeholder="Пошук готелю"
+								aria-label="Пошук готелю"
+								autocomplete="off"
+								[value]="hotelQuery()"
+								(input)="hotelQuery.set($any($event.target).value)"
+							/>
+						</label>
+					}
+					<ul class="hotel-options">
+						@for (hotel of filteredHotels(); track hotel.id) {
+							<li>
+								<button
+									type="button"
+									class="hotel-option"
+									[class.current]="hotel.id === activeHotel()?.id"
+									[attr.aria-current]="hotel.id === activeHotel()?.id ? 'true' : null"
+									(click)="selectHotel(hotel.id)"
+								>
+									<span class="hotel-option-text">
+										<b>{{ hotel.name }}</b>
+										@if (hotel.city) {
+											<small>{{ hotel.city }}</small>
+										}
+									</span>
+									@if (hotel.id === activeHotel()?.id) {
+										<app-icon name="check" />
+									}
+								</button>
+							</li>
+						} @empty {
+							<li class="hotel-empty">Нічого не знайдено</li>
+						}
+					</ul>
+				</div>
+			}
+		</div>
+	} @else {
+		<div class="hotel">
+			<span class="hotel-icon"><app-icon name="hotel" /></span>
+			@if (activeHotel(); as hotel) {
+				<span class="hotel-text"><b>{{ hotel.name }}</b><small>{{ hotel.city }}</small></span>
+			} @else {
+				<span class="hotel-text"><b>Grand Hotel</b><small>Кам'янець-Подільський</small></span>
+			}
+		</div>
+	}
 	@if (roleLabel()) {
 		<div class="role-badge">{{ roleLabel() }}</div>
 	}
@@ -39,11 +106,13 @@
 			<a class="nav-item" routerLink="/settings"><app-icon name="settings" />Налаштування</a>
 		}
 		<button type="button" class="nav-item" (click)="logout()"><app-icon name="logout" />Вийти</button>
-		<div class="plan-note">
-			<span class="plan-dot"></span>
-			<span>Тариф {{ planName() }}<small>Демонстраційний готель</small></span>
-			<a routerLink="/pricing" aria-label="Переглянути тарифи">↗</a>
-		</div>
+		@if (!live) {
+			<div class="plan-note">
+				<span class="plan-dot"></span>
+				<span>Тариф {{ planName() }}<small>Демонстраційний готель</small></span>
+				<a routerLink="/pricing" aria-label="Переглянути тарифи">↗</a>
+			</div>
+		}
 	</div>
 </aside>
 <button class="nav-overlay" aria-label="Закрити навігацію" [hidden]="!sidebarOpen()" (click)="closeSidebar()"></button>
@@ -65,10 +134,12 @@
 			<span>{{ greetingSubtitle() }}</span>
 		</div>
 		<div class="top-actions">
-			<a class="icon-button" aria-label="Пошук" routerLink="/search"><app-icon name="search" /></a>
-			<a class="icon-button notification-button" aria-label="Сповіщення, 4 нових" routerLink="/notifications">
-				<app-icon name="bell" /><i></i>
-			</a>
+			@if (!live) {
+				<a class="icon-button" aria-label="Пошук" routerLink="/search"><app-icon name="search" /></a>
+				<a class="icon-button notification-button" aria-label="Сповіщення, 4 нових" routerLink="/notifications">
+					<app-icon name="bell" /><i></i>
+				</a>
+			}
 			<button class="icon-button" [attr.aria-label]="isDark() ? 'Увімкнути світлу тему' : 'Увімкнути темну тему'" (click)="toggleTheme()">
 				<app-icon [name]="isDark() ? 'sun' : 'moon'" />
 			</button>
@@ -76,7 +147,9 @@
 			@if (showAi()) {
 				<a class="ai-button" routerLink="/ai"><app-icon name="spark" />Hotel AI</a>
 			}
-			<a class="profile" routerLink="/profile" aria-label="Профіль Олександра">ОК</a>
+			@if (!live) {
+				<a class="profile" routerLink="/profile" aria-label="Профіль Олександра">ОК</a>
+			}
 		</div>
 	</header>
 	<main id="main" tabindex="-1">

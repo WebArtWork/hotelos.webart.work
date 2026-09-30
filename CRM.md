@@ -91,6 +91,43 @@ Rules:
 - In the static demo the plan is stored client-side in `localStorage` (`hotelup_plan`, default
   `enterprise`) and picked on the test-login screen.
 
+## Live pages — what a real account sees
+
+A real, Firebase-signed-in account (`isLiveSession()`) sees only pages backed by real data:
+`LIVE_PAGES` in `src/app/shared/role.ts`, currently **`submissions`** only. Everything else in
+this document describes the demo, which keeps every page (entered via `/demo`).
+
+- Sidebar and mobile nav list only live pages; Team, Settings, AI button, search,
+  notifications, profile and the plan note are hidden.
+- Opening any other protected route redirects to the first live page with `?soon=<page>`, and
+  the shell explains the section is not connected to real data yet.
+- Inside Submissions, demo-only parts are hidden too: "Підключити сайт" dialog and the
+  "Перша відповідь" tile.
+- When a page is wired to Firestore, add its path to `LIVE_PAGES` and record it here.
+
+## Hotels — one account, several hotels
+
+One Firebase account can own many hotels. Ownership lives on the hotel document:
+`hotels/{hotelId}` with `ownerUids` (array of Auth uids), `name` and optional `city`. Hotel
+documents are created manually (console / admin script); there is no self-service creation.
+
+- **Active hotel:** every hotel-scoped page works on exactly one hotel at a time —
+  `HotelService.activeHotelId` (`src/app/feature/firebase/hotel.service.ts`). Pages must read it
+  reactively and re-query when it changes; they never mix data from several hotels.
+- **Switcher:** the sidebar hotel block becomes a dropdown when the account has 2+ hotels
+  (search field above 6). One hotel shows a static block; the demo shows the static demo hotel.
+- **Login:** loads the account's hotels (sorted by name) and keeps the last active hotel if the
+  account still has access, otherwise the first. No hotels → sign-in is refused with a message.
+  The list is refreshed when Firebase restores a session, and cleared on logout.
+- **Storage:** `hotelup_hotel_id` (active hotel) and `hotelup_hotels` (cached list) in
+  `localStorage`; access is enforced by `firestore.rules`, not by the cache.
+- **Websites:** each hotel site posts submissions with its own `hotelId`; one site belongs to
+  one hotel.
+
+Not yet decided / not built: role per hotel (today every real account is Owner of all its
+hotels), plan per hotel (plan is still one local demo setting), and whether several hotels
+require Enterprise (pricing says so, not enforced). Only Submissions reads real hotel data today.
+
 ## Intended rules — take precedence over the page inventory
 
 ### People, roles and home screens
@@ -280,6 +317,21 @@ questions, group requests). Sites are separate projects that post to the Hotel U
 
 "Create booking" marks the submission converted and opens the Calendar; the booking itself is
 created there. Submissions contain no payment data.
+
+**Submission data contract** (enforced by `firestore.rules`, written by `SubmissionsService` shape):
+
+- Required from the visitor: `phone` only. Optional: `name`, `email`, `message`, `checkIn`,
+  `checkOut` (`YYYY-MM-DD`), `guests` (1–50), `roomType`. Any other field is rejected.
+- Set by the site: `hotelId` (must be an existing `hotels/{id}`), `formId` (stable slug per form,
+  e.g. `stay-request`; never renamed once live), `formName` (label shown in the CRM) and `site`
+  (the site's public address from its `CNAME`, e.g. `https://kleopatra.webart.work/`, so local
+  copies report the real site — a hotel may have several websites). The filter is by form (shown when 2+ forms have sent submissions). `hotelId` is
+  never shown.
+- A submission without a name is listed by its phone number.
+- **"ID форми" column** links to the form: submission `site` + `#` + `formId`, with the site's
+  host underneath. Convention: on the website, the `<form>` element's `id` equals its `formId`.
+  Submissions without `site` show the ID as plain text.
+- Live sites: `kleopatra.webart.work` → `kp-kleopatra`, form `stay-request`.
 
 ### `guests` — Guest CRM
 
@@ -524,12 +576,15 @@ Added with plans on 29 September 2026 (not yet verified in the running app):
     lower plans; they should show the plan requirement.
 20. **Links inside pages to plan-locked pages** (e.g. Calendar side panel → Guests/Payments) rely
     on the route redirect with `?locked=`; they are not tagged in place.
-21. **Submissions are demo data**: no real API, key rotation or site connection.
+21. **"Підключити сайт" dialog is demo**: the endpoint, API key and connected-sites list are
+    placeholders; real sites write to Firestore directly (see Submission data contract).
 
 ## Where implementation lives (for implementers)
 
 - Plans, prices, plan page allowlist: `src/app/shared/plan.ts`
 - Roles, labels, page allowlist: `src/app/shared/role.ts`
+- Account hotels and active hotel: `src/app/feature/firebase/hotel.service.ts`,
+  switcher in `src/app/layouts/app-shell/`
 - Route guard: `src/app/shared/role.guard.ts`
 - Route declarations: `src/app/app.routes.ts`
 - Server-rendering mode per route (protected pages are client-only, not prerendered):
