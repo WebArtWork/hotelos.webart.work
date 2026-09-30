@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { getStoredPlan, PLAN_ORDER, PLAN_ROLES, PLANS, setStoredPlan, type Plan } from '../../shared/plan';
-import { defaultPageFor, ROLE_LABEL, setStoredRole, type Role } from '../../shared/role';
+import { defaultPageFor, ROLE_LABEL, setDemoRole, type Role } from '../../shared/role';
 
 @Component({
 	selector: 'app-demo',
@@ -36,7 +36,7 @@ export class DemoComponent {
 
 	protected reviewAs(role: Role): void {
 		if (!this.roleOnPlan(role)) return;
-		setStoredRole(role);
+		setDemoRole(role);
 		const home = defaultPageFor(role, this.demoPlan());
 		this._router.navigateByUrl('/' + (home ?? ''));
 	}

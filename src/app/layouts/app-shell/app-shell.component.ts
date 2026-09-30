@@ -3,7 +3,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { getStoredPlan, planForPage, planIncludes, PLANS } from '../../shared/plan';
-import { clearStoredRole, defaultPageFor, getStoredRole, isPageAllowed, isPageAvailable, PAGE_LABEL, ROLE_LABEL } from '../../shared/role';
+import { clearDemoRole, defaultPageFor, getDemoRole, isPageAllowed, isPageAvailable, PAGE_LABEL, ROLE_LABEL } from '../../shared/role';
 
 interface NavItem {
 	key: string;
@@ -46,7 +46,7 @@ export class AppShellComponent {
 	readonly greetingTitle = input('Добрий день, Олександре');
 	readonly greetingSubtitle = input('Grand Hotel · Кам’янець-Подільський');
 
-	protected readonly role = signal(getStoredRole());
+	protected readonly role = signal(getDemoRole());
 	protected readonly roleLabel = computed(() => {
 		const role = this.role();
 		return role ? ROLE_LABEL[role] : '';
@@ -120,7 +120,7 @@ export class AppShellComponent {
 	}
 
 	protected logout(): void {
-		clearStoredRole();
+		clearDemoRole();
 		this._router.navigateByUrl('/login');
 	}
 

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { canCurrent, getStoredRole, isPageAllowed } from '../../shared/role';
+import { canCurrent, getDemoRole, isPageAllowed } from '../../shared/role';
 
 type Status = 'needs-cleaning' | 'cleaning' | 'ready' | 'occupied';
 type Priority = 'critical' | 'high' | 'normal' | 'low' | null;
@@ -229,7 +229,7 @@ const STATUS_LABEL: Record<Status, string> = {
 })
 export class HousekeepingComponent {
 	protected readonly showTeamLink = (() => {
-		const role = getStoredRole();
+		const role = getDemoRole();
 		return !role || isPageAllowed(role, 'team');
 	})();
 	protected readonly canAssign = canCurrent('assignCleaning');

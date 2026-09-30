@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { canCurrent, getStoredRole } from '../../shared/role';
+import { canCurrent, getDemoRole } from '../../shared/role';
 
 type RoomStatus = 'occupied' | 'ready' | 'needs-cleaning' | 'cleaning' | 'unavailable';
 
@@ -150,7 +150,7 @@ const statusLabel = (s: RoomStatus | string) =>
 	styleUrl: './rooms.component.scss',
 })
 export class RoomsComponent {
-	protected readonly showGuestAndFinance = getStoredRole() !== 'maintenance';
+	protected readonly showGuestAndFinance = getDemoRole() !== 'maintenance';
 	protected readonly canEditInventory = canCurrent('editInventory');
 	protected readonly canBlockRoom = canCurrent('blockRoom');
 	protected readonly blockRequested = signal<Record<string, boolean>>({});

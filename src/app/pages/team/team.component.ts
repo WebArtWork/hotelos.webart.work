@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { getStoredPlan, PLAN_ROLES } from '../../shared/plan';
-import { getStoredRole, ROLE_PAGES, type Role } from '../../shared/role';
+import { getDemoRole, ROLE_PAGES, type Role } from '../../shared/role';
 
 type Status = 'active' | 'invited' | 'deactivated';
 type Segment = 'all' | Role | 'inactive';
@@ -370,7 +370,7 @@ export class TeamComponent {
 	protected readonly ROLES = ROLES;
 	protected readonly MATRIX_PAGES = MATRIX_PAGES;
 	protected readonly MATRIX_ROLES = MATRIX_ROLES;
-	protected readonly viewerRole: Role = getStoredRole() ?? 'owner';
+	protected readonly viewerRole: Role = getDemoRole() ?? 'owner';
 	/** Roles the viewer may grant, limited to roles usable on the hotel's plan (CRM.md → Plans). */
 	protected readonly ASSIGNABLE_ROLES: Role[] = (ASSIGNABLE_BY[this.viewerRole] ?? []).filter((r) =>
 		PLAN_ROLES[getStoredPlan()].includes(r),

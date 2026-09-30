@@ -101,12 +101,12 @@ export function can(role: Role | null, capability: Capability): boolean {
 
 /** Capability check for the current session role. */
 export function canCurrent(capability: Capability): boolean {
-	return can(getStoredRole(), capability);
+	return can(getDemoRole(), capability);
 }
 
-const ROLE_KEY = 'hotelup_role';
+const ROLE_KEY = 'hotelup_demo_role';
 
-export function getStoredRole(): Role | null {
+export function getDemoRole(): Role | null {
 	try {
 		const stored = localStorage.getItem(ROLE_KEY);
 		return stored && stored in ROLE_LABEL ? (stored as Role) : null;
@@ -115,7 +115,7 @@ export function getStoredRole(): Role | null {
 	}
 }
 
-export function setStoredRole(role: Role): void {
+export function setDemoRole(role: Role): void {
 	try {
 		localStorage.setItem(ROLE_KEY, role);
 	} catch {
@@ -123,9 +123,41 @@ export function setStoredRole(role: Role): void {
 	}
 }
 
-export function clearStoredRole(): void {
+export function clearDemoRole(): void {
 	try {
 		localStorage.removeItem(ROLE_KEY);
+	} catch {
+		/* ignore storage errors (private mode, etc.) */
+	}
+}
+
+const REAL_ROLE_KEY = 'hotelup_real_role';
+
+/**
+ * The signed-in Firebase user's real role, stored locally so a returning owner doesn't
+ * have to log in every visit. Not read by roleGuard or any page yet — every Firebase
+ * account is an Owner today, and wiring real accounts into page access is a follow-up.
+ */
+export function getRealRole(): Role | null {
+	try {
+		const stored = localStorage.getItem(REAL_ROLE_KEY);
+		return stored && stored in ROLE_LABEL ? (stored as Role) : null;
+	} catch {
+		return null;
+	}
+}
+
+export function setRealRole(role: Role): void {
+	try {
+		localStorage.setItem(REAL_ROLE_KEY, role);
+	} catch {
+		/* ignore storage errors (private mode, etc.) */
+	}
+}
+
+export function clearRealRole(): void {
+	try {
+		localStorage.removeItem(REAL_ROLE_KEY);
 	} catch {
 		/* ignore storage errors (private mode, etc.) */
 	}

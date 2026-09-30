@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FirebaseError } from 'firebase/app';
 import { AuthService } from '../../feature/firebase/auth.service';
-import { defaultPageFor, setStoredRole } from '../../shared/role';
+import { setRealRole } from '../../shared/role';
 
 type Screen = 'login' | 'forgot' | 'checkEmail';
 
@@ -74,11 +74,13 @@ export class LoginComponent {
 		this.loginBusy.set(true);
 		try {
 			await this._auth.login(email, password);
-			// Every Firebase-authenticated account is CRM staff; the Owner assigns the
-			// real role on the Team page. Until that page writes a per-user role, treat
-			// every signed-in account as Owner so all pages stay reachable.
-			setStoredRole('owner');
-			this._router.navigateByUrl('/' + (defaultPageFor('owner') ?? ''));
+			// Every Firebase-authenticated account is CRM staff, and the Owner assigns
+			// the real role on the Team page. Until that page writes a per-user role,
+			// store Owner so a returning user isn't asked to log in again next visit.
+			// This is intentionally separate from demo_role (see role.ts) — pages don't
+			// read it yet, that wiring is follow-up work.
+			setRealRole('owner');
+			this._router.navigateByUrl('/dashboard');
 		} catch (error) {
 			this.loginError.set(authErrorMessage(error));
 		} finally {

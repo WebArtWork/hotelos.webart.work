@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { getStoredRole, type Role } from '../../shared/role';
+import { getDemoRole, type Role } from '../../shared/role';
 
 type SectionId =
 	| 'general'
@@ -332,7 +332,7 @@ export class SettingsComponent {
 
 	protected readonly section = signal<SectionId>(this._sectionFromHash());
 	protected readonly dirty = signal(false);
-	protected readonly role = signal<Role>(getStoredRole() ?? 'owner');
+	protected readonly role = signal<Role>(getDemoRole() ?? 'owner');
 	protected readonly pendingSection = signal<SectionId | null>(null);
 	protected readonly dialogView = signal<DialogView>(null);
 	protected readonly toastMessage = signal('');

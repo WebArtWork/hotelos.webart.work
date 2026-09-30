@@ -3,7 +3,7 @@ import { inject, PLATFORM_ID } from '@angular/core';
 import { Router, Routes } from '@angular/router';
 import { buildAbsoluteUrl } from '@wawjs/ngx-default';
 import { companyProfile } from './feature/company/company.data';
-import { defaultPageFor, getStoredRole } from './shared/role';
+import { defaultPageFor, getDemoRole } from './shared/role';
 import { roleGuard } from './shared/role.guard';
 
 export const routes: Routes = [
@@ -365,7 +365,7 @@ export const routes: Routes = [
 	{
 		path: '**',
 		redirectTo: ({ url }) => {
-			const role = isPlatformBrowser(inject(PLATFORM_ID)) ? getStoredRole() : null;
+			const role = isPlatformBrowser(inject(PLATFORM_ID)) ? getDemoRole() : null;
 			const home = role ? defaultPageFor(role) : null;
 			if (!home) return '';
 			const missing = url.map((s) => s.path).join('/');

@@ -95,7 +95,7 @@ header {
 
 .brand {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 11px;
 	font-size: 25px;
 	font-weight: 700;
@@ -116,6 +116,10 @@ header {
 }
 
 .mark {
+	/* Optically centered against the "Hotel Upwork" title line only, not the
+	   shorter tagline below it — `.brand` is align-items: flex-start so this
+	   box doesn't get vertically centered against the full two-line block. */
+	margin-top: 3px;
 	font-size: 24px;
 	color: var(--gold);
 	border: 1px solid var(--gold);

@@ -2,14 +2,14 @@ import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { getStoredPlan, planIncludes } from './plan';
-import { defaultPageFor, getStoredRole, isPageAllowed } from './role';
+import { defaultPageFor, getDemoRole, isPageAllowed } from './role';
 
 export const roleGuard: CanActivateFn = (route) => {
 	const platformId = inject(PLATFORM_ID);
 	if (!isPlatformBrowser(platformId)) return true;
 
 	const router = inject(Router);
-	const role = getStoredRole();
+	const role = getDemoRole();
 	if (!role) return router.parseUrl('/demo');
 
 	const plan = getStoredPlan();

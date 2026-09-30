@@ -73,6 +73,7 @@ p {
 }
 
 header {
+	position: relative;
 	height: 88px;
 	max-width: 1440px;
 	margin: auto;
@@ -85,7 +86,7 @@ header {
 
 .brand {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 11px;
 	font-size: 25px;
 	font-weight: 700;
@@ -106,6 +107,10 @@ header {
 }
 
 .mark {
+	/* Optically centered against the "Hotel Upwork" title line only, not the
+	   shorter tagline below it — `.brand` is align-items: flex-start so this
+	   box doesn't get vertically centered against the full two-line block. */
+	margin-top: 3px;
 	font-size: 24px;
 	color: var(--gold);
 	border: 1px solid var(--gold);
@@ -117,9 +122,14 @@ header {
 }
 
 nav {
+	/* Centered on the header itself, not on the leftover space between
+	   .brand and .header-actions — those two are different widths, so
+	   flex auto-margins alone would pull this off the true midpoint. */
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
 	display: flex;
 	gap: 27px;
-	margin: auto;
 	font-size: 14px;
 	font-weight: 600;
 
@@ -127,6 +137,10 @@ nav {
 	a[aria-current='page'] {
 		color: #987434;
 	}
+}
+
+.header-actions {
+	margin-left: auto;
 }
 
 .login {
@@ -482,9 +496,15 @@ footer {
 	}
 
 	nav {
+		position: static;
+		transform: none;
 		gap: 16px;
 		margin-left: auto;
 		margin-right: 0;
+	}
+
+	.header-actions {
+		margin-left: 0;
 	}
 
 	nav a:first-child {

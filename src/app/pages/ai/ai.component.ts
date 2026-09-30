@@ -2,7 +2,7 @@ import { Component, ElementRef, computed, effect, signal, viewChild } from '@ang
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { can, getStoredRole, isPageAllowed, ROLE_LABEL, type Role } from '../../shared/role';
+import { can, getDemoRole, isPageAllowed, ROLE_LABEL, type Role } from '../../shared/role';
 
 interface AiAnswer {
 	html: string;
@@ -422,7 +422,7 @@ export class AiComponent {
 	protected readonly KB = KB;
 	protected readonly ROLE_LABEL = ROLE_LABEL;
 
-	protected readonly role = signal<Role>(getStoredRole() ?? 'owner');
+	protected readonly role = signal<Role>(getDemoRole() ?? 'owner');
 	protected readonly SUGGESTIONS = SUGGESTIONS.filter((s) => textAllowed(s, this.role()));
 	protected readonly showBrief = topicAllowed('guestBill', this.role()) && topicAllowed('opsDetail', this.role());
 	protected readonly INSIGHTS = INSIGHTS.filter(
