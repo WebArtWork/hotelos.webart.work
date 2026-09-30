@@ -1,13 +1,13 @@
-import { Component, computed, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
+import { SubmissionsService } from '../../feature/firebase/submissions.service';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { getRealHotelId } from '../../shared/hotel';
 import { canCurrent } from '../../shared/role';
 
 type Status = 'new' | 'inProgress' | 'booked' | 'closed' | 'spam';
-
-type FormKind = 'Бронювання' | 'Зворотний дзвінок' | 'Запитання' | 'Групове бронювання';
 
 interface HistoryEntry {
 	time: string;
@@ -15,13 +15,13 @@ interface HistoryEntry {
 }
 
 interface Submission {
-	id: number;
+	id: string;
 	received: string;
 	name: string;
 	phone: string;
 	email: string;
 	site: string;
-	form: FormKind;
+	form: string;
 	checkIn?: string;
 	checkOut?: string;
 	guests?: number;
@@ -37,7 +37,7 @@ interface ConnectedSite {
 	last: string;
 }
 
-type DialogView = { kind: 'connect' } | { kind: 'close'; id: number } | null;
+type DialogView = { kind: 'connect' } | { kind: 'close'; id: string } | null;
 
 const STATUS_LABEL: Record<Status, string> = {
 	new: 'Нова',
@@ -63,7 +63,7 @@ const SITES: ConnectedSite[] = [
 
 const SEED: Submission[] = [
 	{
-		id: 318,
+		id: '318',
 		received: '2026-09-17T11:42',
 		name: 'Марія Коваль',
 		phone: '+380 67 450 12 90',
@@ -79,7 +79,7 @@ const SEED: Submission[] = [
 		history: [{ time: '17.09, 11:42', text: 'Заявка надійшла з форми «Бронювання» на grandhotel.ua' }],
 	},
 	{
-		id: 317,
+		id: '317',
 		received: '2026-09-17T10:15',
 		name: 'Андрій Мельник',
 		phone: '+380 93 218 77 04',
@@ -91,7 +91,7 @@ const SEED: Submission[] = [
 		history: [{ time: '17.09, 10:15', text: 'Заявка надійшла з форми «Зворотний дзвінок» на grandhotel.ua' }],
 	},
 	{
-		id: 316,
+		id: '316',
 		received: '2026-09-17T08:03',
 		name: 'Olivia Brown',
 		phone: '+44 7700 900 312',
@@ -103,7 +103,7 @@ const SEED: Submission[] = [
 		history: [{ time: '17.09, 08:03', text: 'Заявка надійшла з форми «Запитання» на grandhotel.ua' }],
 	},
 	{
-		id: 315,
+		id: '315',
 		received: '2026-09-16T16:05',
 		name: 'ТОВ «Поділля Тревел»',
 		phone: '+380 50 611 20 45',
@@ -123,7 +123,7 @@ const SEED: Submission[] = [
 		],
 	},
 	{
-		id: 314,
+		id: '314',
 		received: '2026-09-16T12:30',
 		name: 'Ігор Савчук',
 		phone: '+380 66 902 33 18',
@@ -143,7 +143,7 @@ const SEED: Submission[] = [
 		],
 	},
 	{
-		id: 313,
+		id: '313',
 		received: '2026-09-15T19:48',
 		name: 'Наталія Гнатюк',
 		phone: '+380 97 115 40 62',
@@ -162,7 +162,7 @@ const SEED: Submission[] = [
 		],
 	},
 	{
-		id: 312,
+		id: '312',
 		received: '2026-09-15T14:20',
 		name: 'Василь Литвин',
 		phone: '+380 68 330 71 25',
@@ -181,7 +181,7 @@ const SEED: Submission[] = [
 		],
 	},
 	{
-		id: 311,
+		id: '311',
 		received: '2026-09-14T03:11',
 		name: 'Best SEO Offer',
 		phone: '',
@@ -217,6 +217,8 @@ function plural(n: number, one: string, few: string, many: string): string {
 })
 export class SubmissionsComponent {
 	private readonly _router = inject(Router);
+	private readonly _submissionsService = inject(SubmissionsService);
+	private readonly _destroyRef = inject(DestroyRef);
 
 	protected readonly TABS = TABS;
 	protected readonly SITES = SITES;
@@ -224,11 +226,14 @@ export class SubmissionsComponent {
 	protected readonly CLOSE_REASONS = CLOSE_REASONS;
 	protected readonly canManageApi = canCurrent('manageIntegrations');
 
-	protected readonly submissions = signal<Submission[]>(SEED);
+	/** A real, logged-in hotel sees its own live leads; a demo session sees this seed data. */
+	protected readonly hotelId = getRealHotelId();
+
+	protected readonly submissions = signal<Submission[]>(this.hotelId ? [] : SEED);
 	protected readonly tab = signal<Status | 'all'>('all');
 	protected readonly query = signal('');
 	protected readonly site = signal('all');
-	protected readonly selectedId = signal<number | null>(null);
+	protected readonly selectedId = signal<string | null>(null);
 	protected readonly dialogView = signal<DialogView>(null);
 	protected readonly closeReason = signal(CLOSE_REASONS[0]);
 	protected readonly keyVisible = signal(false);
@@ -277,6 +282,26 @@ export class SubmissionsComponent {
 				dialog.close();
 			}
 		});
+
+		if (this.hotelId) {
+			const unsubscribe = this._submissionsService.listen(this.hotelId, (records) => {
+				this.submissions.set(
+					records.map((r) => ({
+						id: r.id,
+						received: r.receivedAt?.toISOString() ?? '',
+						name: r.name,
+						phone: r.phone,
+						email: r.email,
+						site: r.site,
+						form: r.form,
+						message: r.message,
+						status: r.status,
+						history: r.history,
+					})),
+				);
+			});
+			this._destroyRef.onDestroy(unsubscribe);
+		}
 	}
 
 	protected tabCount(key: Status | 'all'): number {
@@ -285,9 +310,13 @@ export class SubmissionsComponent {
 	}
 
 	protected time(value: string): string {
-		const [date, time] = value.split('T');
+		if (!value) return '—';
+		const [date, rawTime] = value.split('T');
+		const time = rawTime.slice(0, 5);
 		const [, m, d] = date.split('-');
-		return date === '2026-09-17' ? `Сьогодні, ${time}` : date === '2026-09-16' ? `Вчора, ${time}` : `${d}.${m}, ${time}`;
+		const today = this.hotelId ? new Date().toISOString().slice(0, 10) : '2026-09-17';
+		const yesterday = this.hotelId ? new Date(Date.now() - 86_400_000).toISOString().slice(0, 10) : '2026-09-16';
+		return date === today ? `Сьогодні, ${time}` : date === yesterday ? `Вчора, ${time}` : `${d}.${m}, ${time}`;
 	}
 
 	protected dates(s: Submission): string {
@@ -305,7 +334,7 @@ export class SubmissionsComponent {
 		return plural(n, 'бронювання', 'бронювання', 'бронювань');
 	}
 
-	protected open(id: number): void {
+	protected open(id: string): void {
 		this.selectedId.set(id);
 	}
 
@@ -338,7 +367,7 @@ export class SubmissionsComponent {
 		this.dialogView.set({ kind: 'close', id: s.id });
 	}
 
-	protected confirmClose(id: number): void {
+	protected confirmClose(id: string): void {
 		this._update(id, 'closed', `Закрито: ${this.closeReason().toLowerCase()}`);
 		this.dialogView.set(null);
 		this.toast(`Заявку №${id} закрито`);
@@ -370,7 +399,11 @@ export class SubmissionsComponent {
 		this.toast('Новий API-ключ створено. Старий перестане працювати через 24 години · Демо');
 	}
 
-	private _update(id: number, status: Status, note: string): void {
+	private _update(id: string, status: Status, note: string): void {
+		if (this.hotelId) {
+			void this._submissionsService.updateStatus(id, status, note);
+			return;
+		}
 		const time = `${NOW}, ${new Date().toTimeString().slice(0, 5)}`;
 		this.submissions.update((list) =>
 			list.map((s) => (s.id === id ? { ...s, status, history: [...s.history, { time, text: note }] } : s)),

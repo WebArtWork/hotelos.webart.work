@@ -3,18 +3,30 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // hotels/{hotelId}.ownerUids maps a Firebase Auth uid to the hotel(s) they own.
+    // Created manually (console or an admin script) when an Owner account is provisioned —
+    // there is no self-service create/update yet.
+    match /hotels/{hotelId} {
+      allow read: if request.auth != null && request.auth.uid in resource.data.ownerUids;
+      allow write: if false;
+    }
+
     // Public lead-capture forms (contact, callback, booking inquiry, newsletter, etc.)
     // Visitors can only CREATE a submission — never read, update, or delete existing ones.
+    // Only the owning hotel's authenticated staff can read/update it afterwards.
     match /submissions/{submissionId} {
-      allow create: if request.resource.data.keys().hasAll(['name', 'message', 'site', 'createdAt'])
+      allow create: if request.resource.data.keys().hasAll(['name', 'message', 'site', 'hotelId', 'status', 'createdAt'])
                     && request.resource.data.name is string
                     && request.resource.data.name.size() > 0
                     && request.resource.data.name.size() < 200
                     && request.resource.data.message is string
                     && request.resource.data.message.size() < 5000
                     && request.resource.data.site is string
+                    && request.resource.data.hotelId is string
+                    && request.resource.data.status == 'new'
                     && request.resource.data.createdAt == request.time;
-      allow read, update: if request.auth != null;
+      allow read, update: if request.auth != null
+                    && request.auth.uid in get(/databases/$(database)/documents/hotels/$(resource.data.hotelId)).data.ownerUids;
       allow delete: if false;
     }
 

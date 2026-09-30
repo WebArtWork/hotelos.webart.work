@@ -2,14 +2,15 @@ import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { getStoredPlan, planIncludes } from './plan';
-import { defaultPageFor, getDemoRole, isPageAllowed } from './role';
+import { defaultPageFor, getDemoRole, getRealRole, isPageAllowed } from './role';
 
 export const roleGuard: CanActivateFn = (route) => {
 	const platformId = inject(PLATFORM_ID);
 	if (!isPlatformBrowser(platformId)) return true;
 
 	const router = inject(Router);
-	const role = getDemoRole();
+	// A real, Firebase-authenticated session takes priority over a leftover demo pick.
+	const role = getRealRole() ?? getDemoRole();
 	if (!role) return router.parseUrl('/demo');
 
 	const plan = getStoredPlan();

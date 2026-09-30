@@ -20,10 +20,11 @@ export class AuthService {
 		if (auth) onAuthStateChanged(auth, (user) => this.user.set(user));
 	}
 
-	async login(email: string, password: string): Promise<void> {
+	async login(email: string, password: string): Promise<User> {
 		const auth = this._firebase.auth;
 		if (!auth) throw new Error('Firebase Auth is not available');
-		await signInWithEmailAndPassword(auth, email, password);
+		const credential = await signInWithEmailAndPassword(auth, email, password);
+		return credential.user;
 	}
 
 	async sendPasswordReset(email: string): Promise<void> {

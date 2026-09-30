@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FirebaseError } from 'firebase/app';
 import { AuthService } from '../../feature/firebase/auth.service';
+import { HotelService } from '../../feature/firebase/hotel.service';
+import { setRealHotelId } from '../../shared/hotel';
 import { setRealRole } from '../../shared/role';
 
 type Screen = 'login' | 'forgot' | 'checkEmail';
@@ -28,6 +30,7 @@ function authErrorMessage(error: unknown): string {
 export class LoginComponent {
 	private readonly _router = inject(Router);
 	private readonly _auth = inject(AuthService);
+	private readonly _hotel = inject(HotelService);
 
 	protected readonly screen = signal<Screen>('login');
 
@@ -73,14 +76,23 @@ export class LoginComponent {
 
 		this.loginBusy.set(true);
 		try {
-			await this._auth.login(email, password);
+			const user = await this._auth.login(email, password);
+
+			const hotelId = await this._hotel.resolveHotelId(user.uid);
+			if (!hotelId) {
+				this.loginError.set('Ваш акаунт ще не привʼязано до жодного готелю. Зверніться до адміністратора.');
+				await this._auth.logout();
+				return;
+			}
+
 			// Every Firebase-authenticated account is CRM staff, and the Owner assigns
 			// the real role on the Team page. Until that page writes a per-user role,
 			// store Owner so a returning user isn't asked to log in again next visit.
-			// This is intentionally separate from demo_role (see role.ts) — pages don't
-			// read it yet, that wiring is follow-up work.
+			// This is intentionally separate from demo_role (see role.ts) — most pages
+			// don't read it yet, that wiring is follow-up work.
+			setRealHotelId(hotelId);
 			setRealRole('owner');
-			this._router.navigateByUrl('/dashboard');
+			this._router.navigateByUrl('/submissions');
 		} catch (error) {
 			this.loginError.set(authErrorMessage(error));
 		} finally {

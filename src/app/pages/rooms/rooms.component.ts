@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { getStoredPlan, PLAN_ROOM_LIMIT } from '../../shared/plan';
 import { canCurrent, getDemoRole } from '../../shared/role';
 
 type RoomStatus = 'occupied' | 'ready' | 'needs-cleaning' | 'cleaning' | 'unavailable';
@@ -166,6 +167,8 @@ export class RoomsComponent {
 	protected readonly Math = Math;
 
 	protected readonly rooms = signal<Room[]>(buildRooms());
+	protected readonly roomLimit = PLAN_ROOM_LIMIT[getStoredPlan()];
+	protected readonly roomLimitReached = computed(() => this.roomLimit !== null && this.rooms().length >= this.roomLimit);
 	protected readonly search = signal('');
 	protected readonly segment = signal<Segment>('all');
 	protected readonly viewMode = signal<ViewMode>('cards');
@@ -373,6 +376,10 @@ export class RoomsComponent {
 	protected submitAddRoom(number: string, type: string, floor: number, capacity: number, price: number): void {
 		const n = number.trim();
 		if (!n) return;
+		if (this.roomLimitReached()) {
+			this.toast(`Ліміт номерів на цьому тарифі: ${this.roomLimit}. Перейдіть на вищий тариф, щоб додати більше.`);
+			return;
+		}
 		const base = TYPES[type] ?? TYPES['Стандарт'];
 		this.rooms.update((rooms) => [
 			...rooms,

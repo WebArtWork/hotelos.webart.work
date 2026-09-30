@@ -53,8 +53,8 @@ export const PLANS: Record<Plan, PlanInfo> = {
 
 /** Pages each plan unlocks, cumulative. Route paths as declared in app.routes.ts. */
 const PLAN_ADDS: Record<Plan, string[]> = {
-	start: ['calendar', 'submissions', 'team', 'settings'],
-	pro: ['dashboard', 'guests', 'rooms', 'payments', 'housekeeping', 'messages'],
+	start: ['calendar', 'submissions', 'rooms', 'team', 'settings'],
+	pro: ['dashboard', 'guests', 'payments', 'housekeeping', 'messages'],
 	enterprise: ['automations', 'sales', 'ai'],
 };
 
@@ -62,6 +62,13 @@ export const PLAN_PAGES: Record<Plan, string[]> = {
 	start: PLAN_ADDS.start,
 	pro: [...PLAN_ADDS.start, ...PLAN_ADDS.pro],
 	enterprise: [...PLAN_ADDS.start, ...PLAN_ADDS.pro, ...PLAN_ADDS.enterprise],
+};
+
+/** Room cap per plan (CRM.md → Plans: "Start — up to 10 rooms", "Pro — up to 30"), null = unlimited. */
+export const PLAN_ROOM_LIMIT: Record<Plan, number | null> = {
+	start: 10,
+	pro: 30,
+	enterprise: null,
 };
 
 /** Roles that can be used on each plan (CRM.md → Plans). */

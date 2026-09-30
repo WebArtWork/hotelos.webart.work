@@ -8,10 +8,21 @@
 		@if (canEditInventory) {
 			<div class="page-actions">
 				<button class="button secondary" (click)="openDialog({ kind: 'room-types' })">Типи номерів</button>
-				<button class="button primary" (click)="openDialog({ kind: 'add-room' })">+ Додати номер</button>
+				<button
+					class="button primary"
+					[disabled]="roomLimitReached()"
+					[title]="roomLimitReached() ? 'Ліміт номерів на цьому тарифі: ' + roomLimit : ''"
+					(click)="openDialog({ kind: 'add-room' })"
+				>
+					+ Додати номер
+				</button>
 			</div>
 		}
 	</div>
+
+	@if (roomLimitReached()) {
+		<p class="form-note">Досягнуто ліміту номерів на цьому тарифі ({{ roomLimit }}). Перейдіть на вищий тариф, щоб додати більше.</p>
+	}
 
 	<div class="kpis">
 		<div class="kpi"><small>Усього номерів</small><b>{{ counts().total }}</b></div>
