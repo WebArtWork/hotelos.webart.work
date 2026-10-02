@@ -321,7 +321,7 @@ created there. Submissions contain no payment data.
 **Submission data contract** (enforced by `firestore.rules`, written by `SubmissionsService` shape):
 
 - Required from the visitor: `phone` only. Optional: `name`, `email`, `message`, `checkIn`,
-  `checkOut` (`YYYY-MM-DD`), `guests` (1–50), `roomType`; for service requests `date`
+  `checkOut` (`YYYY-MM-DD`), `guests` (1–300), `roomType`; for service requests `date`
   (`YYYY-MM-DD`), `time` (`HH:mm`), `service` (chosen option); for hostels `genders` (one
   `female`/`male` per guest). Any other field is rejected.
 - Set by the site: `hotelId` (must be an existing `hotels/{id}`), `formId` (stable slug per form,
