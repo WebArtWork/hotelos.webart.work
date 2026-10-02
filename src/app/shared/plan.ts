@@ -71,6 +71,19 @@ export const PLAN_ROOM_LIMIT: Record<Plan, number | null> = {
 	enterprise: null,
 };
 
+/** Staff account cap per plan (CRM.md → Plans: "Start — 3 staff accounts", "Pro — 15"), null = unlimited. */
+export const PLAN_STAFF_LIMIT: Record<Plan, number | null> = {
+	start: 3,
+	pro: 15,
+	enterprise: null,
+};
+
+/** Demo room inventory trimmed to the stored plan's room cap. */
+export function limitRoomsToPlan<T>(rooms: T[]): T[] {
+	const limit = PLAN_ROOM_LIMIT[getStoredPlan()];
+	return limit === null ? rooms : rooms.slice(0, limit);
+}
+
 /** Roles that can be used on each plan (CRM.md → Plans). */
 export const PLAN_ROLES: Record<Plan, Role[]> = {
 	start: ['owner', 'manager', 'reception', 'sales'],

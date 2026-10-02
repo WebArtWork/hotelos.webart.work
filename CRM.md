@@ -65,13 +65,19 @@ role allows it (`ROLE_PAGES`) **and** the hotel's plan includes it (`PLAN_PAGES`
 
 | Plan key     | Name       | Price (demo)      | Pages added                                                        | Roles that can be used |
 | ------------ | ---------- | ----------------- | ------------------------------------------------------------------ | ---------------------- |
-| `start`      | Start      | Free              | `calendar`, `submissions`, `team`, `settings`                      | owner, manager, reception, sales |
-| `pro`        | Pro        | €39 / month       | + `dashboard`, `guests`, `rooms`, `payments`, `housekeeping`, `messages` | all 7 |
+| `start`      | Start      | Free              | `calendar`, `submissions`, `rooms`, `team`, `settings`             | owner, manager, reception, sales |
+| `pro`        | Pro        | €39 / month       | + `dashboard`, `guests`, `payments`, `housekeeping`, `messages`    | all 7 |
 | `enterprise` | Enterprise | €89 / month       | + `automations`, `sales`, `ai`                                      | all 7 |
 
-Plan limits (shown on the pricing page, not enforced in the demo): Start — up to 10 rooms and 3
-staff accounts; Pro — up to 30 rooms and 15 staff; Enterprise — unlimited rooms/staff, several
-hotels, priority support.
+Plan limits (`PLAN_ROOM_LIMIT`, `PLAN_STAFF_LIMIT`): Start — up to 10 rooms and 3 staff accounts;
+Pro — up to 30 rooms and 15 staff; Enterprise — unlimited rooms/staff, several hotels, priority
+support. Applied in the demo:
+
+- **Rooms:** Rooms, Calendar and New booking show the demo room list cut down to the plan's room
+  cap (`limitRoomsToPlan`). "Додати номер" is disabled once the cap is reached.
+- **Staff:** Team shows only seed employees whose role is usable on the plan, up to the staff cap.
+  Active and invited accounts count toward the cap; deactivated ones do not. "Додати працівника",
+  sending an invite and restoring access are blocked once the cap is reached.
 
 Rules:
 
@@ -94,8 +100,8 @@ Rules:
 ## Live pages — what a real account sees
 
 A real, Firebase-signed-in account (`isLiveSession()`) sees only pages backed by real data:
-`LIVE_PAGES` in `src/app/shared/role.ts`, currently **`submissions`** only. Everything else in
-this document describes the demo, which keeps every page (entered via `/demo`).
+`LIVE_PAGES` in `src/app/shared/role.ts`, currently **`submissions`** and **`rooms`**.
+Everything else in this document describes the demo, which keeps every page (entered via `/demo`).
 
 - Sidebar and mobile nav list only live pages; Team, Settings, AI button, search,
   notifications, profile and the plan note are hidden.
@@ -103,6 +109,11 @@ this document describes the demo, which keeps every page (entered via `/demo`).
   the shell explains the section is not connected to real data yet.
 - Inside Submissions, demo-only parts are hidden too: "Підключити сайт" dialog and the
   "Перша відповідь" tile.
+- Inside Rooms, everything that depends on bookings or staff is hidden: current guest,
+  checkout, next arrival, "Створити/Відкрити бронювання", "+ Нове бронювання", the date
+  timeline, links to Calendar/Housekeeping, weekend/extra-guest prices and the AI strip.
+  Cleaning is "Почати прибирання" → "Завершити прибирання" (no assignee yet).
+- Plan room/staff limits are not applied to real hotels: plan per hotel is not built yet.
 - When a page is wired to Firestore, add its path to `LIVE_PAGES` and record it here.
 
 ## Hotels — one account, several hotels
@@ -126,7 +137,8 @@ documents are created manually (console / admin script); there is no self-servic
 
 Not yet decided / not built: role per hotel (today every real account is Owner of all its
 hotels), plan per hotel (plan is still one local demo setting), and whether several hotels
-require Enterprise (pricing says so, not enforced). Only Submissions reads real hotel data today.
+require Enterprise (pricing says so, not enforced). Only Submissions and Rooms read real hotel
+data today.
 
 ## Intended rules — take precedence over the page inventory
 
@@ -364,8 +376,28 @@ Purpose: manage room types, pricing, live status, and per-room configuration.
 | **Room cards/list: price line, current guest name, quick-book/open-booking actions** | **Hidden for `maintenance`** (`showGuestAndFinance = role !== 'maintenance'`) |
 | **Room detail panel: pricing, current stay/next booking, "+ New booking"** | **Hidden for `maintenance`** |
 | **Header "Типи номерів" / "+ Додати номер", panel "Редагувати"** | **`editInventory` only** (owner, manager) |
-| **"Заблокувати номер" / "Редагувати блокування"** | **`blockRoom` only**; other roles get "Повідомити про проблему та запросити блокування" with a visible pending state |
-| Change status dialog | Same as page |
+| **"Заблокувати номер" / "Редагувати блокування" / "Зняти блокування"** | **`blockRoom` only**; other roles get "Повідомити про проблему та запросити блокування" with a visible pending state |
+| **Edit dialog "Видалити номер"** | **`editInventory` only** (inside the edit dialog) |
+| Change status dialog | Same as page; choosing "Недоступний" opens the block dialog (dates + reason are required) |
+
+**Room data contract** (live; enforced by `firestore.rules`, written by `RoomsService` in
+`src/app/feature/firebase/rooms.service.ts`). Only the hotel's owners (`ownerUids`) can read or
+write; roles per hotel are not built yet.
+
+- `hotels/{hotelId}/roomTypes/{id}`: `name` (≤50, unique per hotel, checked in the client),
+  `capacity` (int 1–50), `price` (≥0), optional `description`, `beds`, `area`, `amenities[]`.
+  A type gives new rooms their defaults; changing a room's type copies the type's beds and
+  amenities.
+- `hotels/{hotelId}/rooms/{id}`: `number` (≤8, unique per hotel, checked in the client),
+  `type` (type name), `floor` (int), `capacity` (int 1–50), `price` (≥0), `status`
+  (`ready | occupied | needs-cleaning | cleaning | unavailable`), optional `beds`, `area`,
+  `amenities[]`, `block` (`{reason, start, end, note}` with ISO dates, end ≥ start; set only
+  while `unavailable`), `lastCleanedAt` (set when cleaning finishes or status goes back to
+  ready), `createdAt`, `updatedAt` (server time on every write).
+- Until bookings exist, `status` is set by hand; later "occupied" will be derived from bookings.
+- A hotel with no types adds its first room with a free-text type name; that type is created
+  together with the room from the form's capacity, price and area.
+- "Типи номерів" and "+ Додати номер" stay disabled while the inventory loads or fails to load.
 
 ### `payments` — Payments & financial tracking
 
@@ -574,7 +606,9 @@ Found while rewriting the Gemini Gem knowledge on 23 September 2026 (code read, 
 
 Added with plans on 29 September 2026 (not yet verified in the running app):
 
-18. **Plan limits are not enforced**: room and staff limits are shown on the pricing page only.
+18. **Plan limits apply to demo data only** (since 2 October 2026): Rooms, Calendar, New booking
+    and Team trim their local seed lists. Housekeeping keeps its own 28-room list; it is
+    Pro+ only, where 28 rooms fit under the cap.
 19. **Settings tabs for plan-locked features** (Messages, Automations, AI) stay editable on
     lower plans; they should show the plan requirement.
 20. **Links inside pages to plan-locked pages** (e.g. Calendar side panel → Guests/Payments) rely
@@ -586,6 +620,11 @@ Added with plans on 29 September 2026 (not yet verified in the running app):
 
 - Plans, prices, plan page allowlist: `src/app/shared/plan.ts`
 - Roles, labels, page allowlist: `src/app/shared/role.ts`
+- Modals: `ModalService` from `@wawjs/ngx-ui` with `panelClass: 'crm-modal'` (CRM palette and
+  form/button styles in `src/styles/_crm-modal.scss`). Rooms uses it (`src/app/pages/rooms/dialogs/`);
+  other pages still have their own `<dialog>` and move over when they go live.
+- Live data services: `src/app/feature/firebase/` (`submissions.service.ts`, `rooms.service.ts`);
+  access and field validation in `firestore.rules`
 - Account hotels and active hotel: `src/app/feature/firebase/hotel.service.ts`,
   switcher in `src/app/layouts/app-shell/`
 - Route guard: `src/app/shared/role.guard.ts`

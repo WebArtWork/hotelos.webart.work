@@ -6,9 +6,20 @@
 		</div>
 		<div class="page-actions">
 			<button class="button secondary" (click)="openRoleMatrix()">Ролі та доступ</button>
-			<button class="button primary" (click)="openAddEmployee()">+ Додати працівника</button>
+			<button
+				class="button primary"
+				[disabled]="staffLimitReached()"
+				[title]="staffLimitReached() ? 'Ліміт працівників на цьому тарифі: ' + staffLimit : ''"
+				(click)="openAddEmployee()"
+			>
+				+ Додати працівника
+			</button>
 		</div>
 	</div>
+
+	@if (staffLimitReached()) {
+		<p class="form-note">Досягнуто ліміту працівників на цьому тарифі ({{ staffLimit }}). Перейдіть на вищий тариф, щоб додати більше.</p>
+	}
 
 	<div class="kpis">
 		<div class="kpi"><small>Працівників</small><b>{{ counts().total }}</b></div>

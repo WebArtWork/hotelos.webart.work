@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { limitRoomsToPlan } from '../../shared/plan';
 
 interface Room {
 	number: string;
@@ -85,6 +86,7 @@ const PREF_OPTIONS = ['Тихий номер', 'Верхній поверх', '�
 	styleUrl: './new-booking.component.scss',
 })
 export class NewBookingComponent {
+	private readonly rooms = limitRoomsToPlan(ROOMS);
 	protected readonly money = money;
 	protected readonly shortDate = shortDate;
 	protected readonly prefOptions = PREF_OPTIONS;
@@ -166,7 +168,7 @@ export class NewBookingComponent {
 
 	protected readonly availableRooms = computed(() => {
 		const total = this.adults() + this.children();
-		return ROOMS.filter((r) => r.capacity >= total && !this._roomsOverlap(r.number, this.start(), this.end()));
+		return this.rooms.filter((r) => r.capacity >= total && !this._roomsOverlap(r.number, this.start(), this.end()));
 	});
 
 	protected readonly basePrice = computed(() => (this.selectedRoom() ? this.selectedRoom()!.price * this.nights() : 0));
@@ -188,7 +190,7 @@ export class NewBookingComponent {
 		const total = this.adults() + this.children();
 		const altA: [string, string] = [addDays(this.start(), -1), addDays(this.end(), -1)];
 		const altB: [string, string] = [addDays(this.start(), 1), addDays(this.end(), 1)];
-		const countFor = (s: string, e: string) => ROOMS.filter((r) => r.capacity >= total && !this._roomsOverlap(r.number, s, e)).length;
+		const countFor = (s: string, e: string) => this.rooms.filter((r) => r.capacity >= total && !this._roomsOverlap(r.number, s, e)).length;
 		return [
 			{ start: altA[0], end: altA[1], count: countFor(altA[0], altA[1]) },
 			{ start: altB[0], end: altB[1], count: countFor(altB[0], altB[1]) },
@@ -365,7 +367,7 @@ export class NewBookingComponent {
 		const room = this.selectedRoom();
 		if (!room) return [];
 		const total = this.adults() + this.children();
-		return ROOMS.filter((r) => r.number !== room.number && r.capacity >= total && !this._roomsOverlap(r.number, this.start(), this.end()));
+		return this.rooms.filter((r) => r.number !== room.number && r.capacity >= total && !this._roomsOverlap(r.number, this.start(), this.end()));
 	}
 
 	protected pickAlternativeRoom(room: Room): void {

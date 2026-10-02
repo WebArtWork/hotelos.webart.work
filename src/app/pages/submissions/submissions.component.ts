@@ -414,24 +414,22 @@ export class SubmissionsComponent {
 		this.selectedId.set(null);
 	}
 
-	protected takeIntoWork(s: Submission): void {
-		this._update(s.id, 'inProgress', 'Взято в роботу');
-		this.toast(`Заявка №${s.id} в роботі`);
+	protected async takeIntoWork(s: Submission): Promise<void> {
+		if (await this._update(s.id, 'inProgress', 'Взято в роботу')) this.toast(`Заявка №${s.id} в роботі`);
 	}
 
-	protected createBooking(s: Submission): void {
-		this._update(s.id, 'booked', 'Створено бронювання з заявки');
-		this._router.navigateByUrl('/calendar');
+	protected async createBooking(s: Submission): Promise<void> {
+		if (await this._update(s.id, 'booked', 'Створено бронювання з заявки')) this._router.navigateByUrl('/calendar');
 	}
 
-	protected markSpam(s: Submission): void {
-		this._update(s.id, 'spam', 'Позначено як спам');
+	protected async markSpam(s: Submission): Promise<void> {
+		if (!(await this._update(s.id, 'spam', 'Позначено як спам'))) return;
 		this.selectedId.set(null);
 		this.toast(`Заявку №${s.id} перенесено в спам`);
 	}
 
-	protected restore(s: Submission): void {
-		this._update(s.id, 'new', 'Повернуто в нові');
+	protected async restore(s: Submission): Promise<void> {
+		await this._update(s.id, 'new', 'Повернуто в нові');
 	}
 
 	protected askClose(s: Submission): void {
@@ -439,10 +437,10 @@ export class SubmissionsComponent {
 		this.dialogView.set({ kind: 'close', id: s.id });
 	}
 
-	protected confirmClose(id: string): void {
-		this._update(id, 'closed', `Закрито: ${this.closeReason().toLowerCase()}`);
+	protected async confirmClose(id: string): Promise<void> {
+		const saved = await this._update(id, 'closed', `Закрито: ${this.closeReason().toLowerCase()}`);
 		this.dialogView.set(null);
-		this.toast(`Заявку №${id} закрито`);
+		if (saved) this.toast(`Заявку №${id} закрито`);
 	}
 
 	protected openConnect(): void {
@@ -471,15 +469,23 @@ export class SubmissionsComponent {
 		this.toast('Новий API-ключ створено. Старий перестане працювати через 24 години · Демо');
 	}
 
-	private _update(id: string, status: Status, note: string): void {
+	/** Saves a status change; on failure shows an error toast and returns false. */
+	private async _update(id: string, status: Status, note: string): Promise<boolean> {
 		if (this.hotelId()) {
-			void this._submissionsService.updateStatus(id, status, note);
-			return;
+			try {
+				await this._submissionsService.updateStatus(id, status, note);
+				return true;
+			} catch (error) {
+				console.error('Submission status update failed', error);
+				this.toast('Не вдалося змінити статус заявки. Перевірте зʼєднання та спробуйте ще раз.');
+				return false;
+			}
 		}
 		const time = `${NOW}, ${new Date().toTimeString().slice(0, 5)}`;
 		this.submissions.update((list) =>
 			list.map((s) => (s.id === id ? { ...s, status, history: [...s.history, { time, text: note }] } : s)),
 		);
+		return true;
 	}
 
 	private toast(text: string): void {

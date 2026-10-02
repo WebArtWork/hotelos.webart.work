@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { getStoredPlan, PLAN_ROLES } from '../../shared/plan';
+import { getStoredPlan, PLAN_ROLES, PLAN_STAFF_LIMIT } from '../../shared/plan';
 import { getDemoRole, ROLE_PAGES, type Role } from '../../shared/role';
 
 type Status = 'active' | 'invited' | 'deactivated';
@@ -380,7 +380,17 @@ export class TeamComponent {
 	protected readonly statusLabel = statusLabel;
 	protected readonly initials = initials;
 
-	protected readonly employees = signal<Employee[]>(SEED_EMPLOYEES.map((e) => ({ ...e, perms: { ...e.perms } })));
+	/** Staff account cap on the hotel's plan (CRM.md → Plans), null = unlimited. */
+	protected readonly staffLimit = PLAN_STAFF_LIMIT[getStoredPlan()];
+	protected readonly employees = signal<Employee[]>(
+		SEED_EMPLOYEES.filter((e) => PLAN_ROLES[getStoredPlan()].includes(e.role))
+			.slice(0, this.staffLimit ?? undefined)
+			.map((e) => ({ ...e, perms: { ...e.perms } })),
+	);
+	/** Active and invited accounts count toward the plan limit; deactivated ones do not. */
+	protected readonly staffLimitReached = computed(
+		() => this.staffLimit !== null && this.employees().filter((e) => e.status !== 'deactivated').length >= this.staffLimit,
+	);
 	protected readonly segment = signal<Segment>('all');
 	protected readonly search = signal('');
 	protected readonly selectedId = signal<number | null>(null);
@@ -468,6 +478,10 @@ export class TeamComponent {
 		this.segment.set(seg);
 	}
 
+	private staffLimitMessage(): string {
+		return `Ліміт працівників на цьому тарифі: ${this.staffLimit}. Перейдіть на вищий тариф, щоб додати більше.`;
+	}
+
 	private toast(text: string): void {
 		this.toastMessage.set(text);
 		clearTimeout(this._toastTimer);
@@ -499,6 +513,10 @@ export class TeamComponent {
 	}
 
 	protected openAddEmployee(): void {
+		if (this.staffLimitReached()) {
+			this.toast(this.staffLimitMessage());
+			return;
+		}
 		this.dialogView.set({ kind: 'add-employee' });
 	}
 
@@ -517,6 +535,10 @@ export class TeamComponent {
 	}
 
 	protected sendInvite(data: InviteData): void {
+		if (this.staffLimitReached()) {
+			this.toast(this.staffLimitMessage());
+			return;
+		}
 		const id = Math.max(...this.employees().map((e) => e.id)) + 1;
 		const employee: Employee = {
 			id,
@@ -597,6 +619,10 @@ export class TeamComponent {
 	}
 
 	protected reactivate(id: number): void {
+		if (this.staffLimitReached()) {
+			this.toast(this.staffLimitMessage());
+			return;
+		}
 		this.employees.update((list) => list.map((e) => (e.id === id ? { ...e, status: 'active' } : e)));
 		this.closeSidePanel();
 		this.toast('Доступ відновлено');

@@ -1,76 +1,65 @@
-import { Component, ElementRef, computed, effect, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal, type Type } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ModalService, type Modal } from '@wawjs/ngx-ui';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
+import { HotelService } from '../../feature/firebase/hotel.service';
+import { RoomPatch, RoomRecord, RoomsService } from '../../feature/firebase/rooms.service';
 import { IconComponent } from '../../shared/icon/icon.component';
-import { getStoredPlan, PLAN_ROOM_LIMIT } from '../../shared/plan';
-import { canCurrent, getDemoRole } from '../../shared/role';
-
-type RoomStatus = 'occupied' | 'ready' | 'needs-cleaning' | 'cleaning' | 'unavailable';
-
-interface MaintenanceNote {
-	date: string;
-	text: string;
-	status: string;
-}
-
-interface Room {
-	number: string;
-	type: string;
-	floor: number;
-	capacity: number;
-	beds: string;
-	area: number;
-	price: number;
-	amenities: string[];
-	status: RoomStatus;
-	guest: string | null;
-	maintenanceNotes: MaintenanceNote[];
-	needsCleaning?: boolean;
-	checkin?: string;
-	checkout?: string;
-	nights?: number;
-	payment?: string;
-	nextGuest?: string | null;
-	nextStart?: string;
-	nextEnd?: string;
-	nextArrival?: string | null;
-	lastCleaned?: string;
-	cleanedBy?: string;
-	checkoutTime?: string;
-	assigned?: string | null;
-	startedAt?: string;
-	reason?: string;
-	blockStart?: string;
-	blockEnd?: string;
-}
+import { getStoredPlan, limitRoomsToPlan, PLAN_ROOM_LIMIT } from '../../shared/plan';
+import { canCurrent, getSessionRole, isLiveSession } from '../../shared/role';
+import { BlockRoomComponent } from './dialogs/block-room.component';
+import { ConfirmComponent } from './dialogs/confirm.component';
+import { RoomFormComponent } from './dialogs/room-form.component';
+import { RoomStatusComponent } from './dialogs/room-status.component';
+import { RoomTypesComponent } from './dialogs/room-types.component';
+import type { Room, RoomBlock, RoomFormValue, RoomStatus, RoomType, RoomTypeFormValue, RoomTypeSummary } from './rooms.interface';
 
 type Segment = 'all' | 'ready' | 'occupied' | 'cleaning' | 'unavailable';
 type ViewMode = 'cards' | 'list';
 
-type DialogView =
-	| { kind: 'add-room' }
-	| { kind: 'room-types' }
-	| { kind: 'add-type' }
-	| { kind: 'block-room'; number: string }
-	| { kind: 'change-status'; number: string }
-	| { kind: 'edit-room'; number: string }
-	| null;
-
-interface TypeInfo {
-	price: number;
-	capacity: number;
-	beds: string;
-	amenities: string[];
-}
-
-const TYPES: Record<string, TypeInfo> = {
-	Стандарт: { price: 1200, capacity: 2, beds: '1 двоспальне ліжко', amenities: ['Wi-Fi', 'Кондиціонер', 'Телевізор', 'Душ'] },
-	Покращений: { price: 1500, capacity: 3, beds: '1 двоспальне + диван', amenities: ['Wi-Fi', 'Кондиціонер', 'Телевізор', 'Душ', 'Балкон'] },
-	Люкс: { price: 1600, capacity: 2, beds: '1 двоспальне ліжко', amenities: ['Wi-Fi', 'Кондиціонер', 'Телевізор', 'Фен', 'Мінібар', 'Сніданок'] },
-	Апартаменти: { price: 2200, capacity: 4, beds: '2 спальні + диван', amenities: ['Wi-Fi', 'Кондиціонер', 'Телевізор', 'Кухня', 'Пральна машина'] },
-};
-const TYPE_ORDER = ['Стандарт', 'Покращений', 'Люкс', 'Апартаменти'];
+const DEMO_TYPES: RoomType[] = [
+	{
+		id: 'standard',
+		name: 'Стандарт',
+		description: '',
+		price: 1200,
+		capacity: 2,
+		beds: '1 двоспальне ліжко',
+		area: 22,
+		amenities: ['Wi-Fi', 'Кондиціонер', 'Телевізор', 'Душ'],
+	},
+	{
+		id: 'superior',
+		name: 'Покращений',
+		description: '',
+		price: 1500,
+		capacity: 3,
+		beds: '1 двоспальне + диван',
+		area: 26,
+		amenities: ['Wi-Fi', 'Кондиціонер', 'Телевізор', 'Душ', 'Балкон'],
+	},
+	{
+		id: 'lux',
+		name: 'Люкс',
+		description: '',
+		price: 1600,
+		capacity: 2,
+		beds: '1 двоспальне ліжко',
+		area: 30,
+		amenities: ['Wi-Fi', 'Кондиціонер', 'Телевізор', 'Фен', 'Мінібар', 'Сніданок'],
+	},
+	{
+		id: 'apartment',
+		name: 'Апартаменти',
+		description: '',
+		price: 2200,
+		capacity: 4,
+		beds: '2 спальні + диван',
+		area: 45,
+		amenities: ['Wi-Fi', 'Кондиціонер', 'Телевізор', 'Кухня', 'Пральна машина'],
+	},
+];
 const GUEST_NAMES = [
 	'Олег Бондар',
 	'Марія Петренко',
@@ -83,19 +72,22 @@ const GUEST_NAMES = [
 	'Юлія Савчук',
 	'Віктор Коваль',
 ];
+const ALL_STATUSES: RoomStatus[] = ['ready', 'occupied', 'needs-cleaning', 'cleaning', 'unavailable'];
+const DEMO_TODAY = '2026-09-17';
 
 function buildRooms(): Room[] {
 	const list: Room[] = [];
 	let gi = 0;
 	const push = (number: string, type: string, floor: number) => {
-		const base = TYPES[type];
+		const base = DEMO_TYPES.find((t) => t.name === type)!;
 		list.push({
+			id: number,
 			number,
 			type,
 			floor,
 			capacity: base.capacity,
 			beds: base.beds,
-			area: 22 + Math.floor(Math.random() * 10),
+			area: base.area,
 			price: base.price,
 			amenities: base.amenities,
 			status: 'occupied',
@@ -132,8 +124,43 @@ function buildRooms(): Room[] {
 	set('207', { status: 'needs-cleaning', guest: null, checkoutTime: '11:08', assigned: null });
 	set('302', { status: 'needs-cleaning', guest: null, checkoutTime: '10:40', assigned: null });
 	set('206', { status: 'cleaning', guest: null, assigned: 'Марія', startedAt: '12:20', nextArrival: '13:30' });
-	set('301', { status: 'unavailable', guest: null, reason: 'Ремонт', blockStart: '17 вересня', blockEnd: '19 вересня' });
+	set('301', { status: 'unavailable', guest: null, reason: 'Ремонт', blockStart: '2026-09-17', blockEnd: '2026-09-19' });
 	return list;
+}
+
+/** `YYYY-MM-DD` in the browser's time zone. */
+function localDate(date: Date): string {
+	return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+}
+
+const DAY_MONTH = new Intl.DateTimeFormat('uk-UA', { day: 'numeric', month: 'long' });
+
+/** "17 вересня" for an ISO date; other strings are returned as they are. */
+function dayMonth(value: string | undefined): string {
+	if (!value) return '-';
+	return /^\d{4}-\d{2}-\d{2}$/.test(value) ? DAY_MONTH.format(new Date(value + 'T00:00')) : value;
+}
+
+function toRoom(r: RoomRecord): Room {
+	return {
+		id: r.id,
+		number: r.number,
+		type: r.type,
+		floor: r.floor,
+		capacity: r.capacity,
+		beds: r.beds,
+		area: r.area,
+		price: r.price,
+		amenities: r.amenities,
+		status: r.status,
+		guest: null,
+		maintenanceNotes: [],
+		lastCleaned: r.lastCleanedAt ? `${DAY_MONTH.format(r.lastCleanedAt)} · ${r.lastCleanedAt.toTimeString().slice(0, 5)}` : undefined,
+		reason: r.block?.reason,
+		blockStart: r.block?.start,
+		blockEnd: r.block?.end,
+		blockNote: r.block?.note,
+	};
 }
 
 const money = (n: number) => new Intl.NumberFormat('uk-UA').format(n) + ' ₴';
@@ -143,6 +170,7 @@ const statusLabel = (s: RoomStatus | string) =>
 	({ occupied: 'Зайнятий', ready: 'Готовий', 'needs-cleaning': 'Потребує прибирання', cleaning: 'Прибирається', unavailable: 'Недоступний' })[
 		s as RoomStatus
 	] ?? s;
+const sameText = (a: string, b: string) => a.trim().toLocaleLowerCase('uk-UA') === b.trim().toLocaleLowerCase('uk-UA');
 
 @Component({
 	selector: 'app-rooms',
@@ -151,7 +179,22 @@ const statusLabel = (s: RoomStatus | string) =>
 	styleUrl: './rooms.component.scss',
 })
 export class RoomsComponent {
-	protected readonly showGuestAndFinance = getDemoRole() !== 'maintenance';
+	private readonly _roomsService = inject(RoomsService);
+	private readonly _hotel = inject(HotelService);
+	private readonly _modal = inject(ModalService);
+	/** ngx-ui modals opened by this page; closed when the page is left. */
+	private readonly _modals = new Set<Modal>();
+
+	/** Real account: the active hotel's rooms from Firestore; booking-based parts are hidden until bookings exist. */
+	protected readonly live = isLiveSession();
+	protected readonly hotelId = this._hotel.activeHotelId;
+	protected readonly hotelSubtitle = computed(() => {
+		const hotel = this._hotel.activeHotel();
+		if (!hotel) return "Grand Hotel · Кам'янець-Подільський";
+		return hotel.city ? `${hotel.name} · ${hotel.city}` : hotel.name;
+	});
+
+	protected readonly showGuestAndFinance = getSessionRole() !== 'maintenance';
 	protected readonly canEditInventory = canCurrent('editInventory');
 	protected readonly canBlockRoom = canCurrent('blockRoom');
 	protected readonly blockRequested = signal<Record<string, boolean>>({});
@@ -161,29 +204,48 @@ export class RoomsComponent {
 		this.toast(`Номер ${number}: запит на блокування надіслано менеджеру`);
 	}
 
-	protected readonly TYPE_ORDER = TYPE_ORDER;
 	protected readonly money = money;
 	protected readonly statusLabel = statusLabel;
+	protected readonly dayMonth = dayMonth;
 	protected readonly Math = Math;
+	protected readonly today = this.live ? localDate(new Date()) : DEMO_TODAY;
 
-	protected readonly rooms = signal<Room[]>(buildRooms());
-	protected readonly roomLimit = PLAN_ROOM_LIMIT[getStoredPlan()];
+	protected readonly rooms = signal<Room[]>(this.live ? [] : limitRoomsToPlan(buildRooms()));
+	protected readonly types = signal<RoomType[]>(this.live ? [] : DEMO_TYPES);
+	protected readonly loading = signal(this.live);
+	protected readonly loadError = signal('');
+	/** Plan limits apply to the demo plan picker only; real hotels have no plan yet (CRM.md → Plans). */
+	protected readonly roomLimit = this.live ? null : PLAN_ROOM_LIMIT[getStoredPlan()];
 	protected readonly roomLimitReached = computed(() => this.roomLimit !== null && this.rooms().length >= this.roomLimit);
 	protected readonly search = signal('');
 	protected readonly segment = signal<Segment>('all');
 	protected readonly viewMode = signal<ViewMode>('cards');
 
-	protected readonly typeFilter = signal(new Set(TYPE_ORDER));
-	protected readonly statusFilter = signal(new Set<RoomStatus>(['ready', 'occupied', 'needs-cleaning', 'cleaning', 'unavailable']));
+	/** Room types in display order, plus any type name a room still uses after its type was removed. */
+	protected readonly typeNames = computed(() => {
+		const names = this.types().map((t) => t.name);
+		for (const r of this.rooms()) if (!names.includes(r.type)) names.push(r.type);
+		return names;
+	});
+	protected readonly typeSummary = computed<RoomTypeSummary[]>(() =>
+		this.types().map((t) => {
+			const rooms = this.rooms().filter((r) => r.type === t.name);
+			return { ...t, count: rooms.length, minPrice: rooms.length ? Math.min(...rooms.map((r) => r.price)) : t.price };
+		}),
+	);
+
+	protected readonly hiddenTypes = signal(new Set<string>());
+	protected readonly statusFilter = signal(new Set<RoomStatus>(ALL_STATUSES));
 	protected readonly cleaningOnlyFilter = signal(false);
 	protected readonly capacityFilter = signal(new Set(['1', '2', '3', '4']));
 	protected readonly filtersOpen = signal(false);
 
 	protected readonly selectedRoomNumber = signal<string | null>(null);
-	protected readonly dialogView = signal<DialogView>(null);
-	protected readonly formError = signal('');
+	protected readonly saving = signal(false);
 	protected readonly toastMessage = signal('');
 	protected readonly aiAnswerKey = signal<string | null>(null);
+	/** Writes are possible: always in the demo; for a real hotel once the inventory has loaded. */
+	protected readonly ready = computed(() => !this.live || (!!this.hotelId() && !this.loading() && !this.loadError()));
 
 	private _toastTimer?: ReturnType<typeof setTimeout>;
 
@@ -199,7 +261,7 @@ export class RoomsComponent {
 
 	private passesFilters(r: Room): boolean {
 		if (this.cleaningOnlyFilter() && !needsCleaning(r)) return false;
-		if (!this.typeFilter().has(r.type)) return false;
+		if (this.hiddenTypes().has(r.type)) return false;
 		if (!this.statusFilter().has(r.status)) return false;
 		if (!this.capacityFilter().has(capBucket(r.capacity))) return false;
 		return true;
@@ -219,7 +281,9 @@ export class RoomsComponent {
 
 	protected readonly typeGroups = computed(() => {
 		const list = this.filteredRooms();
-		return TYPE_ORDER.map((type) => ({ type, rooms: list.filter((r) => r.type === type) })).filter((g) => g.rooms.length > 0);
+		return this.typeNames()
+			.map((type) => ({ type, rooms: list.filter((r) => r.type === type) }))
+			.filter((g) => g.rooms.length > 0);
 	});
 
 	protected readonly selectedRoom = computed(() => {
@@ -240,28 +304,60 @@ export class RoomsComponent {
 			freeWeekend: `За поточним графіком на вихідні орієнтовно вільні: <b>${free.join(', ') || '-'}</b> (залежно від бронювань).`,
 			popular: `Найчастіше бронюють номери категорії <b>Люкс</b>, за даними останніх місяців.`,
 			blocked: blocked.length
-				? blocked.map((r) => `Номер <b>${r.number}</b>: ${r.reason} (${r.blockStart}–${r.blockEnd})`).join('<br>')
+				? blocked.map((r) => `Номер <b>${r.number}</b>: ${r.reason} (${dayMonth(r.blockStart)}–${dayMonth(r.blockEnd)})`).join('<br>')
 				: 'Заблокованих номерів немає.',
 		};
 		return map[key] ?? 'AI відповідає лише на основі даних номерного фонду.';
 	});
 
-	protected readonly dialogRef = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+	/** Label in the modal header. */
+	private readonly _dialogLabel = this.live ? 'НОМЕРИ' : 'ДЕМО';
 
 	constructor() {
-		effect(() => {
-			const dialog = this.dialogRef()?.nativeElement;
-			if (!dialog) return;
-			if (this.dialogView() !== null) {
-				if (!dialog.open) dialog.showModal();
-			} else if (dialog.open) {
-				dialog.close();
+		inject(DestroyRef).onDestroy(() => {
+			for (const modal of this._modals) modal.close?.();
+		});
+
+		// Re-subscribe whenever the sidebar switches hotel; the previous hotel's listeners are dropped.
+		effect((onCleanup) => {
+			if (!this.live) return;
+			const hotelId = this.hotelId();
+			this.rooms.set([]);
+			this.types.set([]);
+			this.selectedRoomNumber.set(null);
+			this.loadError.set('');
+			if (!hotelId) {
+				this.loading.set(false);
+				return;
 			}
+			this.loading.set(true);
+			const onError = (error: Error) => {
+				console.error('Rooms listener failed', error);
+				this.loading.set(false);
+				this.loadError.set('Не вдалося завантажити номери. Оновіть сторінку; якщо не допоможе, зверніться до адміністратора.');
+			};
+			const stopRooms = this._roomsService.listenRooms(
+				hotelId,
+				(rooms) => {
+					this.loading.set(false);
+					this.rooms.set(rooms.map(toRoom));
+				},
+				onError,
+			);
+			const stopTypes = this._roomsService.listenTypes(hotelId, (types) => this.types.set(types), onError);
+			onCleanup(() => {
+				stopRooms();
+				stopTypes();
+			});
 		});
 	}
 
 	protected room(number: string): Room | undefined {
 		return this.rooms().find((r) => r.number === number);
+	}
+
+	protected typeByName(name: string): RoomType | undefined {
+		return this.types().find((t) => t.name === name);
 	}
 
 	protected setSegment(seg: Segment): void {
@@ -277,9 +373,9 @@ export class RoomsComponent {
 	}
 
 	protected toggleTypeFilter(type: string, checked: boolean): void {
-		this.typeFilter.update((set) => {
+		this.hiddenTypes.update((set) => {
 			const next = new Set(set);
-			checked ? next.add(type) : next.delete(type);
+			checked ? next.delete(type) : next.add(type);
 			return next;
 		});
 	}
@@ -305,8 +401,8 @@ export class RoomsComponent {
 	}
 
 	protected clearFilters(): void {
-		this.typeFilter.set(new Set(TYPE_ORDER));
-		this.statusFilter.set(new Set<RoomStatus>(['ready', 'occupied', 'needs-cleaning', 'cleaning', 'unavailable']));
+		this.hiddenTypes.set(new Set());
+		this.statusFilter.set(new Set<RoomStatus>(ALL_STATUSES));
 		this.cleaningOnlyFilter.set(false);
 		this.capacityFilter.set(new Set(['1', '2', '3', '4']));
 	}
@@ -323,27 +419,114 @@ export class RoomsComponent {
 		this.selectedRoomNumber.set(null);
 	}
 
-	protected openDialog(view: DialogView): void {
-		this.formError.set('');
-		this.dialogView.set(view);
+	/** Opens an ngx-ui modal in the CRM look; `props` become the component's fields. */
+	private _open(component: Type<unknown>, props: Record<string, unknown>, size: Modal['size'] = 'mid'): Modal {
+		const modal = this._modal.show({
+			component,
+			size,
+			panelClass: 'crm-modal',
+			label: this._dialogLabel,
+			onClose: () => this._modals.delete(modal),
+			...props,
+		});
+		this._modals.add(modal);
+		return modal;
 	}
 
-	protected closeDialog(): void {
-		this.dialogView.set(null);
+	protected openAddRoom(): void {
+		this._open(RoomFormComponent, {
+			room: null,
+			types: this.types(),
+			typeNames: this.typeNames(),
+			save: (value: RoomFormValue) => this.addRoom(value),
+		});
 	}
 
-	protected onDialogClick(event: MouseEvent): void {
-		const dialog = this.dialogRef()?.nativeElement;
-		if (!dialog || event.target !== dialog) return;
-		const rect = dialog.getBoundingClientRect();
-		const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-		if (!inside) this.closeDialog();
+	protected openEditRoom(number: string): void {
+		const room = this.room(number);
+		if (!room) return;
+		const modal = this._open(RoomFormComponent, {
+			room,
+			types: this.types(),
+			typeNames: this.typeNames(),
+			save: (value: RoomFormValue) => this.editRoom(number, value),
+			remove: () => {
+				modal.close?.();
+				this.openDeleteRoom(number);
+			},
+		});
+	}
+
+	protected openRoomTypes(): void {
+		this._open(RoomTypesComponent, {
+			summary: this.typeSummary,
+			canEdit: this.canEditInventory,
+			addType: (value: RoomTypeFormValue) => this.addType(value),
+		});
+	}
+
+	protected openBlockRoom(number: string): void {
+		const room = this.room(number);
+		if (!room) return;
+		this._open(BlockRoomComponent, { room, today: this.today, save: (block: RoomBlock) => this.blockRoom(number, block) });
+	}
+
+	protected openChangeStatus(number: string): void {
+		const room = this.room(number);
+		if (!room) return;
+		this._open(RoomStatusComponent, { room, live: this.live, save: (status: RoomStatus) => this.changeStatus(number, status) });
+	}
+
+	protected openDeleteRoom(number: string): void {
+		this._open(
+			ConfirmComponent,
+			{
+				title: `Видалити номер ${number}?`,
+				text: 'Номер зникне з номерного фонду. Цю дію не можна скасувати.',
+				confirmText: 'Видалити',
+				confirm: () => this.deleteRoom(number),
+			},
+			'small',
+		);
 	}
 
 	private toast(text: string): void {
 		this.toastMessage.set(text);
 		clearTimeout(this._toastTimer);
 		this._toastTimer = setTimeout(() => this.toastMessage.set(''), 4200);
+	}
+
+	/**
+	 * Applies a room change: written to Firestore for a real hotel (the listener refreshes the list),
+	 * or to the local demo list. Shows `success` as a toast; returns null when saved, else the error to show.
+	 */
+	private async _saveRoom(number: string, patch: RoomPatch, success: string, demo: Partial<Room> = {}): Promise<string | null> {
+		const room = this.room(number);
+		if (!room) return 'Номер не знайдено. Можливо, його вже видалили.';
+		const { cleaned, block, ...fields } = patch;
+		if (!this.live) {
+			const blockFields: Partial<Room> =
+				block === undefined ? {} : { reason: block?.reason, blockStart: block?.start, blockEnd: block?.end, blockNote: block?.note };
+			this.rooms.update((rooms) => rooms.map((r) => (r.number === number ? { ...r, ...fields, ...blockFields, ...demo } : r)));
+			this.toast(success);
+			return null;
+		}
+		return this._write(() => this._roomsService.updateRoom(this.hotelId()!, room.id, patch), success);
+	}
+
+	private async _write(action: () => Promise<void>, success: string): Promise<string | null> {
+		if (!this.hotelId()) return 'Готель не вибрано.';
+		this.saving.set(true);
+		try {
+			await action();
+			this.toast(success);
+			return null;
+		} catch (error) {
+			console.error('Rooms write failed', error);
+			return 'Не вдалося зберегти зміни. Перевірте зʼєднання та спробуйте ще раз.';
+		} finally {
+			this.saving.set(false);
+		}
 	}
 
 	protected quickBook(): void {
@@ -355,6 +538,21 @@ export class RoomsComponent {
 			rooms.map((r) => (r.number === number ? { ...r, status: 'cleaning', assigned: 'Марія', startedAt: new Date().toTimeString().slice(0, 5) } : r)),
 		);
 		this.toast('Прибирання призначено · Демо');
+	}
+
+	protected async startCleaning(number: string): Promise<void> {
+		const error = await this._saveRoom(number, { status: 'cleaning' }, `Номер ${number}: прибирання розпочато`);
+		if (error) this.toast(error);
+	}
+
+	protected async finishCleaning(number: string): Promise<void> {
+		const error = await this._saveRoom(number, { status: 'ready', cleaned: true }, `Номер ${number} прибрано та готовий`);
+		if (error) this.toast(error);
+	}
+
+	protected async unblockRoom(number: string): Promise<void> {
+		const error = await this._saveRoom(number, { status: 'ready', block: null }, `Номер ${number} знову доступний`);
+		if (error) this.toast(error);
 	}
 
 	protected openTask(): void {
@@ -373,56 +571,102 @@ export class RoomsComponent {
 		this.toast('Перехід до прибирання · Демо');
 	}
 
-	protected submitAddRoom(number: string, type: string, floor: number, capacity: number, price: number): void {
+	private async addRoom({ number, type, floor, capacity, price, area }: RoomFormValue): Promise<string | null> {
 		const n = number.trim();
-		if (!n) return;
-		if (this.roomLimitReached()) {
-			this.toast(`Ліміт номерів на цьому тарифі: ${this.roomLimit}. Перейдіть на вищий тариф, щоб додати більше.`);
-			return;
+		const typeName = type.trim();
+		if (!n) return 'Вкажіть номер або назву.';
+		if (this.rooms().some((r) => sameText(r.number, n))) return `Номер ${n} уже існує.`;
+		if (!typeName) return 'Вкажіть тип номера.';
+		if (!Number.isInteger(floor)) return 'Вкажіть поверх цілим числом.';
+		if (!Number.isInteger(capacity) || capacity < 1) return 'Місткість має бути щонайменше 1.';
+		if (!(price >= 0)) return 'Вкажіть базову ціну.';
+		if (this.roomLimitReached()) return `Ліміт номерів на цьому тарифі: ${this.roomLimit}. Перейдіть на вищий тариф, щоб додати більше.`;
+		// The first room of a new hotel also creates its type from the form values.
+		const existing = this.types().find((t) => sameText(t.name, typeName));
+		const newType = existing ? null : { name: typeName, description: '', capacity, price, beds: '', area: area > 0 ? area : null, amenities: [] };
+		const base = existing ?? newType!;
+		const input = {
+			number: n,
+			type: base.name,
+			floor,
+			capacity,
+			beds: base.beds,
+			area: area > 0 ? area : base.area,
+			price,
+			amenities: base.amenities,
+		};
+		if (this.live) {
+			const hotelId = this.hotelId()!;
+			return this._write(async () => {
+				if (newType) await this._roomsService.addType(hotelId, newType);
+				await this._roomsService.addRoom(hotelId, input);
+			}, `Номер ${n} додано`);
 		}
-		const base = TYPES[type] ?? TYPES['Стандарт'];
-		this.rooms.update((rooms) => [
-			...rooms,
-			{
-				number: n,
-				type,
-				floor,
-				capacity,
-				beds: base.beds,
-				area: 24,
-				price,
-				amenities: base.amenities,
-				status: 'ready',
-				guest: null,
-				maintenanceNotes: [],
-				lastCleaned: '-',
-				cleanedBy: '-',
-			},
-		]);
-		this.closeDialog();
-		this.toast('Номер додано');
+		if (newType) this.types.update((types) => [...types, { ...newType, id: newType.name }]);
+		this.rooms.update((rooms) => [...rooms, { ...input, id: n, status: 'ready', guest: null, maintenanceNotes: [] }]);
+		this.toast(`Номер ${n} додано`);
+		return null;
 	}
 
-	protected submitAddType(): void {
-		this.closeDialog();
-		this.toast('Тип номера створено · Демо');
+	private async addType({ name, description, capacity, price }: RoomTypeFormValue): Promise<string | null> {
+		const n = name.trim();
+		if (!n) return 'Вкажіть назву типу.';
+		if (this.types().some((t) => sameText(t.name, n))) return `Тип «${n}» уже існує.`;
+		if (!Number.isInteger(capacity) || capacity < 1) return 'Місткість має бути щонайменше 1.';
+		if (!(price >= 0)) return 'Вкажіть базову ціну.';
+		const input = { name: n, description: description.trim(), capacity, price, beds: '', area: null, amenities: [] };
+		if (this.live) return this._write(() => this._roomsService.addType(this.hotelId()!, input), `Тип «${n}» створено`);
+		this.types.update((types) => [...types, { ...input, id: n }]);
+		this.toast(`Тип «${n}» створено`);
+		return null;
 	}
 
-	protected submitBlockRoom(number: string, start: string, end: string, reason: string): void {
-		this.rooms.update((rooms) => rooms.map((r) => (r.number === number ? { ...r, status: 'unavailable', reason, blockStart: start, blockEnd: end } : r)));
-		this.closeDialog();
-		this.toast('Номер заблоковано');
+	private blockRoom(number: string, block: RoomBlock): Promise<string | null> {
+		return this._saveRoom(number, { status: 'unavailable', block }, `Номер ${number} заблоковано`, { guest: null });
 	}
 
-	protected submitChangeStatus(number: string, status: RoomStatus): void {
-		this.rooms.update((rooms) => rooms.map((r) => (r.number === number ? { ...r, status } : r)));
-		this.closeDialog();
-		this.toast('Статус оновлено');
+	private async changeStatus(number: string, status: RoomStatus): Promise<string | null> {
+		const room = this.room(number);
+		if (!room) return 'Номер не знайдено. Можливо, його вже видалили.';
+		// Blocking needs dates and a reason, so it continues in the block modal.
+		if (status === 'unavailable' && room.status !== 'unavailable') {
+			this.openBlockRoom(number);
+			return null;
+		}
+		const patch: RoomPatch = { status };
+		if (room.status === 'unavailable' && status !== 'unavailable') patch.block = null;
+		if (status === 'ready' && needsCleaning(room)) patch.cleaned = true;
+		const demo: Partial<Room> = status === 'occupied' ? {} : { guest: null, needsCleaning: false };
+		return this._saveRoom(number, patch, 'Статус оновлено', demo);
 	}
 
-	protected submitEditRoom(number: string, type: string, price: number): void {
-		this.rooms.update((rooms) => rooms.map((r) => (r.number === number ? { ...r, type, price } : r)));
-		this.closeDialog();
-		this.toast('Зміни збережено');
+	private async editRoom(number: string, { type, floor, capacity, price, area }: RoomFormValue): Promise<string | null> {
+		const room = this.room(number);
+		if (!room) return 'Номер не знайдено. Можливо, його вже видалили.';
+		if (!Number.isInteger(floor)) return 'Вкажіть поверх цілим числом.';
+		if (!Number.isInteger(capacity) || capacity < 1) return 'Місткість має бути щонайменше 1.';
+		if (!(price >= 0)) return 'Вкажіть ціну.';
+		const patch: RoomPatch = { type, floor, capacity, price, area: area > 0 ? area : null };
+		// A new type brings its beds and amenities; capacity and price come from the form.
+		const base = type !== room.type ? this.typeByName(type) : undefined;
+		if (base) {
+			patch.beds = base.beds;
+			patch.amenities = base.amenities;
+		}
+		return this._saveRoom(number, patch, 'Зміни збережено');
+	}
+
+	private async deleteRoom(number: string): Promise<string | null> {
+		const room = this.room(number);
+		if (!room) return null;
+		if (this.live) {
+			const error = await this._write(() => this._roomsService.deleteRoom(this.hotelId()!, room.id), `Номер ${number} видалено`);
+			if (error) return error;
+		} else {
+			this.rooms.update((rooms) => rooms.filter((r) => r.number !== number));
+			this.toast(`Номер ${number} видалено`);
+		}
+		this.closeSidePanel();
+		return null;
 	}
 }

@@ -1,5 +1,6 @@
 @use 'tailwindcss';
 @use './styles/theme';
+@use './styles/crm-modal';
 
 html,
 body {
@@ -13,6 +14,11 @@ body {
 body {
 	min-height: 100vh;
 	margin: 0;
+}
+
+/* Tailwind's reset sets margin: 0 on every element, which pins modal dialogs to the top-left corner. */
+dialog:modal {
+	margin: auto;
 }
 
 .theme-interactive {

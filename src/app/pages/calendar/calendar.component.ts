@@ -2,6 +2,7 @@ import { Component, computed, ElementRef, effect, signal, viewChild } from '@ang
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../layouts/app-shell/app-shell.component';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { limitRoomsToPlan } from '../../shared/plan';
 import { canCurrent } from '../../shared/role';
 
 interface Room {
@@ -124,7 +125,7 @@ export class CalendarComponent {
 
 	protected readonly TODAY = TODAY;
 	protected readonly GROUP_ORDER = GROUP_ORDER;
-	protected readonly ROOMS = ROOMS;
+	protected readonly ROOMS = limitRoomsToPlan(ROOMS);
 	protected readonly SOURCES = SOURCES;
 	protected readonly money = money;
 	protected readonly shortDate = shortDate;
@@ -159,7 +160,7 @@ export class CalendarComponent {
 	protected readonly dateRange = computed(() =>
 		Array.from({ length: this.viewDays() }, (_, i) => addDays(this.viewStart(), i)),
 	);
-	protected readonly visibleRooms = computed(() => ROOMS.filter((r) => this.typeFilter().has(r.type)));
+	protected readonly visibleRooms = computed(() => this.ROOMS.filter((r) => this.typeFilter().has(r.type)));
 	protected readonly visibleBookings = computed(() => this.bookings().filter((b) => this.statusFilter().has(b.status)));
 
 	protected readonly gridRows = computed(() => {
@@ -236,7 +237,7 @@ export class CalendarComponent {
 
 	protected readonly mobileRoomCards = computed(() => {
 		const dates = Array.from({ length: this.mobileDays() }, (_, i) => addDays(this.mobileDate(), i));
-		return ROOMS.map((r) => {
+		return this.ROOMS.map((r) => {
 			const booking = this.bookings().find(
 				(x) => x.room === r.number && x.status !== 'cancelled' && dates.some((d) => d >= x.start && d < x.end),
 			);
@@ -264,7 +265,7 @@ export class CalendarComponent {
 	}
 
 	protected roomOf(number: string): Room | undefined {
-		return ROOMS.find((r) => r.number === number);
+		return this.ROOMS.find((r) => r.number === number);
 	}
 
 	protected occupied(room: string, date: string): boolean {
@@ -283,7 +284,7 @@ export class CalendarComponent {
 	}
 
 	protected alternativesFor(type: string, start: string, end: string, excludeRoom: string): Room[] {
-		return ROOMS.filter((r) => r.type === type && r.number !== excludeRoom && !this.bookingsOverlap(r.number, start, end, null));
+		return this.ROOMS.filter((r) => r.type === type && r.number !== excludeRoom && !this.bookingsOverlap(r.number, start, end, null));
 	}
 
 	protected prevRange(): void {
