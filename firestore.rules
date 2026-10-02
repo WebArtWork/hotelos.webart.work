@@ -118,7 +118,7 @@ service cloud.firestore {
                     // Hostels: one entry per guest, so dorm beds can be assigned.
                     && (!('genders' in data()) || (data().genders is list && data().genders.size() <= 50
                                                    && data().genders.hasOnly(['female', 'male'])))
-                    && (!('guests' in data()) || (data().guests is int && data().guests >= 1 && data().guests <= 50))
+                    && (!('guests' in data()) || (data().guests is int && data().guests >= 1 && data().guests <= 300))
                     && (!('history' in data()) || data().history.size() == 0)
                     && data().status == 'new'
                     && data().createdAt == request.time;
