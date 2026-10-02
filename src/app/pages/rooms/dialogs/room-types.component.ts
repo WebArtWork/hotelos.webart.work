@@ -1,4 +1,4 @@
-import { Component, Signal, signal } from '@angular/core';
+import { Component, OnInit, Signal, signal } from '@angular/core';
 import type { ModalSave, RoomTypeFormValue, RoomTypeSummary } from '../rooms.interface';
 
 const money = (n: number) => new Intl.NumberFormat('uk-UA').format(n) + ' ₴';
@@ -23,7 +23,11 @@ const money = (n: number) => new Intl.NumberFormat('uk-UA').format(n) + ' ₴';
 						<p class="full crm-error" role="alert">{{ error() }}</p>
 					}
 					<button class="crm-button primary full" type="submit" [disabled]="saving()">Створити тип</button>
-					<button class="crm-link full" type="button" (click)="adding.set(false)">← До списку типів</button>
+					@if (afterAdd) {
+						<button class="crm-link full" type="button" (click)="close()">Скасувати</button>
+					} @else {
+						<button class="crm-link full" type="button" (click)="adding.set(false)">← До списку типів</button>
+					}
 				</form>
 			} @else {
 				<h2>Типи номерів</h2>
@@ -49,17 +53,25 @@ const money = (n: number) => new Intl.NumberFormat('uk-UA').format(n) + ' ₴';
 	`,
 	host: { class: 'crm-dialog', '(document:keydown.escape)': 'close()' },
 })
-export class RoomTypesComponent {
+export class RoomTypesComponent implements OnInit {
 	label = '';
 	summary: Signal<RoomTypeSummary[]> = signal([]);
 	canEdit = false;
 	addType: ModalSave<RoomTypeFormValue> = async () => null;
+	/** Open straight on the "create type" form (from the room form). */
+	startInAddMode = false;
+	/** Called with the new type's name after it is saved; otherwise the list is shown again. */
+	afterAdd?: (name: string) => void;
 	close: () => void = () => {};
 
 	protected readonly money = money;
 	protected readonly adding = signal(false);
 	protected readonly error = signal('');
 	protected readonly saving = signal(false);
+
+	ngOnInit(): void {
+		if (this.startInAddMode) this.adding.set(true);
+	}
 
 	protected startAdding(): void {
 		this.error.set('');
@@ -72,6 +84,7 @@ export class RoomTypesComponent {
 		const error = await this.addType({ name, description, capacity, price });
 		this.saving.set(false);
 		if (error) this.error.set(error);
+		else if (this.afterAdd) this.afterAdd(name.trim());
 		else this.adding.set(false);
 	}
 }

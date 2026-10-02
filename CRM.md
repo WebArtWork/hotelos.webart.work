@@ -395,8 +395,10 @@ write; roles per hotel are not built yet.
   while `unavailable`), `lastCleanedAt` (set when cleaning finishes or status goes back to
   ready), `createdAt`, `updatedAt` (server time on every write).
 - Until bookings exist, `status` is set by hand; later "occupied" will be derived from bookings.
-- A hotel with no types adds its first room with a free-text type name; that type is created
-  together with the room from the form's capacity, price and area.
+- A room's type is always picked from the hotel's room types (a select). Types are created in
+  "Типи номерів", or from the room form's "+ Новий тип" link, which opens the type form and then
+  returns to the room form with the new type selected (number and floor already typed are kept).
+  With no types yet, the room form asks to create one first and cannot be submitted.
 - "Типи номерів" and "+ Додати номер" stay disabled while the inventory loads or fails to load.
 
 ### `payments` — Payments & financial tracking

@@ -433,12 +433,23 @@ export class RoomsComponent {
 		return modal;
 	}
 
-	protected openAddRoom(): void {
-		this._open(RoomFormComponent, {
+	protected openAddRoom(initialType = '', draft: { number?: string; floor?: number } = {}): void {
+		const modal = this._open(RoomFormComponent, {
 			room: null,
 			types: this.types(),
 			typeNames: this.typeNames(),
+			initialType,
+			draft,
 			save: (value: RoomFormValue) => this.addRoom(value),
+			// Creating a type leaves the room form and comes back to it with the new type selected.
+			createType: ({ number, floor }: { number: string; floor: number }) => {
+				modal.close?.();
+				const kept = { number, floor: Number.isInteger(floor) ? floor : undefined };
+				const types = this.openRoomTypes(true, (name) => {
+					types.close?.();
+					this.openAddRoom(name, kept);
+				});
+			},
 		});
 	}
 
@@ -457,11 +468,13 @@ export class RoomsComponent {
 		});
 	}
 
-	protected openRoomTypes(): void {
-		this._open(RoomTypesComponent, {
+	protected openRoomTypes(startInAddMode = false, afterAdd?: (name: string) => void): Modal {
+		return this._open(RoomTypesComponent, {
 			summary: this.typeSummary,
 			canEdit: this.canEditInventory,
 			addType: (value: RoomTypeFormValue) => this.addType(value),
+			startInAddMode,
+			afterAdd,
 		});
 	}
 
@@ -576,15 +589,13 @@ export class RoomsComponent {
 		const typeName = type.trim();
 		if (!n) return 'Вкажіть номер або назву.';
 		if (this.rooms().some((r) => sameText(r.number, n))) return `Номер ${n} уже існує.`;
-		if (!typeName) return 'Вкажіть тип номера.';
+		if (!typeName) return 'Оберіть тип номера.';
 		if (!Number.isInteger(floor)) return 'Вкажіть поверх цілим числом.';
 		if (!Number.isInteger(capacity) || capacity < 1) return 'Місткість має бути щонайменше 1.';
 		if (!(price >= 0)) return 'Вкажіть базову ціну.';
 		if (this.roomLimitReached()) return `Ліміт номерів на цьому тарифі: ${this.roomLimit}. Перейдіть на вищий тариф, щоб додати більше.`;
-		// The first room of a new hotel also creates its type from the form values.
-		const existing = this.types().find((t) => sameText(t.name, typeName));
-		const newType = existing ? null : { name: typeName, description: '', capacity, price, beds: '', area: area > 0 ? area : null, amenities: [] };
-		const base = existing ?? newType!;
+		const base = this.types().find((t) => sameText(t.name, typeName));
+		if (!base) return 'Оберіть тип номера зі списку.';
 		const input = {
 			number: n,
 			type: base.name,
@@ -595,14 +606,7 @@ export class RoomsComponent {
 			price,
 			amenities: base.amenities,
 		};
-		if (this.live) {
-			const hotelId = this.hotelId()!;
-			return this._write(async () => {
-				if (newType) await this._roomsService.addType(hotelId, newType);
-				await this._roomsService.addRoom(hotelId, input);
-			}, `Номер ${n} додано`);
-		}
-		if (newType) this.types.update((types) => [...types, { ...newType, id: newType.name }]);
+		if (this.live) return this._write(() => this._roomsService.addRoom(this.hotelId()!, input), `Номер ${n} додано`);
 		this.rooms.update((rooms) => [...rooms, { ...input, id: n, status: 'ready', guest: null, maintenanceNotes: [] }]);
 		this.toast(`Номер ${n} додано`);
 		return null;

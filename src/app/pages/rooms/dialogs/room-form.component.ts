@@ -15,6 +15,12 @@ export class RoomFormComponent implements OnInit {
 	/** Type names a room can be moved to (types plus legacy names in use). */
 	typeNames: string[] = [];
 	save: ModalSave<RoomFormValue> = async () => null;
+	/** Type to preselect, e.g. one just created from this form. */
+	initialType = '';
+	/** Values typed before leaving to create a type (add only). */
+	draft: { number?: string; floor?: number } = {};
+	/** Leaves this form to create a room type; gets the values typed so far. */
+	createType?: (draft: { number: string; floor: number }) => void;
 	/** Opens the delete confirmation (edit only). */
 	remove?: () => void;
 	close: () => void = () => {};
@@ -28,7 +34,8 @@ export class RoomFormComponent implements OnInit {
 
 	ngOnInit(): void {
 		this.typeOptions = this.room ? this.typeNames : this.types.map((t) => t.name);
-		this.typeName.set(this.room?.type ?? this.types[0]?.name ?? '');
+		const initial = this.typeOptions.includes(this.initialType) ? this.initialType : '';
+		this.typeName.set(initial || (this.room?.type ?? this.types[0]?.name ?? ''));
 	}
 
 	protected async submit(number: string, floor: number, capacity: number, price: number, area: number): Promise<void> {

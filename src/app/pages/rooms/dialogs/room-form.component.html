@@ -8,25 +8,28 @@
 	>
 		<label [class.full]="!!room">
 			Номер / назва
-			<input #numberInput name="number" required maxlength="8" placeholder="101" [value]="room?.number ?? ''" [readOnly]="!!room" />
+			<input #numberInput name="number" required maxlength="8" placeholder="101" [value]="room?.number ?? draft.number ?? ''" [readOnly]="!!room" />
 		</label>
-		@if (typeOptions.length) {
-			<label [class.full]="!!room">
-				Тип
-				<select name="type" (change)="typeName.set($any($event.target).value)">
-					@for (t of typeOptions; track t) {
-						<option [selected]="t === typeName()">{{ t }}</option>
-					}
-				</select>
-			</label>
-		} @else {
-			<label>
-				Тип номера
-				<input name="type" required maxlength="50" placeholder="Стандарт" (input)="typeName.set($any($event.target).value)" />
-			</label>
-			<p class="full crm-note">Це перший номер: тип буде створено разом із ним. Інші типи можна додати в «Типи номерів».</p>
+		<label [class.full]="!!room">
+			Тип номера
+			<select name="type" [disabled]="!typeOptions.length" (change)="typeName.set($any($event.target).value)">
+				@for (t of typeOptions; track t) {
+					<option [selected]="t === typeName()">{{ t }}</option>
+				} @empty {
+					<option>Типів ще немає</option>
+				}
+			</select>
+		</label>
+		@if (createType) {
+			@if (typeOptions.length) {
+				<button class="crm-link full" type="button" (click)="createType({ number: numberInput.value, floor: floorInput.valueAsNumber })">
+					+ Новий тип
+				</button>
+			} @else {
+				<p class="full crm-note">Спершу створіть тип номера: від нього номер отримає місткість, ціну та зручності.</p>
+			}
 		}
-		<label>Поверх<input #floorInput name="floor" type="number" step="1" [value]="room?.floor ?? 1" /></label>
+		<label>Поверх<input #floorInput name="floor" type="number" step="1" [value]="room?.floor ?? draft.floor ?? 1" /></label>
 		<label>
 			Місткість (дорослі)
 			<input #capacityInput name="capacity" type="number" min="1" step="1" [value]="room?.capacity ?? d?.capacity ?? 2" />
@@ -42,7 +45,13 @@
 		@if (error()) {
 			<p class="full crm-error" role="alert">{{ error() }}</p>
 		}
-		<button class="crm-button primary full" type="submit" [disabled]="saving()">{{ room ? 'Зберегти' : 'Додати номер' }}</button>
+		@if (typeOptions.length) {
+			<button class="crm-button primary full" type="submit" [disabled]="saving()">{{ room ? 'Зберегти' : 'Додати номер' }}</button>
+		} @else if (createType) {
+			<button class="crm-button primary full" type="button" (click)="createType({ number: numberInput.value, floor: floorInput.valueAsNumber })">
+				Створити тип номера
+			</button>
+		}
 		@if (room && remove) {
 			<button class="crm-link danger full" type="button" (click)="remove()">Видалити номер</button>
 		}
